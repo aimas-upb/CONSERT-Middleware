@@ -38,7 +38,8 @@ public class Server2 extends AbstractVerticle {
 		
 		Server2.router.route().handler(BodyHandler.create());
 		
-		Server2.router.get("/ask-server1").handler(this::handleAskServer1);
+		Server2.router.get("/whiskies").handler(this::handleGetAll);
+		Server2.router.get("/whiskies/:id").handler(this::handleGetOne);
 		
 		Server2.vertx.createHttpServer()
 			.requestHandler(Server2.router::accept)
@@ -51,8 +52,8 @@ public class Server2 extends AbstractVerticle {
 			});
 	}
 	
-	// Handler for the "/ask-server1" route
-	private void handleAskServer1(RoutingContext rtCtx) {
+	// Handler for the "/whiskies" route
+	private void handleGetAll(RoutingContext rtCtx) {
 		
 		// Dynamically create route
 		String dynRouteName = "/" + UUID.randomUUID().toString();
@@ -69,31 +70,39 @@ public class Server2 extends AbstractVerticle {
 			.putHeader("content-type", "text/plain")
 			.setStatusCode(200)
 			.end(Server2.ADRESS + ":" + Server2.LISTENING_PORT + dynRouteName);
+	}
+	
+	// Handler for the "/whiskies/:id" route
+	private void handleGetOne(RoutingContext rtCtx) {
 		
-		
-		/*
-		// Get message from Server1
-		HttpClient client = Server2.vertx.createHttpClient();
-		client.get(this.SERVER1_PORT, this.SERVER1_HOST, this.REQUEST_URI, new Handler<HttpClientResponse>() {
+		// Dynamically create route
+		String dynRouteName = "/" + UUID.randomUUID().toString();
+
+		Server2.router.get(dynRouteName).handler(respRtCtx -> {
 			
-			@Override
-			public void handle(HttpClientResponse resp) {
+			String id = rtCtx.request().getParam("id");
+			
+			if (id == null) {
+				respRtCtx.response().setStatusCode(400).end();
+			} else {
+				Whisky whisky = this.products.get(Integer.parseInt(id));
 				
-				resp.bodyHandler(new Handler<Buffer>() {
-					
-					@Override
-					public void handle(Buffer buffer) {
-						
-						// Return received message
-						HttpServerResponse response = rtCtx.response();
-						response.putHeader("content-type", "text/plain")
-							.setStatusCode(200)  // 200 by default
-							.end("Server1 replied: " + buffer.getString(0, buffer.length()));
-					}
-				});
+				if (whisky == null) {
+					respRtCtx.response().setStatusCode(404).end();
+				} else {
+					respRtCtx.response()
+						.putHeader("content-type", "application/json; charset=utf-8")
+						.setStatusCode(200)
+						.end(Json.encodePrettily(whisky));
+				}
 			}
-		}).end();
-		*/
+		});
+		
+		// Send the URI of the dynamically created route
+		rtCtx.response()
+			.putHeader("content-type", "text/plain")
+			.setStatusCode(200)
+			.end(Server2.ADRESS + ":" + Server2.LISTENING_PORT + dynRouteName);
 	}
 	
 	private void createData() {

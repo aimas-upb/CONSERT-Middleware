@@ -22,7 +22,7 @@ public class Server1 extends AbstractVerticle {
 	
 	private final int SERVER2_PORT = 8081;
 	private final String SERVER2_HOST = "127.0.0.1";
-	private final String REQUEST_URI = "/ask-server1";
+	private final String REQUEST_URI = "/whiskies";
 
 	public static void main(String[] args) {
 		
@@ -35,6 +35,7 @@ public class Server1 extends AbstractVerticle {
 		Router router = Router.router(Server1.vertx);
 		
 		router.get("/").handler(this::handle);
+		router.get("/:id").handler(this::handleGetOne);
 		
 		Server1.vertx.createHttpServer()
 			.requestHandler(router::accept)
@@ -53,6 +54,29 @@ public class Server1 extends AbstractVerticle {
 		// Receive the URI of the dynamically created route
 		HttpClient client = Server1.vertx.createHttpClient();
 		client.get(this.SERVER2_PORT, this.SERVER2_HOST, this.REQUEST_URI, new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+					
+					@Override
+					public void handle(Buffer buffer) {
+						
+						getDynRoute(rtCtx, buffer);
+					}
+				});
+			}
+		}).end();
+	}
+	
+	// Handler for the "/:id" route
+	private void handleGetOne(RoutingContext rtCtx) {
+		
+		// Receive the URI of the dynamically created route
+		HttpClient client = Server1.vertx.createHttpClient();
+		client.get(this.SERVER2_PORT, this.SERVER2_HOST, this.REQUEST_URI + "/" + rtCtx.request().getParam("id"),
+				new Handler<HttpClientResponse>() {
 			
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -96,7 +120,7 @@ public class Server1 extends AbstractVerticle {
 						
 						// Return received message						
 						HttpServerResponse response = rtCtx.response();
-						response.putHeader("content-type", "text/plain")
+						response.putHeader("content-type", "text/plain; charset=utf-8")
 							.setStatusCode(200)  // 200 by default
 							.end("Got from URI " + dynRouteURI + ":\n" + buffer.toString() + "\n");
 					}
