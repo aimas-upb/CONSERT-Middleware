@@ -1,4 +1,4 @@
-package org.aimas.rest_test;
+package org.aimas.consert_middleware;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

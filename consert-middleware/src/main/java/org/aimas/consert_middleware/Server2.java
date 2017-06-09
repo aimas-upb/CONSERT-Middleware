@@ -1,13 +1,19 @@
-package org.aimas.rest_test;
+package org.aimas.consert_middleware;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
+/**
+ * Server that gives access to data through a dynamically created URI
+ */
 public class Server2 extends AbstractVerticle {
 	
 	public static final String ADRESS = "127.0.0.1";
@@ -16,6 +22,8 @@ public class Server2 extends AbstractVerticle {
 	
 	private static Vertx vertx = Vertx.vertx();
 	private static Router router = Router.router(Server2.vertx);
+	
+	private Map<Integer, Whisky> products;
 
 	
 	public static void main(String[] args) {
@@ -25,6 +33,8 @@ public class Server2 extends AbstractVerticle {
 	
 	@Override
 	public void start() {
+		
+		createData();
 		
 		Server2.router.route().handler(BodyHandler.create());
 		
@@ -49,9 +59,9 @@ public class Server2 extends AbstractVerticle {
 
 		Server2.router.get(dynRouteName).handler(respRtCtx -> {
 			respRtCtx.response()
-				.putHeader("content-type", "text/plain")
+				.putHeader("content-type", "application/json; charset=utf-8")
 				.setStatusCode(200)
-				.end("resource");
+				.end(Json.encodePrettily(this.products.values()));
 		});
 		
 		// Send the URI of the dynamically created route
@@ -84,5 +94,15 @@ public class Server2 extends AbstractVerticle {
 			}
 		}).end();
 		*/
+	}
+	
+	private void createData() {
+		
+		this.products = new HashMap<Integer, Whisky>();
+		
+		Whisky bowmore = new Whisky("Bowmore 15 Years Laimrig", "Scotland, Islay");
+		this.products.put(bowmore.getId(), bowmore);
+		Whisky talisker = new Whisky("Talisker 57° North", "Scotland, Island");
+	  	this.products.put(talisker.getId(), talisker);
 	}
 }

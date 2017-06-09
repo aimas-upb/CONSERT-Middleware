@@ -1,4 +1,4 @@
-package org.aimas.rest_test;
+package org.aimas.consert_middleware;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
@@ -10,6 +10,9 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Server that asks Server2 to send it an URI, giving access to data
+ */
 public class Server1 extends AbstractVerticle {
 	
 	public static final int LISTENING_PORT = 8080;
@@ -79,6 +82,7 @@ public class Server1 extends AbstractVerticle {
 		int port = Integer.parseInt(splittedURI[1].substring(0, beginRoute));
 		String route = splittedURI[1].substring(beginRoute);
 		
+		// Get data from the given URI
 		HttpClient client = Server1.vertx.createHttpClient();
 		client.get(port, host, route, new Handler<HttpClientResponse>() {
 			
@@ -90,11 +94,11 @@ public class Server1 extends AbstractVerticle {
 					@Override
 					public void handle(Buffer buffer) {
 						
-						// Return received message
+						// Return received message						
 						HttpServerResponse response = rtCtx.response();
 						response.putHeader("content-type", "text/plain")
 							.setStatusCode(200)  // 200 by default
-							.end("Got '" + buffer.getString(0, buffer.length()) + "' from URI " + dynRouteURI);
+							.end("Got from URI " + dynRouteURI + ":\n" + buffer.toString() + "\n");
 					}
 				});
 			}
