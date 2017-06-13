@@ -48,6 +48,7 @@ public class Participant extends AbstractVerticle {
 		router.get("/user_short_query").handler(this::handleUserShortQuery);
 		
 		router.post("/resources").handler(this::handleCreateResource);
+		router.get("/resources").handler(this::handleGetAllResources);
 		router.get("/resources/:uuid").handler(this::handleGetResource);
 		router.put("/resources/:uuid").handler(this::handleUpdateResource);
 		router.delete("/resources/:uuid").handler(this::handleDeleteResource);
@@ -177,6 +178,19 @@ public class Participant extends AbstractVerticle {
 		
 		// Reply with generated UUID for the new resource
 		rtCtx.response().setStatusCode(201).putHeader("content-type", "text/plain").end(resourceUUID.toString());
+	}
+	
+	/**
+	 * Handler for the "GET /resources" route
+	 * @param rtCtx context for the handled request
+	 */
+	private void handleGetAllResources(RoutingContext rtCtx) {
+		
+		// Send resources
+		rtCtx.response()
+			.putHeader("content-type", "application/json; charset=utf-8")
+			.setStatusCode(200)
+			.end(Json.encodePrettily(this.resources));
 	}
 	
 	/**

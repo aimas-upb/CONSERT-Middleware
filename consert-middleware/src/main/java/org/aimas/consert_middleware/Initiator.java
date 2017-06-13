@@ -144,7 +144,8 @@ public class Initiator extends AbstractVerticle {
 
 							@Override
 							public void handle(HttpClientResponse event) {
-							}}).end();
+							}
+						}).end();
 					}
 				});
 			}
