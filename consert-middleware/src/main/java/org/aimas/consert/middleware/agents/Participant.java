@@ -1,8 +1,12 @@
-package org.aimas.consert.middleware;
+package org.aimas.consert.middleware.agents;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.aimas.consert.middleware.protocol.RequestBean;
+import org.aimas.consert.middleware.protocol.RequestResource;
+import org.aimas.consert.middleware.protocol.RequestState;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;

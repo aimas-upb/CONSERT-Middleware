@@ -1,4 +1,7 @@
-package org.aimas.consert.middleware;
+package org.aimas.consert.middleware.agents;
+
+import org.aimas.consert.middleware.protocol.RequestBean;
+import org.aimas.consert.middleware.protocol.RequestResource;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;

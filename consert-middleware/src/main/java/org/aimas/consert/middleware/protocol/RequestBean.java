@@ -1,4 +1,4 @@
-package org.aimas.consert.middleware;
+package org.aimas.consert.middleware.protocol;
 
 public class RequestBean {
 	private String initiatorURI;

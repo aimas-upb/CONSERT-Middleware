@@ -1,4 +1,4 @@
-package org.aimas.consert.middleware;
+package org.aimas.consert.middleware.protocol;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
