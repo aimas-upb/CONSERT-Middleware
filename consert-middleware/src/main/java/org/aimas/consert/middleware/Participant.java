@@ -1,4 +1,4 @@
-package org.aimas.consert_middleware;
+package org.aimas.consert.middleware;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package org.aimas.consert_middleware;
+package org.aimas.consert.middleware;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;

@@ -1,4 +1,4 @@
-package org.aimas.consert_middleware;
+package org.aimas.consert.middleware;
 
 /**
  * Bean class for example with whisky
