@@ -57,7 +57,8 @@ public class CtxSensor extends AbstractVerticle {
 			.requestHandler(router::accept)
 			.listen(this.agentConfig.getPort(), this.host, res -> {
 				if (res.succeeded()) {
-					System.out.println("Started CtxSensor on port " + this.agentConfig.getPort() + " host " + this.host);
+					System.out.println("Started CtxSensor on port " + this.agentConfig.getPort() + " host " +
+						this.host);
 				} else {
 					System.out.println("Failed to start CtxSensor on port " + this.agentConfig.getPort() + " host " +
 						this.host);

@@ -34,7 +34,7 @@ public class CtxQueryHandler extends AbstractVerticle {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterSensing(vertx);
+		this.router = routeConfig.createRouterDissemination(vertx);
 		
 		// Read configuration
 		try {
@@ -57,10 +57,11 @@ public class CtxQueryHandler extends AbstractVerticle {
 			.requestHandler(router::accept)
 			.listen(this.agentConfig.getPort(), this.host, res -> {
 				if (res.succeeded()) {
-					System.out.println("Started server on port " + this.agentConfig.getPort() + " host " + this.host);
-				} else {
-					System.out.println("Failed to start server on port " + this.agentConfig.getPort() + " host " +
+					System.out.println("Started CtxQueryHandler on port " + this.agentConfig.getPort() + " host " +
 						this.host);
+				} else {
+					System.out.println("Failed to CtxQueryHandler server on port " + this.agentConfig.getPort() +
+						" host " + this.host);
 				}
 			});
 	}

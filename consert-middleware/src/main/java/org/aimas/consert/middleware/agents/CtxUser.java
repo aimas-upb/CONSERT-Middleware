@@ -35,7 +35,7 @@ public class CtxUser extends AbstractVerticle {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterSensing(vertx);
+		this.router = routeConfig.createRouterUsage(vertx);
 		
 		// Read configuration
 		try {
@@ -59,9 +59,9 @@ public class CtxUser extends AbstractVerticle {
 			.requestHandler(router::accept)
 			.listen(this.agentConfig.getPort(), this.host, res -> {
 				if (res.succeeded()) {
-					System.out.println("Started server on port " + this.agentConfig.getPort() + " host " + this.host);
+					System.out.println("Started CtxUser on port " + this.agentConfig.getPort() + " host " + this.host);
 				} else {
-					System.out.println("Failed to start server on port " + this.agentConfig.getPort() + " host " +
+					System.out.println("Failed to start CtxUser on port " + this.agentConfig.getPort() + " host " +
 						this.host);
 				}
 			});
