@@ -1,18 +1,40 @@
 package org.aimas.consert.middleware.protocol;
 
+import org.aimas.consert.middleware.agents.OrgMgr;
+
 import io.vertx.ext.web.RoutingContext;
 
-public abstract class RouteConfigV1Management extends RouteConfigV1 {
+public class RouteConfigV1Management extends RouteConfigV1 {
 	
-	public static void handlePostCtxAgents(RoutingContext rtCtx) {
+	private OrgMgr orgMgr;
+	
+	
+	public RouteConfigV1Management(OrgMgr orgMgr) {
+		this.orgMgr = orgMgr;
+	}
+	
+	
+	/**
+	 * POST register agent
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostCtxAgents(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handleGetFindCoord(RoutingContext rtCtx) {
+	/**
+	 * GET find coordinator
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetFindCoord(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handleGetFindQueryHandler(RoutingContext rtCtx) {
+	/**
+	 * GET find query handler
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetFindQueryHandler(RoutingContext rtCtx) {
 		// TODO
 	}
 }

@@ -1,69 +1,139 @@
 package org.aimas.consert.middleware.protocol;
 
+import org.aimas.consert.middleware.agents.CtxCoord;
+
 import io.vertx.ext.web.RoutingContext;
 
-public abstract class RouteConfigV1Coordination extends RouteConfigV1 {
+public class RouteConfigV1Coordination extends RouteConfigV1 {
 	
-	public static void handlePostCtxAsserts(RoutingContext rtCtx) {
-		// TODO
-	}
+	private CtxCoord ctxCoord;
 	
-	public static void handleGetCtxAsserts(RoutingContext rtCtx) {
-		// TODO
-	}
 	
-	public static void handleGetCtxAssert(RoutingContext rtCtx) {
-		// TODO
-	}
-	
-	public static void handlePutCtxAssert(RoutingContext rtCtx) {
-		// TODO
-	}
-	
-	public static void handleDeleteCtxAssert(RoutingContext rtCtx) {
-		// TODO
+	public RouteConfigV1Coordination(CtxCoord ctxCoord) {
+		this.ctxCoord = ctxCoord;
 	}
 	
 	
-	public static void handlePostAssertCapSubs(RoutingContext rtCtx) {
+	/**
+	 * POST publish assertion capability
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostCtxAsserts(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handleGetAssertCapSub(RoutingContext rtCtx) {
+	/**
+	 * GET list assertion capabilities
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetCtxAsserts(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handlePutAssertCapSub(RoutingContext rtCtx) {
+	/**
+	 * GET list assertion capability
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetCtxAssert(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handleDeleteCapSub(RoutingContext rtCtx) {
+	/**
+	 * PUT update assertion capability
+	 * @param rtCtx the routing context
+	 */
+	public void handlePutCtxAssert(RoutingContext rtCtx) {
+		// TODO
+	}
+	
+	/**
+	 * DELETE delete assertion capability
+	 * @param rtCtx the routing context
+	 */
+	public void handleDeleteCtxAssert(RoutingContext rtCtx) {
 		// TODO
 	}
 	
 	
-	public static void handlePostInsCtxAssert(RoutingContext rtCtx) {
+	/**
+	 * POST subscribe for assertion capability
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostAssertCapSubs(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handlePostInsEntityDescs(RoutingContext rtCtx) {
+	/**
+	 * GET inspect assertion capability subscription
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetAssertCapSub(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handlePostUpdateEntDescs(RoutingContext rtCtx) {
+	/**
+	 * PUT update assertion capability subscription
+	 * @param rtCtx the routing context
+	 */
+	public void handlePutAssertCapSub(RoutingContext rtCtx) {
+		// TODO
+	}
+	
+	/**
+	 * DELETE unsubscribe for assertion capability
+	 * @param rtCtx the routing context
+	 */
+	public void handleDeleteCapSub(RoutingContext rtCtx) {
+		// TODO
+	}
+	
+	
+	/**
+	 * POST create ContextAssertion instance
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostInsCtxAssert(RoutingContext rtCtx) {
+		// TODO
+	}
+	
+	/**
+	 * POST static context insertion
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostInsEntityDescs(RoutingContext rtCtx) {
+		// TODO
+	}
+	
+	/**
+	 * POST static context update
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostUpdateEntDescs(RoutingContext rtCtx) {
 		// TODO
 	}
 	
 
-	public static void handlePostActivateCtxAssert(RoutingContext rtCtx) {
+	/**
+	 * POST activate ContextAssertionInstance
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostActivateCtxAssert(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handlePostRegQueryHandler(RoutingContext rtCtx) {
+	/**
+	 * POST register query handler
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostRegQueryHandler(RoutingContext rtCtx) {
 		// TODO
 	}
 	
-	public static void handlePostUnregQueryHandler(RoutingContext rtCtx) {
+	/**
+	 * POST unregister query handler
+	 * @param rtCtx the routing context
+	 */
+	public void handlePostUnregQueryHandler(RoutingContext rtCtx) {
 		// TODO
 	}
 }

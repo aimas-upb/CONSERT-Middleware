@@ -34,7 +34,7 @@ public class CtxSensor extends AbstractVerticle {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterSensing(vertx);
+		this.router = routeConfig.createRouterSensing(vertx, this);
 		
 		// Read configuration
 		try {

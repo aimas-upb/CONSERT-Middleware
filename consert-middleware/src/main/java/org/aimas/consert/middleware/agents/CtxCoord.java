@@ -35,7 +35,7 @@ public class CtxCoord extends AbstractVerticle {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterCoordination(vertx);
+		this.router = routeConfig.createRouterCoordination(vertx, this);
 		
 		// Read configuration
 		try {

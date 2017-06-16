@@ -34,7 +34,7 @@ public class CtxQueryHandler extends AbstractVerticle {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterDissemination(vertx);
+		this.router = routeConfig.createRouterDissemination(vertx, this);
 		
 		// Read configuration
 		try {

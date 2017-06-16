@@ -31,7 +31,7 @@ public class OrgMgr extends AbstractVerticle {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterManagement(vertx);
+		this.router = routeConfig.createRouterManagement(vertx, this);
 		
 		// Read configuration
 		try {
