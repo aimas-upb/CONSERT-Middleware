@@ -9,6 +9,9 @@ import org.aimas.consert.middleware.agents.OrgMgr;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
+/**
+ * Defines the configuration of a router for version 1
+ */
 public class RouteConfigV1 extends RouteConfig {
 	
 	public static final String VERSION_ROUTE = "/v1";

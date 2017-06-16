@@ -4,9 +4,12 @@ import org.aimas.consert.middleware.agents.CtxQueryHandler;
 
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Defines the routes for a CtxQueryHandler agent in version 1
+ */
 public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
-	private CtxQueryHandler ctxQueryHandler;
+	private CtxQueryHandler ctxQueryHandler;  // the agent that can be accessed with the defined routes
 	
 	
 	public RouteConfigV1Dissemination(CtxQueryHandler ctxQueryHandler) {

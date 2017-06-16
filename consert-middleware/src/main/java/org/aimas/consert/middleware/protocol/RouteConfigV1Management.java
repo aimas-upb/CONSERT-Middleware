@@ -4,9 +4,12 @@ import org.aimas.consert.middleware.agents.OrgMgr;
 
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Defines the routes for an OrgMgr agent in version 1
+ */
 public class RouteConfigV1Management extends RouteConfigV1 {
 	
-	private OrgMgr orgMgr;
+	private OrgMgr orgMgr;  // the agent that can be accessed with the defined routes
 	
 	
 	public RouteConfigV1Management(OrgMgr orgMgr) {

@@ -12,17 +12,17 @@ import io.vertx.ext.web.Router;
 
 public class CtxCoord extends AbstractVerticle {
 
-	private final String CONFIG_FILE = "agents.properties";
+	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
 	
-	private static Vertx vertx = Vertx.vertx(); // Vertx instance
-	private Router router;
+	private static Vertx vertx = Vertx.vertx();  // Vertx instance
+	private Router router;                       // router for communication with this agent
 	
-	private AgentConfig agentConfig;
-	private String host;
+	private AgentConfig agentConfig;  // configuration values for this agent
+	private String host;              // where this agent is hosted
 	
-	private AgentConfig ctxSensor;
-	private AgentConfig ctxUser;
-	private AgentConfig orgMgr;
+	private AgentConfig ctxSensor;  // configuration to communicate with the CtxSensor agent
+	private AgentConfig ctxUser;    // configuration to communicate with the CtxUser agent
+	private AgentConfig orgMgr;     // configuration to communicate with the OrgMgr agent
 	
 	
 	public static void main(String[] args) {

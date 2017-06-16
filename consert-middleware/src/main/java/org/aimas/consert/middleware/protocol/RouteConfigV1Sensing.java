@@ -4,9 +4,12 @@ import org.aimas.consert.middleware.agents.CtxSensor;
 
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Defines the routes for a CtxSensor agent in version 1
+ */
 public class RouteConfigV1Sensing extends RouteConfigV1 {
 	
-	private CtxSensor ctxSensor;
+	private CtxSensor ctxSensor;  // the agent that can be accessed with the defined routes
 	
 	
 	public RouteConfigV1Sensing(CtxSensor ctxSensor) {
