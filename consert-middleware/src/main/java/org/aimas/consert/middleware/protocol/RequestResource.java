@@ -1,4 +1,4 @@
-package org.aimas.consert_middleware;
+package org.aimas.consert.middleware.protocol;
 
 /**
  * Bean class for resource containing required information to make stateless REST calls

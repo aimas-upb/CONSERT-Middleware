@@ -1,4 +1,4 @@
-package org.aimas.consert_middleware;
+package org.aimas.consert.middleware.protocol;
 
 /**
  * Enumeration which describes the state of a request
