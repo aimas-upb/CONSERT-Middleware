@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/space#"
+    xmlns:tme="http://pervasive.semanticweb.org/ont/2004/06/time#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:pol="http://pervasive.semanticweb.org/ont/2004/06/policy#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:geom="http://pervasive.semanticweb.org/ont/2004/06/geo-measurement#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/space">
+  <owl:Ontology rdf:about="">
+    <owl:versionInfo>cvs:$Revision: 1.3 $, $Date: 2004/03/07 17:33:18 $</owl:versionInfo>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/policy"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/geo-measurement"/>
+    <rdfs:comment></rdfs:comment>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
+    <rdfs:label>SOUPA Space Ontology</rdfs:label>
+  </owl:Ontology>
+  <owl:Class rdf:ID="FixedStructure">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="GeographicalRegion"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="GeographicalSpace"/>
+    </rdfs:subClassOf>
+    <rdfs:label>FixedStructure</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="MovableSpatialThing">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:Class>
+  <owl:Class rdf:ID="LandBasedRegion">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#GeographicalRegion"/>
+    </rdfs:subClassOf>
+    <rdfs:label>LandBasedRegion</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="SpaceInAFixedStructure">
+    <owl:disjointWith rdf:resource="#FixedStructure"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#GeographicalRegion"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#GeographicalSpace"/>
+    </rdfs:subClassOf>
+    <rdfs:label>SpaceInAFixedStructure</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="WaterBasedRegion">
+    <owl:disjointWith rdf:resource="#LandBasedRegion"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#GeographicalRegion"/>
+    </rdfs:subClassOf>
+    <rdfs:label>WaterBasedRegion</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="SpatialThing">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:minCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:minCardinality>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="hasCoordinates"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label>SpatialThing</rdfs:label>
+    <owl:unionOf rdf:parseType="Collection">
+      <owl:Class rdf:about="#GeographicalSpace"/>
+      <owl:Class rdf:about="#MovableSpatialThing"/>
+    </owl:unionOf>
+  </owl:Class>
+  <owl:Class rdf:about="#GeographicalRegion">
+    <owl:unionOf rdf:parseType="Collection">
+      <owl:Class rdf:about="#LandBasedRegion"/>
+      <owl:Class rdf:about="#WaterBasedRegion"/>
+    </owl:unionOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#GeographicalSpace"/>
+    </rdfs:subClassOf>
+    <rdfs:label>GeographicalRegion</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="GeopoliticalEntity">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:label>GeopoliticalEntity</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#GeographicalSpace">
+    <owl:disjointWith rdf:resource="#MovableSpatialThing"/>
+    <owl:unionOf rdf:parseType="Collection">
+      <owl:Class rdf:about="#GeographicalRegion"/>
+      <owl:Class rdf:about="#FixedStructure"/>
+      <owl:Class rdf:about="#SpaceInAFixedStructure"/>
+    </owl:unionOf>
+    <rdfs:subClassOf rdf:resource="#SpatialThing"/>
+    <rdfs:label>GeographicalSpace</rdfs:label>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="definesPolicy">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#GeopoliticalEntity"/>
+    <rdfs:label>definesPolicy</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/policy#Policy"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="spatiallySubsumedBy">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>spatiallySubsumedBy</rdfs:label>
+    <rdfs:domain rdf:resource="#GeographicalSpace"/>
+    <rdfs:range rdf:resource="#GeographicalSpace"/>
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:ID="spatiallySubsumes"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="controlledBy">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:label>controlledBy</rdfs:label>
+    <rdfs:domain rdf:resource="#GeographicalSpace"/>
+    <rdfs:range rdf:resource="#GeopoliticalEntity"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="controls"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasCoordinates">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:domain rdf:resource="#SpatialThing"/>
+    <rdfs:label>hasCoordinates</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/geo-measurement#LocationCoordinates"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#controls">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:domain rdf:resource="#GeopoliticalEntity"/>
+    <rdfs:label>controls</rdfs:label>
+    <rdfs:range rdf:resource="#GeographicalSpace"/>
+  </owl:ObjectProperty>
+  <owl:DatatypeProperty rdf:ID="name">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+    <rdfs:domain rdf:resource="#GeographicalSpace"/>
+    <rdfs:label>name</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  </owl:DatatypeProperty>
+  <owl:TransitiveProperty rdf:about="#spatiallySubsumes">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+    <rdfs:range rdf:resource="#GeographicalSpace"/>
+    <rdfs:domain rdf:resource="#GeographicalSpace"/>
+    <rdfs:label>spatiallySubsumes</rdfs:label>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:FunctionalProperty rdf:ID="officialName">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#GeopoliticalEntity"/>
+    <rdfs:label>officialName</rdfs:label>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+  </owl:FunctionalProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

@@ -1,0 +1,468 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:contextannotation="http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#"
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns="http://pervasive.semanticweb.org/ont/2014/05/consert/constraint#"
+    xmlns:sp="http://spinrdf.org/sp#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spl="http://spinrdf.org/spl#"
+  xml:base="http://pervasive.semanticweb.org/ont/2014/05/consert/constraint">
+  <owl:Ontology rdf:about="">
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >1.0</owl:versionInfo>
+    <owl:imports rdf:resource="http://spinrdf.org/spl"/>
+    <dc:date>2014-07-15</dc:date>
+    <dc:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CONSERT Ontology Constraint Module</dc:title>
+    <dc:creator>Alexandru Sorici</dc:creator>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >This document presents the constraint module of the  CONSERT Ontology. It builds a context meta-model vocabulary with which integrity, uniqueness and value constraint violations can be expressed. 
+
+The classes and properties it defines provide all the required information to identify the type and instance UUID of the conflicting ContextAssertions, as well as the SPARQL-encoded rule template that triggered the violation.</rdfs:comment>
+  </owl:Ontology>
+  <rdfs:Class rdf:ID="ContextConstraintTemplate">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Metaclass for CONSTRUCT templates that create :ContextConstraintViolations and can be used as values of spin:contextconstraint.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextConstraintTemplate</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://spinrdf.org/spl#ConstraintTemplate"/>
+  </rdfs:Class>
+  <owl:Class rdf:ID="UniquenessConstraintViolation">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >UniquenessConstraintViolation</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="ContextConstraintViolation"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="hasConflictingAssertion"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >2</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class denoting a uniqueness constraint violation.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="ConflictingAssertion">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ConflictingAssertion</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class that groupes together the type and instance information for the ContextAssertion instances that make up a violation.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="IntegrityConstraintViolation">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >2</owl:cardinality>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasConflictingAssertion"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >IntegrityConstraintViolation</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#ContextConstraintViolation"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class denoting an integrity constraint violation.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="ValueConstraintViolation">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#ContextConstraintViolation"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasConflictingAssertion"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class denoting a value constraint violation.</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#ContextConstraintViolation">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextConstraintViolation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >An object that can be created by the CONSTRUCT expression of a ContextConstraintTemplate instance to provide information about an Integrity, Uniqueness or Value constraint violation.</rdfs:comment>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="hasAssertionInstance">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the URI Resource specifying the Named Graph UUID of the ContextAssertion instance which lies in conflict.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:domain rdf:resource="#ConflictingAssertion"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasAssertionInstance</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasConflictAnnotationValue">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasConflictAssertionValue</rdfs:label>
+    <rdfs:domain rdf:resource="#ValueConstraintViolation"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of a ValueConstraintViolation instance that identifies the ContextAnnotation value of a ContextAssertion which violates the defined value constraint.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasConflictAssertionValue">
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasConflictAssertionValue</rdfs:label>
+    <rdfs:domain rdf:resource="#ValueConstraintViolation"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of a ValueConstraintViolation instance that identifies the ContextEntity value of a ContextAssertion which violates the defined value constraint.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasConflictingAssertion">
+    <rdfs:range rdf:resource="#ConflictingAssertion"/>
+    <rdfs:domain rdf:resource="#ContextConstraintViolation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasConflictingAssertion</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of a ContextConstraintViolation instance that identifies a conflicting ContextAssertion.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasAssertionType">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that indicates the URI Resource denoting the type of the ContextAssertion that lies in conflict.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:domain rdf:resource="#ConflictingAssertion"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasAssertionType</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasSourceTemplate">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSourceTemplate</rdfs:label>
+    <rdfs:range rdf:resource="#ContextConstraintTemplate"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The property that relates a ContextConstraintViolation to the context constraint template that triggered it.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextConstraintViolation"/>
+  </owl:ObjectProperty>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#anchorResource">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#parentRole">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#triggerAssertionUUID">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/spin#contextconstraint">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Links a ContextAssertion with constraints on its instances. The values of this property are "axioms" expressed as CONSTRUCT queries where the variable ?this refers to the instances of the surrounding class. If the ContextAssertion is unary or nary, the surrounding class is the one defining the assertion. If it is a binary ContextAssertion, the class to which the spin:contextconstraint binds is that of one of the domain or range ContextEntities that compose this ContextAssertion.
+The CONSTRUCT query must create instances of ContextConstraintViolation to provide details on the reason for the violation.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >spin:contextconstraint</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/spin#constraint"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#triggerAssertionType">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#childRole">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <ContextConstraintTemplate rdf:ID="IntegrityConstraintTemplates">
+    <spin:abstract rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</spin:abstract>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >IntegrityConstraintTemplates</spin:labelTemplate>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >IntegrityConstraintTemplates</rdfs:label>
+    <rdfs:subClassOf>
+      <ContextConstraintTemplate rdf:ID="ContextConstraintTemplates">
+        <spin:constraint>
+          <spl:Argument>
+            <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+            <spl:predicate rdf:resource="http://spinrdf.org/arg#anchorResource"/>
+          </spl:Argument>
+        </spin:constraint>
+        <spin:constraint>
+          <spl:Argument>
+            <spl:optional rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</spl:optional>
+            <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+            <spl:predicate rdf:resource="http://spinrdf.org/arg#triggerAssertionType"/>
+          </spl:Argument>
+        </spin:constraint>
+        <spin:constraint>
+          <spl:Argument>
+            <spl:optional rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+            >true</spl:optional>
+            <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+            <spl:predicate rdf:resource="http://spinrdf.org/arg#triggerAssertionUUID"/>
+          </spl:Argument>
+        </spin:constraint>
+        <rdfs:subClassOf rdf:resource="http://spinrdf.org/spl#ConstraintTemplates"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >ContextConstraintTemplates</rdfs:label>
+        <spin:abstract rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</spin:abstract>
+        <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >ContextConstraintTemplates</spin:labelTemplate>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Abstract superclass of ContextConstraints that can be used values for the spin:contextconstraints property. The subclasses are expected to construct :ContextConstraintViolations and use ?this to talk about the instances of the associated ContextAssertion (for unary and n-ary assertions) or ContextEntity (for binary assertions) class.</rdfs:comment>
+      </ContextConstraintTemplate>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class template for CONSTRUCT queries that define an integrity constraint violation. The subclasses are expected to construct instances of :IntegrityConstraintViolation.</rdfs:comment>
+  </ContextConstraintTemplate>
+  <spl:ConstraintTemplate rdf:ID="NaryAssertionInheritanceConstraint">
+    <rdfs:subClassOf rdf:resource="http://spinrdf.org/spl#ConstraintTemplates"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >NaryAssertionInheritanceConstraint</rdfs:label>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >NaryAssertionInheritanceConstraint</spin:labelTemplate>
+    <spin:body>
+      <sp:Construct>
+        <sp:where rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >restriction</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >restriction</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2002/07/owl#onProperty"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >roleProp</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >restriction</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2002/07/owl#allValuesFrom"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >roleEntity</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >roleProp</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subPropertyOf"/>
+            <sp:object rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionRole"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentAssertion</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentAssertion</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRestriction</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRestriction</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2002/07/owl#onProperty"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRoleProp</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRestriction</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2002/07/owl#allValuesFrom"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRoleEntity</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >roleEntity</sp:varName>
+            </sp:subject>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subClassOf"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRoleEntity</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <sp:Filter>
+            <sp:expression>
+              <sp:and>
+                <sp:arg1>
+                  <sp:ne>
+                    <sp:arg1 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >roleProp</sp:varName>
+                    </sp:arg1>
+                    <sp:arg2 rdf:parseType="Resource">
+                      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                      >parentRoleProp</sp:varName>
+                    </sp:arg2>
+                  </sp:ne>
+                </sp:arg1>
+                <sp:arg2>
+                  <sp:notExists>
+                    <sp:elements rdf:parseType="Collection">
+                      <rdf:Description>
+                        <sp:subject rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >roleProp</sp:varName>
+                        </sp:subject>
+                        <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subPropertyOf"/>
+                        <sp:object rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >parentRoleProp</sp:varName>
+                        </sp:object>
+                      </rdf:Description>
+                    </sp:elements>
+                  </sp:notExists>
+                </sp:arg2>
+              </sp:and>
+            </sp:expression>
+          </sp:Filter>
+        </sp:where>
+        <sp:templates rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A0"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:object rdf:resource="http://spinrdf.org/spin#ConstraintViolation"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A0"/>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#label"/>
+            <sp:object>The role property of a subclass of an NaryContextAssertion must be a subProperty of the  corresponding assertionRole property of its parent.</sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A0"/>
+            <sp:predicate rdf:resource="http://spinrdf.org/spin#violationRoot"/>
+            <sp:object rdf:resource="http://spinrdf.org/spin#_this"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A0"/>
+            <sp:predicate rdf:resource="http://spinrdf.org/spin#violationPath"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >roleProp</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A0"/>
+            <sp:predicate rdf:resource="http://spinrdf.org/spin#fix"/>
+            <sp:object rdf:nodeID="A1"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A1"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:object>
+              <spin:UpdateTemplate rdf:ID="AddAssertionRoleSubProperty">
+                <spin:constraint>
+                  <spl:Argument>
+                    <spl:predicate rdf:resource="http://spinrdf.org/arg#parentRole"/>
+                    <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+                  </spl:Argument>
+                </spin:constraint>
+                <rdfs:subClassOf rdf:resource="http://spinrdf.org/spin#UpdateTemplates"/>
+                <spin:constraint>
+                  <spl:Argument>
+                    <spl:predicate rdf:resource="http://spinrdf.org/arg#childRole"/>
+                    <spl:valueType rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+                  </spl:Argument>
+                </spin:constraint>
+                <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                >AddAssertionRoleSubProperty</rdfs:label>
+                <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                >AddAssertionRoleSubProperty</spin:labelTemplate>
+                <spin:body>
+                  <sp:Modify>
+                    <sp:insertPattern rdf:parseType="Collection">
+                      <rdf:Description>
+                        <sp:subject rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >childRole</sp:varName>
+                        </sp:subject>
+                        <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#subPropertyOf"/>
+                        <sp:object rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >parentRole</sp:varName>
+                        </sp:object>
+                      </rdf:Description>
+                    </sp:insertPattern>
+                    <sp:where rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                  </sp:Modify>
+                </spin:body>
+              </spin:UpdateTemplate>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A1"/>
+            <sp:predicate rdf:resource="http://spinrdf.org/arg#childRole"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >roleProp</sp:varName>
+            </sp:object>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:subject rdf:nodeID="A1"/>
+            <sp:predicate rdf:resource="http://spinrdf.org/arg#parentRole"/>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >parentRoleProp</sp:varName>
+            </sp:object>
+          </rdf:Description>
+        </sp:templates>
+      </sp:Construct>
+    </spin:body>
+  </spl:ConstraintTemplate>
+  <ContextConstraintTemplate rdf:ID="ValueConstraintTemplates">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ValueConstraintTemplates</rdfs:label>
+    <spin:abstract rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</spin:abstract>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ValueConstraintTemplates</spin:labelTemplate>
+    <rdfs:subClassOf rdf:resource="#ContextConstraintTemplates"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class template for CONSTRUCT queries that define a value constraint violation. The subclasses are expected to construct instances of :ValueConstraintViolation.</rdfs:comment>
+  </ContextConstraintTemplate>
+  <ContextConstraintTemplate rdf:ID="UniquenessConstraintTemplates">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >UniquenessConstraintTemplates</rdfs:label>
+    <spin:abstract rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+    >true</spin:abstract>
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >UniquenessConstraintTemplates</spin:labelTemplate>
+    <rdfs:subClassOf rdf:resource="#ContextConstraintTemplates"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class template for CONSTRUCT queries that define a uniqueness constraint violation. The subclasses are expected to construct instances of :UniquenessConstraintViolation.</rdfs:comment>
+  </ContextConstraintTemplate>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

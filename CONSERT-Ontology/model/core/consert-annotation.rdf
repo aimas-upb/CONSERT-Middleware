@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns="http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#"
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:functions="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spl="http://spinrdf.org/spl#"
+  xml:base="http://pervasive.semanticweb.org/ont/2014/05/consert/annotation">
+  <owl:Ontology rdf:about="">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >This document presents the annotation module of the  CONSERT Ontology. It builds a context meta-model vocabulary with which the meta-properties (e.g. source, temporal validity, certainty) of context information can be asserted. It defines classes and predicates that allow creating basic and structured annotations for a ContextAssertion instance.  
+
+While basic annotations do not require well defined manipulation during inference, structured annotations define operators to be used when combining two annotation instances in order to obtain the value of the derived one.</rdfs:comment>
+    <dc:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CONSERT Ontology Annotation Module</dc:title>
+    <dc:creator>Alexandru Sorici</dc:creator>
+    <dc:date>2014-07-15</dc:date>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >1.0</owl:versionInfo>
+  </owl:Ontology>
+  <owl:Class rdf:ID="CertaintyAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for annotations that quantify the certainty of a ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="StructuredAnnotation"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CertaintyAnnotation</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="TemporalValidity">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining a temporal validity annotation where the value is expressed as a list of increasing and pairwise disjoint time intervals. The interval lower and upper limits are expressed as xsd:dateTime instances.</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="ValidityAnnotation"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#validityMeetOp"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="hasMeetOp"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="hasContinuityFunction"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#validityPermitsContinuity"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="hasJoinOp"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#validityJoinOp"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="hasStructuredValue"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#intervalListType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="DatetimeTimestamp">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining a timestamp annotation where the values are expressed as xsd:dateTime instances.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="TimestampAnnotation"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >DatetimeTimestamp</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:about="#hasStructuredValue"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasContinuityFunction"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#timestampPermitsContinuity"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasJoinOp"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#timestampJoinOp"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasMeetOp"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#timestampMeetOp"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="SourceAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining a source annotation where the value is an URI identifying the sensor or CONSERT Middleware agent that produced the given ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="BasicAnnotation"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SourceAnnotation</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="ContextAnnotation">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextAnnotation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for ContextAssertion annotations.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#StructuredAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class for all ContextAnnotations which define join and meet operators that can be employed during execution of Derivation Rules.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >StructuredAnnotation</rdfs:label>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#BasicAnnotation"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#ContextAnnotation"/>
+  </owl:Class>
+  <owl:Class rdf:about="#ValidityAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for annotations that quantify the temporal validity of a ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#StructuredAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ValidityAnnotation</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#TimestampAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base class for annotations that quantify the timestamp of a ContextAssertion.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#StructuredAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TimestampAnnotation</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="NumericValueCertainty">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining a certainty annotation expressed using a numeric value between [0..1].</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >NumericValueCertainty</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#CertaintyAnnotation"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:about="#hasStructuredValue"/>
+        </owl:onProperty>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasContinuityFunction"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#certaintyPermitsContinuity"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasJoinOp"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#certaintyJoinOp"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#hasMeetOp"/>
+        </owl:onProperty>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/functions#certaintyMeetOp"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#BasicAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class for all ContextAnnotations which are not subject to structured manipulation during execution of Derivation Rules.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#ContextAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >BasicAnnotation</rdfs:label>
+    <owl:disjointWith rdf:resource="#StructuredAnnotation"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:about="#hasContinuityFunction">
+    <rdfs:domain rdf:resource="#StructuredAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasContinuityFunction</rdfs:label>
+    <rdfs:range rdf:resource="http://spinrdf.org/spin#Function"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies the function called by the CONSERT Engine when performing a continuity check operation to determine if this particular ContextAnnotation allows the two annotation values given as parameters to be considered as "joinable". It is therefore a threshold based function with a boolean result.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasMeetOp">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasMeetOp</rdfs:label>
+    <rdfs:domain rdf:resource="#StructuredAnnotation"/>
+    <rdfs:range rdf:resource="http://spinrdf.org/spin#Function"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies the function called by the CONSERT Engine when performing a "meet" operation between two instances of the given StructuredAnnotation.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasAnnotation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Base of all properties by which a ContextAnnotation is attached to ContextAssertion instance.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasAnnotation</rdfs:label>
+    <rdfs:range rdf:resource="#ContextAnnotation"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasJoinOp">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasJoinOp</rdfs:label>
+    <rdfs:domain rdf:resource="#StructuredAnnotation"/>
+    <rdfs:range rdf:resource="http://spinrdf.org/spin#Function"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies the function called by the CONSERT Engine when performing a "join" operation between two instances of the given StructuredAnnotation.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasUnstructuredValue">
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:domain rdf:resource="#BasicAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasUnstructuredValue</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that relates a BasicAnnotation instance to its actual value.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:DatatypeProperty rdf:about="#hasStructuredValue">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that relates a StructuredAnnotation instance to its actual datatype value.</rdfs:comment>
+    <rdfs:domain rdf:resource="#StructuredAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasValue</rdfs:label>
+  </owl:DatatypeProperty>
+  <owl:FunctionalProperty rdf:ID="hasSource">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property by which a source annotation is attached to a ContextAssertion instance.</rdfs:comment>
+    <rdfs:range rdf:resource="#SourceAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSource</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="#hasAnnotation"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="hasTimestamp">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property by which a timestamp annotation is attached to a ContextAssertion instance.</rdfs:comment>
+    <rdfs:range rdf:resource="#TimestampAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasTimestamp</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="#hasAnnotation"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="hasCertainty">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property by which a certainty annotation is attached to a ContextAssertion instance.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasCertainty</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="#hasAnnotation"/>
+    <rdfs:range rdf:resource="#CertaintyAnnotation"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="hasValidity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property by which a temporal validity annotation is attached to a ContextAssertion instance.</rdfs:comment>
+    <rdfs:range rdf:resource="#ValidityAnnotation"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasValidity</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="#hasAnnotation"/>
+  </owl:FunctionalProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

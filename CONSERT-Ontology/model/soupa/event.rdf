@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:tme="http://pervasive.semanticweb.org/ont/2004/06/time#"
+    xmlns:spc="http://pervasive.semanticweb.org/ont/2004/06/space#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/event#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/event">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <rdfs:comment></rdfs:comment>
+    <owl:versionIRI rdf:resource=""/>
+    <rdfs:label>SOUPA Event Ontology</rdfs:label>
+    <owl:versionInfo>$Revision: 1.4 $, $Date: 2004/03/07 17:58:36 $</owl:versionInfo>
+  </owl:Ontology>
+  <owl:Class rdf:ID="SpatialTemporalEvent">
+    <rdfs:label>SpatialTemporalEvent</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="SpatialTemporalThing"/>
+          <owl:Class rdf:about="http://pervasive.semanticweb.org/ont/2004/06/time#TemporalEvent"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+  <owl:Class rdf:about="#SpatialTemporalThing">
+    <rdfs:label>SpatialTemporalThing</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+          <owl:Class rdf:about="http://pervasive.semanticweb.org/ont/2004/06/time#TemporalThing"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:Class>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/meeting#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:per="http://pervasive.semanticweb.org/ont/2004/06/person#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/meeting">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
+    <owl:versionInfo>cvs:$Revision: 1.4 $, $Date: 2004/05/15 18:55:09 $</owl:versionInfo>
+    <rdfs:comment></rdfs:comment>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
+    <rdfs:label>SOUPA Meeting Ontology</rdfs:label>
+  </owl:Ontology>
+  <owl:Class rdf:ID="Meeting">
+    <owl:unionOf rdf:parseType="Collection">
+      <owl:Class rdf:ID="ScheduledMeetingIsOnTime"/>
+      <owl:Class rdf:ID="ScheduledMeetingIsCancelled"/>
+      <owl:Class rdf:ID="ScheduledMeetingIsRescheduled"/>
+    </owl:unionOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="location"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#IntervalEvent"/>
+    <rdfs:label>Meeting</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#ScheduledMeetingIsOnTime">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#ScheduledMeetingIsRescheduled"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#ScheduledMeetingIsCancelled"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Meeting"/>
+    <rdfs:label>ScheduledMeetingIsOnTime</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#ScheduledMeetingIsRescheduled">
+    <owl:disjointWith rdf:resource="#ScheduledMeetingIsOnTime"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#ScheduledMeetingIsCancelled"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</owl:hasValue>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="eventRescheduled"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Meeting"/>
+    <rdfs:label>ScheduledMeetingIsRescheduled</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#ScheduledMeetingIsCancelled">
+    <owl:disjointWith rdf:resource="#ScheduledMeetingIsRescheduled"/>
+    <owl:disjointWith rdf:resource="#ScheduledMeetingIsOnTime"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</owl:hasValue>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="eventCancelled"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Meeting"/>
+    <rdfs:label>ScheduledMeetingIsCancelled</rdfs:label>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="attendee">
+    <rdfs:label>attendee</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#derivedRelationAssertion"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="attends">
+    <rdfs:label>attends</rdfs:label>
+    <rdfs:range rdf:resource="#Meeting"/>
+    <rdfs:domain rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+    <owl:inverseOf rdf:resource="#attendee"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#derivedRelationAssertion"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="organizedBy">
+    <rdfs:label>organizedBy</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="homepage">
+    <rdfs:label>homepage</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Homepage"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityRelationDescription"/>
+  </owl:ObjectProperty>
+  <owl:DatatypeProperty rdf:about="#eventCancelled">
+    <rdfs:label>eventCancelled</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#eventRescheduled">
+    <rdfs:label>eventRescheduled</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:ID="description">
+    <rdfs:label>description</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:ID="name">
+    <rdfs:label>name</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+  </owl:DatatypeProperty>
+  <owl:FunctionalProperty rdf:about="#location">
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+    <rdfs:domain rdf:resource="#Meeting"/>
+    <rdfs:label>location</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#derivedRelationAssertion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:FunctionalProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

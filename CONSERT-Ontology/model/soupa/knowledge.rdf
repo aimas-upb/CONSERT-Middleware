@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/knowledge#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/knowledge">
+  <owl:Ontology rdf:about="">
+    <rdfs:label>SOUPA Context Knowledge Ontology</rdfs:label>
+    <rdfs:comment></rdfs:comment>
+    <owl:versionInfo>$Revision: 1.1 $, $Date: 2004/05/15 18:55:09 $</owl:versionInfo>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+  </owl:Ontology>
+  <owl:Class rdf:ID="InconsistentKnowledge">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Knowledge"/>
+    </rdfs:subClassOf>
+    <rdfs:label>InconsistentKnowledge</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:SymmetricProperty rdf:ID="inconsistentWith"/>
+        </owl:onProperty>
+        <owl:minCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:minCardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="ConsistentKnowledge"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#ConsistentKnowledge">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Knowledge"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#InconsistentKnowledge"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:SymmetricProperty rdf:about="#inconsistentWith"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >0</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label>ConsistentKnowledge</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#Knowledge">
+    <rdfs:label>Knowledge</rdfs:label>
+    <owl:unionOf rdf:parseType="Collection">
+      <owl:Class rdf:about="#ConsistentKnowledge"/>
+      <owl:Class rdf:about="#InconsistentKnowledge"/>
+    </owl:unionOf>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="source">
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:label>source</rdfs:label>
+    <rdfs:domain rdf:resource="#Knowledge"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+  </owl:ObjectProperty>
+  <owl:DatatypeProperty rdf:ID="reliabilityRating">
+    <rdfs:domain rdf:resource="#Knowledge"/>
+    <rdfs:label>reliabilityRating</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledDataAssertion"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:ID="inconsistentWithCount">
+    <rdfs:domain rdf:resource="#Knowledge"/>
+    <rdfs:label>inconsistentWithCounty</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledDataAssertion"/>
+  </owl:DatatypeProperty>
+  <owl:SymmetricProperty rdf:about="#inconsistentWith">
+    <rdfs:range rdf:resource="#Knowledge"/>
+    <rdfs:domain rdf:resource="#Knowledge"/>
+    <rdfs:label>inconsistentWith</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:SymmetricProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:tme="http://pervasive.semanticweb.org/ont/2004/06/time#"
+    xmlns:spc="http://pervasive.semanticweb.org/ont/2004/06/space#"
+    xmlns:ddc="http://pervasive.semanticweb.org/ont/2004/06/digital-doc#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/img-capture#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:dev="http://pervasive.semanticweb.org/ont/2004/06/device#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2004/06/img-capture">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/digital-doc"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time"/>
+    <rdfs:label>SOUPA Camera Phone Image Capture Ontology</rdfs:label>
+    <owl:versionInfo>$Revision: 1.1 $, $Date: 2004/05/15 18:55:08 $</owl:versionInfo>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
+  </owl:Ontology>
+  <owl:Class rdf:ID="ImageCaptureEvent">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#TemporalEvent"/>
+    <rdfs:label>ImageCaptureEvent</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="http://protege.stanford.edu/plugins/owl/owl-library/camera.owlDigital"/>
+  <owl:Class rdf:ID="CameraPhone">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#Cellphone"/>
+    <rdfs:subClassOf rdf:resource="http://protege.stanford.edu/plugins/owl/owl-library/camera.owlDigital"/>
+    <rdfs:label>CameraPhone</rdfs:label>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="capturedBy">
+    <rdfs:range rdf:resource="#CameraPhone"/>
+    <rdfs:domain rdf:resource="#ImageCaptureEvent"/>
+    <rdfs:label>capturedBy</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="atLocation">
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+    <rdfs:domain rdf:resource="#ImageCaptureEvent"/>
+    <rdfs:label>atLocation</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="image">
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/digital-doc#ImageFile"/>
+    <rdfs:domain rdf:resource="#ImageCaptureEvent"/>
+    <rdfs:label>image</rdfs:label>
+  </owl:ObjectProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

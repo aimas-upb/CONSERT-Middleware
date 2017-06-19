@@ -1,0 +1,1045 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:sp="http://spinrdf.org/sp#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:arg="http://spinrdf.org/arg#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spl="http://spinrdf.org/spl#"
+  xml:base="http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://spinrdf.org/spl"/>
+    <dc:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CONSERT Deployment Ontology</dc:title>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >1.0</owl:versionInfo>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The CONSERT Deployment ontology defines a vocabulary used to provide the deployment specifications for a context-aware application built on top of the CONSERT Context Management Middleware.</rdfs:comment>
+    <dc:creator>Alexandru Sorici</dc:creator>
+    <dc:date>2014-07-15</dc:date>
+  </owl:Ontology>
+  <owl:Class rdf:ID="Configurable">
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A base class for different configurable elements of Application and Agent specifications.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Configurable</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="OrgMgrSpec">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of deployment configurations for an OrgMgr Agent.</rdfs:comment>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasManagerType"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OrgMgrSpec</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="AgentSpec"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="ContentDocument">
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A class defining a document (filepath or URI reachable file) holding configuration options for Agent or Application specifications.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContentDocument</rdfs:label>
+    <spin:constraint>
+      <AtLeastOneOfPropertyPairConstraint>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="documentPath"/>
+        </arg:property>
+        <arg:otherProperty>
+          <owl:DatatypeProperty rdf:ID="documentURI"/>
+        </arg:otherProperty>
+      </AtLeastOneOfPropertyPairConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:ID="AgentPolicy">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class defining an instance of an agent specific context provisioning policy file. The actual document is specified using the :hasPolicyDocument property.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AgentPolicy</rdfs:label>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasPolicyDocument"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:ID="CtxQueryHandlerSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CtxQueryHandlerSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of deployment configurations for a Context Query Handler Agent.</rdfs:comment>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:predicate>
+          <owl:DatatypeProperty rdf:ID="isPrimaryQueryHandler"/>
+        </spl:predicate>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean"
+        >true</spl:defaultValue>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#AgentSpec"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="AgentAddress">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="agentAppIdentifier"/>
+        </arg:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AgentAddress</rdfs:label>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="agentName"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the address elements required to identify individual CMM agent instances within an application (whether deployed in centralized-local or decentralized-hierarchical mode).</rdfs:comment>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="agentContainer"/>
+        </arg:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:ID="ContextDomain">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A class representing the configuration of a Context Domain (applies for both centralized-local and decentralized-hierarchical deployments).</rdfs:comment>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasContextModel"/>
+        </arg:property>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextDomain</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="DeploymentType">
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <owl:oneOf rdf:parseType="Collection">
+      <DeploymentType rdf:ID="CentralizedLocal">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >orgconf:CentralizedLocal</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The centralized-local deployment option.</rdfs:comment>
+      </DeploymentType>
+      <DeploymentType rdf:ID="DecentralizedHierarchical">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >orgconf:DecentralizedHierarchical</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The decentralized-hierarchical deployment option.</rdfs:comment>
+      </DeploymentType>
+    </owl:oneOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The enumeration class defining the application deployment types.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >DeploymentType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="OrgMgrType">
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <owl:oneOf rdf:parseType="Collection">
+      <OrgMgrType rdf:ID="Node">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Node</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >OrgMgr Agent option of running as a Node in a hierarchy.</rdfs:comment>
+      </OrgMgrType>
+      <OrgMgrType rdf:ID="Root">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Root</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >OrgMgr Agent option of running as a Root in a hierarchy.</rdfs:comment>
+      </OrgMgrType>
+    </owl:oneOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The enumeration class of OrgMgr agent functionality types: Node or Root.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OrgMgrType</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="ContextModelDefinition">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A class representing a definition of the application Context Model specified in terms of the ontology documents (core, annotation, constraint, function and rules) that make up the Context Model definition.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ContextModelDefinition</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#AgentSpec">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of CONSERT Middleware agent specific deployment configurations.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Specification"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AgentSpec</rdfs:label>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasAgentAddress"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:ID="CtxUserSpec">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of deployment configurations for a Context User Agent.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CtxUserSpec</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="AgentContainer">
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >7778</spl:defaultValue>
+        <spl:predicate>
+          <owl:DatatypeProperty rdf:ID="hasMTPPort"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AgentContainer</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+    <spin:rule>
+      <spl:InferDefaultValue>
+        <spl:defaultValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >localhost</spl:defaultValue>
+        <spl:predicate>
+          <owl:DatatypeProperty rdf:ID="hasMTPHost"/>
+        </spl:predicate>
+      </spl:InferDefaultValue>
+    </spin:rule>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="containerHost"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="platformName"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="containerPort"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Class defining the JADE specific platform parameters on which the specified CMM agents run.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="CtxCoordSpec">
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CtxCoordSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of deployment configurations for a Context Coordinator Agent.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="ApplicationSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ApplicationSpec</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Specification"/>
+    </rdfs:subClassOf>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasContextDomain"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="appIdentificationName"/>
+        </arg:property>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="appDeploymentType"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of application wide configuration elements (applicationId, deploymentType, ContextModel, ContextDomain) for an instance of the CONSERT Middleware.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="CtxSensorPolicy">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class defining an instance of a document containing sensing policies for the updates of ContextAssertion types of which a CtxSensor agent is in charge. The ContextAssertions for which this sensing policy applies are specified using the :forContextAssertion property.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentPolicy"/>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="usesAssertionAdaptor"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="forContextAssertion"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CtxSensorPolicy</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="PlatformSpec">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >PlatformSpec</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The specifications (JADE-specific container information) for the platform on which one _default_ and several ContextDomain-specific CONSERT Middleware Instances will run.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Specification"/>
+    </rdfs:subClassOf>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasAgentContainer"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:ID="CtxSensorSpec">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of deployment configurations for a Context Sensor Agent.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#AgentSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >CtxSensorSpec</rdfs:label>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:property>
+          <owl:ObjectProperty rdf:ID="hasSensingPolicy"/>
+        </arg:property>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+  </owl:Class>
+  <owl:Class rdf:ID="AgentService">
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="hasServiceName"/>
+        </arg:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AgentService</rdfs:label>
+    <spin:constraint>
+      <spl:ObjectCountPropertyConstraint>
+        <arg:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:maxCount>
+        <arg:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+        >1</arg:minCount>
+        <arg:property>
+          <owl:DatatypeProperty rdf:ID="hasQualifiedName"/>
+        </arg:property>
+      </spl:ObjectCountPropertyConstraint>
+    </spin:constraint>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A class that defines an agent external resource (a service component of the agent environment).</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Configurable"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Specification">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class for CONSERT Middleware deployment specifications.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Specification</rdfs:label>
+  </owl:Class>
+  <owl:ObjectProperty rdf:about="#hasContextDomain">
+    <rdfs:range rdf:resource="#ContextDomain"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasContextDomain</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A property that defines the ContextDomain for an application specification (valid for centralized-local deployments as well - they have a default ContextDomain).</rdfs:comment>
+    <rdfs:domain rdf:resource="#ApplicationSpec"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#agentContainer">
+    <rdfs:domain rdf:resource="#AgentAddress"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of an AgentAddress instance that specifies the agent container where the identified CMM agent runs.</rdfs:comment>
+    <rdfs:range rdf:resource="#AgentContainer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >agentContainer</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasDomainHierarchyProperty">
+    <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:domain rdf:resource="#ContextDomain"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDomainHierarchyProperty</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies the EntityDescription used to create the ContextDomain hierarchy along a given ContextDimension.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasDomainRangeEntity">
+    <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+    <rdfs:domain rdf:resource="#ContextDomain"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property giving the URI of the ContextEntity  that provides the values along a chosen ContextDimension which help establish the possible ContextDomains.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDomainRangeEntity</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasManagerRoot">
+    <rdfs:range rdf:resource="#AgentAddress"/>
+    <rdfs:domain rdf:resource="#OrgMgrSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasManagerRoot</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the AgentAddress of the root OrgMgr to which a new OrgMgr instance must be attached. 
+If this property is specified, it means that the new OrgMgr instance does not have a direct parent assigned. Instead, he will send his ContextDomain value to the specified root OrgMgr, which will figure out the AgentAddress of the direct parent based on the configured ContextDomain hierarchy.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasManagerType">
+    <rdfs:domain rdf:resource="#OrgMgrSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasManagerType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the type of an OrgMgr agent instance (Root or Node).</rdfs:comment>
+    <rdfs:range rdf:resource="#OrgMgrType"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="assignedOrgManager">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the address of the assigned (remote, i.e. not on the same machine) OrgMgr agent for a CtxCoord, CtxSensor or CtxUser instance. This property will usually have a value in the case of a decentralized-hierarchical deployment or in the case of a centralized-local deployment with the management agents (coordinator, queryhandler) on one machine and the sensing and dissemination agents (sensor and user) on others.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >assignedOrgManager</rdfs:label>
+    <rdfs:range rdf:resource="#AgentAddress"/>
+    <rdfs:domain>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#CtxCoordSpec"/>
+          <owl:Class rdf:about="#CtxSensorSpec"/>
+          <owl:Class rdf:about="#CtxUserSpec"/>
+          <owl:Class rdf:about="#CtxQueryHandlerSpec"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:domain>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasDomainHierarchyDocument">
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:domain rdf:resource="#ContextDomain"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDomainHierarchyDocument</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies the file or URI of the document holding the RDF model of the ContextDomain hierarchy. That is, it contains the concrete ContextDomain Values and their relation to one another based on the hierarchy inducing EntityDescription.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasModelAnnotationsDocument">
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasModelAnnotationsDocument</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the content document which contains the Annotation Module part of the ContextModel.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextModelDefinition"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasModelFunctionsDocument">
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:domain rdf:resource="#ContextModelDefinition"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasModelFunctionsDocument</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the content document which contains the Annotation Module part of the ContextModel.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasDomainRangeValue">
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding a ContextDomain to the URI of the ContextEntity instance which defines its bounds according to the chosen ContextDimension.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasDomainRangeValue</rdfs:label>
+    <rdfs:domain rdf:resource="#ContextDomain"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasModelRulesDocument">
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:domain rdf:resource="#ContextModelDefinition"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasModelRulesDocument</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the content document which contains the Annotation Module part of the ContextModel.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="knowsManagerRoot">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of an OrgMgr agent specification denoting the address of another known "root" OrgMgr.
+The property  applies only to OrgMgr agents that play a "root" role.</rdfs:comment>
+    <rdfs:range rdf:resource="#AgentAddress"/>
+    <rdfs:domain rdf:resource="#OrgMgrSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >knowsManagerRoot</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasModelConstraintsDocument">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the content document which contains the Constraints Module part of the ContextModel.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextModelDefinition"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasModelConstraintsDocument</rdfs:label>
+    <rdfs:range rdf:resource="#ContentDocument"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasManagerParent">
+    <rdfs:range rdf:resource="#AgentAddress"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasManagerParent</rdfs:label>
+    <rdfs:domain rdf:resource="#OrgMgrSpec"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the AgentAddress identifying the parent of an OrgMgr agent instance (i.e. the parent in the ContextDomain hierarchy).</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#forContextAssertion">
+    <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >forContextAssertion</rdfs:label>
+    <rdfs:domain rdf:resource="#CtxSensorPolicy"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property defining the ContextAssertion type for which a CtxSensorPolicy is defined.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasContextDomainUserDoc">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the RDF document containing the model for the "User" part within a ContextDimension assertion.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasContextDomainUserDoc</rdfs:label>
+    <rdfs:domain rdf:resource="#CtxUserSpec"/>
+    <rdfs:range rdf:resource="#ContentDocument"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasModelCoreDocument">
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:domain rdf:resource="#ContextModelDefinition"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasModelCoreDocument</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the content document which contains the Core Module part of the ContextModel.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasContextModel">
+    <rdfs:range rdf:resource="#ContextModelDefinition"/>
+    <rdfs:domain rdf:resource="#ContextDomain"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasContextModel</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that relates a ContextDomain to its Context Model.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#appDeploymentType">
+    <rdfs:domain rdf:resource="#ApplicationSpec"/>
+    <rdfs:range rdf:resource="#DeploymentType"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >appDeploymentType</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The property specifying the deployment option chosen for a CONSERT Middleware based application.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasModelDocumentManager">
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasModelDocumentManager</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the content document which defines the Jena-specific policies related to managing the core, annotation, constraint, functiona and rule ontology documents that make up a ContextModel definition.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextModelDefinition"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasAgentAddress">
+    <rdfs:domain rdf:resource="#AgentSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasAgentAddress</rdfs:label>
+    <rdfs:range rdf:resource="#AgentAddress"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding an AgentSpec to an its addressing information (name, platform hostname and port).</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#usesAssertionAdaptor">
+    <rdfs:range rdf:resource="#AgentService"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >usesAssertionAdaptor</rdfs:label>
+    <rdfs:domain rdf:resource="#CtxSensorPolicy"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding a CtxSensorPolicy defined for a ContextAssertion to the AgentResource adaptor service which mediates the communication with the actual sensing middleware.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasSensingPolicy">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding a CtxSensor agent specification instance to the list of ContextAssertion sensing policies of which it is in charge.</rdfs:comment>
+    <rdfs:domain rdf:resource="#CtxSensorSpec"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasSensingPolicy</rdfs:label>
+    <rdfs:range rdf:resource="#CtxSensorPolicy"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasMainContainer">
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasMainContainer</rdfs:label>
+    <rdfs:range rdf:resource="#AgentContainer"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding a JADE container to its Main Container. 
+This property is applicable in the case of decentralized-hierarchical deployment configurations where some of the CMM agents of a Context Domain run on a different machine then the OrgMgr agent that manages the Context Domain.</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasControlPolicy">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of an AgentSpec instance denoting an agent-specific context provisioning policy.</rdfs:comment>
+    <rdfs:domain rdf:resource="#AgentSpec"/>
+    <rdfs:range rdf:resource="#AgentPolicy"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasControlPolicy</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasAgentContainer">
+    <rdfs:range rdf:resource="#AgentContainer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasAgentContainer</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property specifying the JADE container on which the CMM agents defined in the application specification will run.</rdfs:comment>
+    <rdfs:domain rdf:resource="#PlatformSpec"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasDomainDimension">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that gives the URI of the binary ContextAssertion within the ContextModel of an application which defines the Context Dimension.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContextDomain"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasContextDimension</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#hasPolicyDocument">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasPolicyDocument</rdfs:label>
+    <rdfs:range rdf:resource="#ContentDocument"/>
+    <rdfs:domain rdf:resource="#AgentPolicy"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of an AgentPolicy instance that specifies the ContentDocument instance containing the specific context provisioning policy.</rdfs:comment>
+  </owl:ObjectProperty>
+  <rdf:Property rdf:about="http://spinrdf.org/arg#thisProperty">
+    <rdfs:subPropertyOf rdf:resource="http://spinrdf.org/sp#arg"/>
+  </rdf:Property>
+  <owl:DatatypeProperty rdf:about="#hasMTPHost">
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding an AgentContainer to the hostname of the MTP address (in JADE terms) where agents in this container can be contacted.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasMTPHost</rdfs:label>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#appIdentificationName">
+    <rdfs:domain rdf:resource="#ApplicationSpec"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The property specifying the unique application identification name.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >appIdentificationName</rdfs:label>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#documentURI">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A property defining a URI used to access a ContentDocument instance.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >documentURI</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#anyURI"/>
+    <rdfs:domain rdf:resource="#ContentDocument"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#containerHost">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >containerHost</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of an AgentContainer instance specifying the JADE platform host.</rdfs:comment>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#hasServiceName">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The property giving the name by which an AgentService instance is uniquely identified.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasServiceName</rdfs:label>
+    <rdfs:domain rdf:resource="#AgentService"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#hasMTPPort">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding an AgentContainer to the listening port of the MTP address (in JADE terms) where agents in this container can be contacted.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasMTPPort</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#agentAppIdentifier">
+    <rdfs:domain rdf:resource="#AgentAddress"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >agentAppIdentifier</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Specify the application identifier (the same value as that given for the ApplicationSpecification) for the application of which this agent is part.</rdfs:comment>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#containerPort">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >containerPort</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of an AgentContainer instance specifying the JADE platform port.</rdfs:comment>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#isPrimaryQueryHandler">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >isPrimaryQueryHandler</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A property that states whether a CtxQueryHandler instance is the primary query handler for a given CtxCoord instance.</rdfs:comment>
+    <rdfs:domain rdf:resource="#CtxQueryHandlerSpec"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#hasQualifiedName">
+    <rdfs:domain rdf:resource="#AgentService"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The property that defines the JAVA qualified interface name that represents the service implemented by an AgentService instance.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >hasQualifiedName</rdfs:label>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:ID="isMainContainer">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >isMainContainer</rdfs:label>
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property of a JADE container where CMM agents run, specifying whether it is a Main Container or a simple one.</rdfs:comment>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#platformName">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >platformName</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#AgentContainer"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property that specifies a JADE Platform name to be used in creating the global CMM agent AIDs.</rdfs:comment>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#agentName">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Property binding an AgentAddress to the local name the agent has on his residence platform (in JADE terms). The platform name is the same as the ContextDomain value where the agent resides.</rdfs:comment>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >agentName</rdfs:label>
+    <rdfs:domain rdf:resource="#AgentAddress"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#documentPath">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >documentPath</rdfs:label>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A property defining a filesystem path used to access a ContentDocument instance.</rdfs:comment>
+    <rdfs:domain rdf:resource="#ContentDocument"/>
+  </owl:DatatypeProperty>
+  <OrgMgrType rdf:ID="Mobile">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Mobile</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OrgMgr Agent option specifying a mobile OrgMgr, i.e. a manager in a deployment on a mobile device, where the ContextDomain will be determined dynamically.</rdfs:comment>
+  </OrgMgrType>
+  <spl:ConstraintTemplate rdf:ID="ExclusiveExistencePropertyPairConstraint">
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Values must exist for either {?property} or {?otherProperty}, but not both.</spin:labelTemplate>
+    <spin:body>
+      <sp:Construct>
+        <sp:templates rdf:parseType="Collection">
+          <rdf:Description>
+            <sp:object rdf:resource="http://spinrdf.org/spin#ConstraintViolation"/>
+            <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:resource="http://spinrdf.org/spin#_this"/>
+            <sp:predicate rdf:resource="http://spinrdf.org/spin#violationRoot"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >property</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="http://spinrdf.org/spin#violationPath"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+          <rdf:Description>
+            <sp:object rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >message</sp:varName>
+            </sp:object>
+            <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#label"/>
+            <sp:subject rdf:nodeID="A0"/>
+          </rdf:Description>
+        </sp:templates>
+        <sp:where rdf:parseType="Collection">
+          <sp:Filter>
+            <sp:expression>
+              <sp:or>
+                <sp:arg2>
+                  <sp:notExists>
+                    <sp:elements rdf:parseType="Collection">
+                      <rdf:Description>
+                        <sp:object rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >someValue</sp:varName>
+                        </sp:object>
+                        <sp:predicate rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >property</sp:varName>
+                        </sp:predicate>
+                        <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+                      </rdf:Description>
+                      <rdf:Description>
+                        <sp:object rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >someOtherValue</sp:varName>
+                        </sp:object>
+                        <sp:predicate rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >otherProperty</sp:varName>
+                        </sp:predicate>
+                        <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+                      </rdf:Description>
+                    </sp:elements>
+                  </sp:notExists>
+                </sp:arg2>
+                <sp:arg1>
+                  <sp:exists>
+                    <sp:elements rdf:parseType="Collection">
+                      <rdf:Description>
+                        <sp:object rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >someValue</sp:varName>
+                        </sp:object>
+                        <sp:predicate rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >property</sp:varName>
+                        </sp:predicate>
+                        <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+                      </rdf:Description>
+                      <rdf:Description>
+                        <sp:object rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >someOtherValue</sp:varName>
+                        </sp:object>
+                        <sp:predicate rdf:parseType="Resource">
+                          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                          >otherProperty</sp:varName>
+                        </sp:predicate>
+                        <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+                      </rdf:Description>
+                    </sp:elements>
+                  </sp:exists>
+                </sp:arg1>
+              </sp:or>
+            </sp:expression>
+          </sp:Filter>
+          <sp:Bind>
+            <sp:expression>
+              <sp:concat>
+                <sp:arg5> must have a value, but not both.</sp:arg5>
+                <sp:arg4 rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >otherProperty</sp:varName>
+                </sp:arg4>
+                <sp:arg3> or </sp:arg3>
+                <sp:arg2 rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >property</sp:varName>
+                </sp:arg2>
+                <sp:arg1>Either </sp:arg1>
+              </sp:concat>
+            </sp:expression>
+            <sp:variable rdf:parseType="Resource">
+              <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+              >message</sp:varName>
+            </sp:variable>
+          </sp:Bind>
+        </sp:where>
+      </sp:Construct>
+    </spin:body>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SPIN Constraint specifying that a class must have values for either one property or the other, but not both and not none.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ExclusiveExistencePropertyPairConstraint</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://spinrdf.org/spl#PropertyPairConstraintTemplates"/>
+  </spl:ConstraintTemplate>
+  <OrgMgrType rdf:ID="Central">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Central</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >OrgMgr Agent option specifying a central OrgMgr, i.e. a manager in a centralized-local deployment, where no ContextDimension is defined.</rdfs:comment>
+  </OrgMgrType>
+  <rdf:Description rdf:nodeID="A1">
+    <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >property</sp:varName>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A2">
+    <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >property</sp:varName>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A3">
+    <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >someOtherValue</sp:varName>
+  </rdf:Description>
+  <sp:concat rdf:nodeID="A4">
+    <sp:arg5 rdf:parseType="Resource">
+      <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+      >otherProperty</sp:varName>
+    </sp:arg5>
+    <sp:arg4> or </sp:arg4>
+    <sp:arg3 rdf:nodeID="A1"/>
+    <sp:arg2> must specify a value for at least one of </sp:arg2>
+    <sp:arg1 rdf:resource="http://spinrdf.org/spin#_this"/>
+  </sp:concat>
+  <rdf:Description rdf:nodeID="A5">
+    <rdf:rest rdf:parseType="Collection">
+      <rdf:Description>
+        <sp:object rdf:resource="http://spinrdf.org/spin#_this"/>
+        <sp:predicate rdf:resource="http://spinrdf.org/spin#violationRoot"/>
+        <sp:subject rdf:nodeID="A6"/>
+      </rdf:Description>
+      <rdf:Description>
+        <sp:object rdf:nodeID="A2"/>
+        <sp:predicate rdf:resource="http://spinrdf.org/spin#violationPath"/>
+        <sp:subject rdf:nodeID="A6"/>
+      </rdf:Description>
+      <rdf:Description>
+        <sp:object rdf:parseType="Resource">
+          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+          >message</sp:varName>
+        </sp:object>
+        <sp:predicate rdf:resource="http://www.w3.org/2000/01/rdf-schema#label"/>
+        <sp:subject rdf:nodeID="A6"/>
+      </rdf:Description>
+    </rdf:rest>
+    <rdf:first rdf:parseType="Resource">
+      <sp:object rdf:resource="http://spinrdf.org/spin#ConstraintViolation"/>
+      <sp:predicate rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"/>
+      <sp:subject rdf:nodeID="A6"/>
+    </rdf:first>
+  </rdf:Description>
+  <sp:Construct rdf:nodeID="A7">
+    <sp:templates rdf:nodeID="A5"/>
+    <sp:where rdf:parseType="Collection">
+      <sp:Filter>
+        <sp:expression>
+          <sp:notExists>
+            <sp:elements rdf:parseType="Collection">
+              <rdf:Description>
+                <sp:object rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >someValue</sp:varName>
+                </sp:object>
+                <sp:predicate rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >property</sp:varName>
+                </sp:predicate>
+                <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+              </rdf:Description>
+              <rdf:Description>
+                <sp:object rdf:nodeID="A3"/>
+                <sp:predicate rdf:parseType="Resource">
+                  <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+                  >otherProperty</sp:varName>
+                </sp:predicate>
+                <sp:subject rdf:resource="http://spinrdf.org/spin#_this"/>
+              </rdf:Description>
+            </sp:elements>
+          </sp:notExists>
+        </sp:expression>
+      </sp:Filter>
+      <sp:Bind>
+        <sp:expression rdf:nodeID="A4"/>
+        <sp:variable rdf:parseType="Resource">
+          <sp:varName rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+          >message</sp:varName>
+        </sp:variable>
+      </sp:Bind>
+    </sp:where>
+  </sp:Construct>
+  <spl:ConstraintTemplate rdf:ID="AtLeastOneOfPropertyPairConstraint">
+    <spin:labelTemplate rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Values must exist for at least one of {?property} or {?otherProperty}.</spin:labelTemplate>
+    <spin:body rdf:nodeID="A7"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SPIN Constraint specifying that a class must have values for at least one of the two specified properties.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AtLeastOneOfPropertyPairConstraint</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://spinrdf.org/spl#PropertyPairConstraintTemplates"/>
+  </spl:ConstraintTemplate>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->

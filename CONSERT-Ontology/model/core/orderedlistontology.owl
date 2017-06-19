@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:vs="http://www.w3.org/2003/06/sw-vocab-status/ns#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:olo="http://purl.org/ontology/olo/core#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://purl.org/ontology/olo/core">
+  <owl:Ontology rdf:about=""/>
+  <owl:Ontology rdf:about="#">
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal"
+    >0.72</owl:versionInfo>
+    <owl:imports rdf:resource="http://www.w3.org/2003/06/sw-vocab-status/ns"/>
+    <owl:imports rdf:resource="http://purl.org/dc/elements/1.1/"/>
+    <dc:title xml:lang="en">The Ordered Lists Ontology</dc:title>
+    <dc:description xml:lang="en">The Ordered Lists Ontology Specification provides basic concepts and properties 
+for describing ordered lists as semantic graph. This document contains a RDF description of the Ordered Lists Ontology
+as proposed by Samer Abdallah.</dc:description>
+    <dc:date rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime"
+    >2010-07-23T13:30:52+01:00</dc:date>
+    <dc:creator rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Samer Abdallah</dc:creator>
+    <dc:creator rdf:resource="http://foaf.me/zazi#me"/>
+  </owl:Ontology>
+  <owl:Class rdf:ID="OrderedList">
+    <vs:term_status xml:lang="en">stable</vs:term_status>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="length"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:label xml:lang="en">Ordered List</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:comment xml:lang="en">An ordered list with a given length an indexed items.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Slot">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <rdf:Property rdf:ID="ordered_list"/>
+        </owl:onProperty>
+        <owl:maxCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:maxCardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <vs:term_status xml:lang="en">stable</vs:term_status>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <rdf:Property rdf:ID="next"/>
+        </owl:onProperty>
+        <owl:maxCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:maxCardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <rdf:Property rdf:ID="previous"/>
+        </owl:onProperty>
+        <owl:maxCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:maxCardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="index"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    <rdfs:comment xml:lang="en">A slot in an ordered list with a fixed index.</rdfs:comment>
+    <rdfs:label xml:lang="en">Slot</rdfs:label>
+    <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+  </owl:Class>
+  <rdf:Property rdf:about="#next">
+    <vs:term_status xml:lang="en">testing</vs:term_status>
+    <rdfs:range rdf:resource="#Slot"/>
+    <rdfs:label xml:lang="en">has next</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#Slot"/>
+    <rdfs:comment xml:lang="en">Associates the next slot in an ordered list.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </rdf:Property>
+  <rdf:Property rdf:ID="item">
+    <vs:term_status xml:lang="en">stable</vs:term_status>
+    <rdfs:label xml:lang="en">has item</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#Slot"/>
+    <rdfs:comment xml:lang="en">An item of a slot in an ordered list.</rdfs:comment>
+  </rdf:Property>
+  <rdf:Property rdf:ID="slot">
+    <vs:term_status xml:lang="en">stable</vs:term_status>
+    <rdfs:range rdf:resource="#Slot"/>
+    <rdfs:label xml:lang="en">has slot</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#OrderedList"/>
+    <rdfs:comment xml:lang="en">A slot in an ordered list.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="#previous">
+    <vs:term_status xml:lang="en">testing</vs:term_status>
+    <owl:inverseOf rdf:resource="#next"/>
+    <rdfs:range rdf:resource="#Slot"/>
+    <rdfs:label xml:lang="en">has previous</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#Slot"/>
+    <rdfs:comment xml:lang="en">Associates the previous slot in an ordered list</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+  </rdf:Property>
+  <rdf:Property rdf:about="#ordered_list">
+    <vs:term_status xml:lang="en">testing</vs:term_status>
+    <owl:inverseOf rdf:resource="#slot"/>
+    <rdfs:range rdf:resource="#OrderedList"/>
+    <rdfs:label xml:lang="en">has ordered list</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#Slot"/>
+    <rdfs:comment xml:lang="en">An ordered list of an slot.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </rdf:Property>
+  <owl:DatatypeProperty rdf:about="#length">
+    <vs:term_status xml:lang="en">stable</vs:term_status>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"/>
+    <rdfs:label xml:lang="en">has length</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#OrderedList"/>
+    <rdfs:comment xml:lang="en">The length of an ordered list.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#index">
+    <vs:term_status xml:lang="en">stable</vs:term_status>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#positiveInteger"/>
+    <rdfs:label xml:lang="en">has index</rdfs:label>
+    <rdfs:isDefinedBy rdf:resource="#"/>
+    <rdfs:domain rdf:resource="#Slot"/>
+    <rdfs:comment xml:lang="en">An index of a slot in an ordered list.</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </owl:DatatypeProperty>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->
