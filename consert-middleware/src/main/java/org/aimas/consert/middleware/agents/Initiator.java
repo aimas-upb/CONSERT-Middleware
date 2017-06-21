@@ -15,7 +15,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 /**
- * Server that asks Server2 to send it an URI, giving access to data
+ * Server simulating an initiator
  */
 public class Initiator extends AbstractVerticle {
 	
