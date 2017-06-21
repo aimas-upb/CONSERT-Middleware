@@ -1,9 +1,12 @@
 package org.aimas.consert.middleware.protocol;
 
+/**
+ * Bean class containing all the parameters to transmit in a request
+ */
 public class RequestBean {
-	private String initiatorURI;
-	private String initiatorCallbackURI;
-	private String request;
+	private String initiatorURI;          // URI to use to communicate with the initiator
+	private String initiatorCallbackURI;  // URI to use for the callback on the initiator
+	private String request;               // The content of the request
 	
 	
 	public RequestBean() {

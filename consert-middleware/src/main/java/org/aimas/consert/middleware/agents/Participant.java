@@ -20,7 +20,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 /**
- * Server that gives access to data through a dynamically created URI
+ * Server simulating a participant
  */
 public class Participant extends AbstractVerticle {
 	

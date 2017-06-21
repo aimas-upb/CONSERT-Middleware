@@ -1,5 +1,11 @@
 package org.aimas.consert.middleware.protocol;
 
+import org.aimas.consert.middleware.agents.CtxCoord;
+import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.agents.CtxSensor;
+import org.aimas.consert.middleware.agents.CtxUser;
+import org.aimas.consert.middleware.agents.OrgMgr;
+
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
@@ -19,37 +25,42 @@ public abstract class RouteConfig {
 	/**
 	 * Creates a router configured to be used on a CtxSensor agent
 	 * @param vertx the Vertx instance
+	 * @param ctxSensor the CtxSensor agent related to these routes
 	 * @return the created router
 	 */
-	public abstract Router createRouterSensing(Vertx vertx);
+	public abstract Router createRouterSensing(Vertx vertx, CtxSensor ctxSensor);
 	
 	/**
 	 * Creates a router configured to be used on a CtxUseragent
 	 * @param vertx the Vertx instance
+	 * @param ctxUser the CtxUser agent related to these routes
 	 * @return the created router
 	 */
-	public abstract Router createRouterUsage(Vertx vertx);
+	public abstract Router createRouterUsage(Vertx vertx, CtxUser ctxUser);
 	
 	/**
-	 * Creates a router configured to be used on a CtxCoordagent
+	 * Creates a router configured to be used on a CtxCoord agent
 	 * @param vertx the Vertx instance
+	 * @param ctxCoord the CtxCoord agent related to these routes
 	 * @return the created router
 	 */
-	public abstract Router createRouterCoordination(Vertx vertx);
+	public abstract Router createRouterCoordination(Vertx vertx, CtxCoord ctxCoord);
 	
 	/**
-	 * Creates a router configured to be used on a CtxQueryHandleragent
+	 * Creates a router configured to be used on a CtxQueryHandler agent
 	 * @param vertx the Vertx instance
+	 * @param ctxQueryHandler the CtxQueryHandler agent related to this route
 	 * @return the created router
 	 */
-	public abstract Router createRouterDissemination(Vertx vertx);
+	public abstract Router createRouterDissemination(Vertx vertx, CtxQueryHandler ctxQueryHandler);
 	
 	/**
 	 * Creates a router configured to be used on an OrgMgr agent
 	 * @param vertx the Vertx instance
+	 * @param orgNgr the OrgMgr agent related to this route
 	 * @return the created router
 	 */
-	public abstract Router createRouterManagement(Vertx vertx);
+	public abstract Router createRouterManagement(Vertx vertx, OrgMgr orgMgr);
 	
 	/**
 	 * Creates a new router with no route
