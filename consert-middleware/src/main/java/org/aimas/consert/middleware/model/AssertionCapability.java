@@ -1,19 +1,17 @@
 package org.aimas.consert.middleware.model;
 
-import java.util.UUID;
-
 public class AssertionCapability {
 
-	private Resource content;
+	private ContextAssertion content;
 	private ContextAnnotation annotation;
 	private AgentSpec provider;
 
 
-	public Resource getContent() {
+	public ContextAssertion getContent() {
 		return content;
 	}
 
-	public void setContent(Resource content) {
+	public void setContent(ContextAssertion content) {
 		this.content = content;
 	}
 
