@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:space="http://pervasive.semanticweb.org/ont/2004/06/space#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:smartclassroom="http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:per="http://pervasive.semanticweb.org/ont/2004/06/person#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:device="http://pervasive.semanticweb.org/ont/2004/06/device#"
+    xmlns="http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xml:base="http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/bootstrap">
+  <owl:Ontology rdf:about="">
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Created with TopBraid Composer</owl:versionInfo>
+  </owl:Ontology>
+  <smartclassroom:RoomSection rdf:ID="EF210_Section3_Right">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The rest of the room is divided in 6 sections (comprising desks) with a walkway down the middle of the room. This is one of them.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_Section3_Right</rdfs:label>
+    <space:spatiallySubsumedBy>
+      <smartclassroom:MultiFunctionalRoom rdf:ID="EF210">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >EF210</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >A multi-functional room capable of hosting both teaching classes and ad-hoc discussions.</rdfs:comment>
+        <space:spatiallySubsumedBy>
+          <smartclassroom:SchoolBuilding rdf:ID="CS_Building">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >CS_Building</rdfs:label>
+          </smartclassroom:SchoolBuilding>
+        </space:spatiallySubsumedBy>
+      </smartclassroom:MultiFunctionalRoom>
+    </space:spatiallySubsumedBy>
+  </smartclassroom:RoomSection>
+  <smartclassroom:RoomSection rdf:ID="EF210_Section2_Right">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The rest of the room is divided in 6 sections (comprising desks) with a walkway down the middle of the room. This is one of them.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_Section2_Right</rdfs:label>
+    <space:spatiallySubsumedBy rdf:resource="#EF210"/>
+  </smartclassroom:RoomSection>
+  <smartclassroom:RoomSection rdf:ID="EF210_PresenterArea">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The section at the front of the EF210 room where a teacher would stay while giving his/her lecture.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_PresenterArea</rdfs:label>
+    <space:spatiallySubsumedBy rdf:resource="#EF210"/>
+  </smartclassroom:RoomSection>
+  <smartclassroom:RoomSection rdf:ID="EF210_Section2_Left">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The rest of the room is divided in 6 sections (comprising desks) with a walkway down the middle of the room. This is one of them.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_Section2_Left</rdfs:label>
+    <space:spatiallySubsumedBy rdf:resource="#EF210"/>
+  </smartclassroom:RoomSection>
+  <smartclassroom:RoomSection rdf:ID="EF210_Section1_Right">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_Section1_Right</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The rest of the room is divided in 6 sections (comprising desks) with a walkway down the middle of the room. This is one of them.</rdfs:comment>
+    <space:spatiallySubsumedBy rdf:resource="#EF210"/>
+  </smartclassroom:RoomSection>
+  <smartclassroom:RoomSection rdf:ID="EF210_Section3_Left">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The rest of the room is divided in 6 sections (comprising desks) with a walkway down the middle of the room. This is one of them.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_Section3_Left</rdfs:label>
+    <space:spatiallySubsumedBy rdf:resource="#EF210"/>
+  </smartclassroom:RoomSection>
+  <smartclassroom:RoomSection rdf:ID="EF210_Section1_Left">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EF210_Section1_Left</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The rest of the room is divided in 6 sections (comprising desks) with a walkway down the middle of the room. This is one of them.</rdfs:comment>
+    <space:spatiallySubsumedBy rdf:resource="#EF210"/>
+  </smartclassroom:RoomSection>
+</rdf:RDF>
+
+<!-- Created with TopBraid -->
