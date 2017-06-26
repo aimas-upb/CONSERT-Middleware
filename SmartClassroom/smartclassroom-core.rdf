@@ -23,12 +23,59 @@
     <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >Created with TopBraid Composer</owl:versionInfo>
   </owl:Ontology>
-  <owl:Class rdf:ID="Smartphone">
+  <owl:Class rdf:ID="SensesTemperature">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Sensed"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="TemperatureSensor"/>
+        </owl:allValuesFrom>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >Smartphone</rdfs:label>
+    >SensesTemperature</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >A smartphone enabled with bluetooth.</rdfs:comment>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#BluetoothEnabledCellphone"/>
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+  </owl:Class>
+  <owl:Class rdf:ID="HasNoiseLevel">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="Microphone"/>
+        </owl:allValuesFrom>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Sensed"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HasNoiseLevel</rdfs:label>
   </owl:Class>
   <owl:Class rdf:ID="KinectCamera">
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
@@ -37,7 +84,216 @@
     >A kinect camera placed in 6 points around the room and used to detect when several people are sitting in desks near the camera.</rdfs:comment>
     <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#Device"/>
   </owl:Class>
-  <owl:Class rdf:ID="AvailabilityStatus">
+  <owl:Class rdf:ID="HasDerivedLocation">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Derived"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#BluetoothEnabledCellphone"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HasDerivedLocation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+  </owl:Class>
+  <owl:Class rdf:ID="TeachingActivity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="TimedActivity"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TeachingActivity</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >An activity which designates the teaching of a class.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#TimedActivity">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TimedActivity</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The base class for activities which have a beginning and an end.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#IntervalThing"/>
+  </owl:Class>
+  <owl:Class rdf:about="#TemperatureSensor">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TemperatureSensor</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A temperature sensor.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#Device"/>
+  </owl:Class>
+  <owl:Class rdf:ID="AdHocDiscussion">
+    <rdfs:subClassOf rdf:resource="#TimedActivity"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >AdHocDiscussion</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The activity that designates an ad hoc discussion.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="HostsAdHocDiscussion">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Derived"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The unary ContextAssertion specifying that a RoomSection hosts an ad-hoc discussion.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HostsAdHocDiscussion</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="RoomSection"/>
+        </owl:allValuesFrom>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionRole"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="HostsTimedActivity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="SchoolBuilding">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SchoolBuilding</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+  </owl:Class>
+  <owl:Class rdf:ID="LocatedIn">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Derived"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >LocatedIn</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+  </owl:Class>
+  <owl:Class rdf:about="#HostsTimedActivity">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#UnaryContextAssertion"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The unary ContextAssertion specifying that a Space in fixed structure hosts a timed activity.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HostsTimedActivity</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionRole"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Derived"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="SkeletonPosition">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:oneOf rdf:parseType="Collection">
+          <SkeletonPosition rdf:ID="SkeletonSitting">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >SkeletonSitting</rdfs:label>
+          </SkeletonPosition>
+          <SkeletonPosition rdf:ID="SkeletonStanding">
+            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+            >SkeletonStanding</rdfs:label>
+          </SkeletonPosition>
+        </owl:oneOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SkeletonPosition</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The position of a kinect camera detected skeleton.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+  </owl:Class>
+  <owl:Class rdf:ID="SensesLuminosity">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="LuminositySensor"/>
+        </owl:allValuesFrom>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Sensed"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >SensesLuminosity</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+  </owl:Class>
+  <owl:Class rdf:ID="HasAvailabilityStatus">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="AvailabilityStatus"/>
+        </owl:allValuesFrom>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HasAvailabilityStatus</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HasAvailabilityStatus</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Profiled"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Smartphone">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Smartphone</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A smartphone enabled with bluetooth.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#BluetoothEnabledCellphone"/>
+  </owl:Class>
+  <owl:Class rdf:about="#AvailabilityStatus">
     <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     ></rdfs:comment>
@@ -58,17 +314,40 @@
       </AvailabilityStatus>
     </owl:oneOf>
   </owl:Class>
-  <owl:Class rdf:ID="RoomSection">
+  <owl:Class rdf:about="#RoomSection">
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >RoomSection</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >A logical separation of a room into sections.</rdfs:comment>
     <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
   </owl:Class>
-  <owl:Class rdf:ID="HostsTeachingClass">
+  <owl:Class rdf:ID="HasProfiledLocation">
     <rdfs:subClassOf>
-      <owl:Class rdf:ID="HostsTimedActivity"/>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Profiled"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
     </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#BluetoothEnabledCellphone"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >HasProfiledLocation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
+  </owl:Class>
+  <owl:Class rdf:ID="HostsTeachingClass">
+    <rdfs:subClassOf rdf:resource="#HostsTimedActivity"/>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >The unary ContextAssertion specifying that a Room hosts a teaching class.</rdfs:comment>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
@@ -88,22 +367,6 @@
       </owl:Restriction>
     </rdfs:subClassOf>
   </owl:Class>
-  <owl:Class rdf:ID="TeachingActivity">
-    <rdfs:subClassOf>
-      <owl:Class rdf:ID="TimedActivity"/>
-    </rdfs:subClassOf>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >TeachingActivity</rdfs:label>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >An activity which designates the teaching of a class.</rdfs:comment>
-  </owl:Class>
-  <owl:Class rdf:about="#TimedActivity">
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >TimedActivity</rdfs:label>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The base class for activities which have a beginning and an end.</rdfs:comment>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#IntervalThing"/>
-  </owl:Class>
   <owl:Class rdf:ID="KinectSkeleton">
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >KinectSkeleton</rdfs:label>
@@ -111,21 +374,41 @@
     >A skeleton detected by a kinect camera.</rdfs:comment>
     <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
   </owl:Class>
-  <owl:Class rdf:ID="LuminositySensor">
+  <owl:Class rdf:about="#LuminositySensor">
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >A luminosity sensor deployed 4 places around a room.</rdfs:comment>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >LuminositySensor</rdfs:label>
     <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#Device"/>
   </owl:Class>
-  <owl:Class rdf:ID="TemperatureSensor">
+  <owl:Class rdf:ID="SensesBluetoothAddress">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Sensed"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="PresenceSensor"/>
+        </owl:allValuesFrom>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >TemperatureSensor</rdfs:label>
+    >SensesBluetoothAddress</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >A temperature sensor.</rdfs:comment>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#Device"/>
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
   </owl:Class>
-  <owl:Class rdf:ID="PresenceSensor">
+  <owl:Class rdf:about="#PresenceSensor">
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >PresenceSensor</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
@@ -162,94 +445,44 @@
     </rdfs:subClassOf>
     <rdfs:subClassOf>
       <owl:Restriction>
-        <owl:allValuesFrom>
-          <owl:Class rdf:ID="SkeletonPosition"/>
-        </owl:allValuesFrom>
+        <owl:allValuesFrom rdf:resource="#SkeletonPosition"/>
         <owl:onProperty>
           <owl:ObjectProperty rdf:ID="hasSkelPositionRole"/>
         </owl:onProperty>
       </owl:Restriction>
     </rdfs:subClassOf>
   </owl:Class>
-  <owl:Class rdf:ID="AdHocDiscussion">
-    <rdfs:subClassOf rdf:resource="#TimedActivity"/>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >AdHocDiscussion</rdfs:label>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The activity that designates an ad hoc discussion.</rdfs:comment>
-  </owl:Class>
-  <owl:Class rdf:ID="Microphone">
+  <owl:Class rdf:about="#Microphone">
     <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >Microphone</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
     >Microphone to detect if speech is present in a given area.</rdfs:comment>
     <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/device#Device"/>
   </owl:Class>
-  <owl:Class rdf:ID="HostsAdHocDiscussion">
+  <owl:Class rdf:ID="EngagedIn">
     <rdfs:subClassOf>
       <owl:Restriction>
-        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Derived"/>
-        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionType"/>
+        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Profiled"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionAcquisitionType"/>
       </owl:Restriction>
     </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#TimedActivity"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionObject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionSubject"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >EngagedIn</rdfs:label>
     <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The unary ContextAssertion specifying that a RoomSection hosts an ad-hoc discussion.</rdfs:comment>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >HostsAdHocDiscussion</rdfs:label>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:allValuesFrom rdf:resource="#RoomSection"/>
-        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionRole"/>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-      <owl:Class rdf:about="#HostsTimedActivity"/>
-    </rdfs:subClassOf>
-  </owl:Class>
-  <owl:Class rdf:ID="SchoolBuilding">
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >SchoolBuilding</rdfs:label>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
-  </owl:Class>
-  <owl:Class rdf:about="#HostsTimedActivity">
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#UnaryContextAssertion"/>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The unary ContextAssertion specifying that a Space in fixed structure hosts a timed activity.</rdfs:comment>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >HostsTimedActivity</rdfs:label>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:allValuesFrom rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
-        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionRole"/>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:hasValue rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#Derived"/>
-        <owl:onProperty rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#assertionType"/>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-  </owl:Class>
-  <owl:Class rdf:about="#SkeletonPosition">
-    <owl:equivalentClass>
-      <owl:Class>
-        <owl:oneOf rdf:parseType="Collection">
-          <SkeletonPosition rdf:ID="SkeletonSitting">
-            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-            >SkeletonSitting</rdfs:label>
-          </SkeletonPosition>
-          <SkeletonPosition rdf:ID="SkeletonStanding">
-            <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-            >SkeletonStanding</rdfs:label>
-          </SkeletonPosition>
-        </owl:oneOf>
-      </owl:Class>
-    </owl:equivalentClass>
-    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >SkeletonPosition</rdfs:label>
-    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
-    >The position of a kinect camera detected skeleton.</rdfs:comment>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#BinaryContextAssertion"/>
   </owl:Class>
   <owl:Class rdf:ID="MultiFunctionalRoom">
     <rdfs:subClassOf>
