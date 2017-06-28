@@ -34,13 +34,13 @@ public class AssertionCapability {
 	}
 
 	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.LIST)
+	@RDFContainer(ContainerType.SEQ)
 	public List<URI> getAnnotations() {
 		return annotations;
 	}
 
 	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.LIST)
+	@RDFContainer(ContainerType.SEQ)
 	public void setAnnotations(List<URI> annotations) {
 		this.annotations = annotations;
 	}

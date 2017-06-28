@@ -1,6 +1,7 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -98,6 +99,10 @@ public class CtxCoord extends AbstractVerticle {
 	
 	public AssertionCapability getAssertionCapability(UUID uuid) {
 		return this.assertionCapabilities.get(uuid);
+	}
+	
+	public Collection<AssertionCapability> getAssertionCapabilitiesValues() {
+		return this.assertionCapabilities.values();
 	}
 	
 	public Repository getRepo() {
