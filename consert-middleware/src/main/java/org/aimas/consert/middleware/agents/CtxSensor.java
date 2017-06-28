@@ -67,42 +67,5 @@ public class CtxSensor extends AbstractVerticle {
 						this.host);
 				}
 			});
-		
-		
-		String rdfData = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#> .\n"
-				+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#> .\n"
-				+ "@prefix assertion-capability: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/> .\n"
-				+ "@prefix context-annotation: <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/> .\n"
-				+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/> .\n"
-				+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentAddress/> .\n\n"
-				+ "assertion-capability:foo a protocol:AssertionCapability ;\n"
-				+ "    protocol:hasContent context-annotation:ann1 ;\n"
-				+ "    protocol:hasProvider agent-spec:CtxSensor .\n"
-				+ "context-annotation:ann1 a annotation:TimestampAnnotation .\n"
-				+ "agent-spec:CtxSensor a protocol:AgentSpec ;\n"
-				+ "    protocol:hasAddress agent-address:CtxSensorAddress ;\n"
-				+ "    protocol:hasIdentifier \"CtxSensor\" .\n"
-				+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
-				+ "    protocol:ipAddress \"127.0.0.1\" ;\n"
-				+ "    protocol:port 8080 .\n";
-		
-		CtxSensor.vertx.createHttpClient()
-			.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(), "/api/v1/coordination/context_assertions/", new Handler<HttpClientResponse>() {
-				
-					@Override
-					public void handle(HttpClientResponse resp) {
-						
-						resp.bodyHandler(new Handler<Buffer>() {
-							
-							@Override
-							public void handle(Buffer buffer) {
-								
-								System.out.println("CtxCoord answered: " + buffer.toString());
-							}
-						});
-					}
-				})
-			.putHeader("content-type", "text/plain")
-			.end(rdfData);
 	}
 }
