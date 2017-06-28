@@ -1,5 +1,6 @@
 package org.aimas.consert.middleware.model;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.cyberborean.rdfbeans.annotations.RDF;
@@ -12,7 +13,7 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 public class ContextSubscription {
 
 	private String subscriptionQuery;
-	private AgentSpec subscriber;
+	private URI subscriber;
 	private String id;
 	
 	
@@ -32,12 +33,12 @@ public class ContextSubscription {
 	}
 	
 	@RDF("hasSubscriber")
-	public AgentSpec getSubscriber() {
+	public URI getSubscriber() {
 		return subscriber;
 	}
 	
 	@RDF("hasSubscriber")
-	public void setSubscriber(AgentSpec subscriber) {
+	public void setSubscriber(URI subscriber) {
 		this.subscriber = subscriber;
 	}
 	

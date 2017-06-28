@@ -1,5 +1,7 @@
 package org.aimas.consert.middleware.model;
 
+import java.net.URI;
+
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
@@ -10,7 +12,7 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 public class ContextQuery {
 
 	private String assertionQuery;
-	private AgentSpec queryAgent;
+	private URI queryAgent;
 	private String id;
 	
 	
@@ -25,12 +27,12 @@ public class ContextQuery {
 	}
 	
 	@RDF("protocol:hasQueryAgent")
-	public AgentSpec getQueryAgent() {
+	public URI getQueryAgent() {
 		return queryAgent;
 	}
 	
 	@RDF("protocol:hasQueryAgent")
-	public void setQueryAgent(AgentSpec queryAgent) {
+	public void setQueryAgent(URI queryAgent) {
 		this.queryAgent = queryAgent;
 	}
 	
