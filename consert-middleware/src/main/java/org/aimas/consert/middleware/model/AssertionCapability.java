@@ -1,9 +1,12 @@
 package org.aimas.consert.middleware.model;
 
-import java.util.UUID;
+import java.net.URI;
+import java.util.List;
 
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFContainer;
+import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
@@ -14,49 +17,50 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 @RDFBean("protocol:AssertionCapability")
 public class AssertionCapability {
 
-	private ContextAssertion content;
-	private ContextAnnotation annotation;
-	private AgentSpec provider;
+	private URI content;
+	private List<URI> annotations;
+	private URI provider;
 	private String id;
-
-	
-	public AssertionCapability() {
-		this.id = UUID.randomUUID().toString();
-	}
 	
 
 	@RDF("protocol:hasContent")
-	public ContextAssertion getContent() {
+	public URI getContent() {
 		return content;
 	}
 
 	@RDF("protocol:hasContent")
-	public void setContent(ContextAssertion content) {
+	public void setContent(URI content) {
 		this.content = content;
 	}
 
 	@RDF("annotation:hasAnnotation")
-	public ContextAnnotation getAnnotation() {
-		return annotation;
+	@RDFContainer(ContainerType.LIST)
+	public List<URI> getAnnotations() {
+		return annotations;
 	}
 
 	@RDF("annotation:hasAnnotation")
-	public void setAnnotation(ContextAnnotation annotation) {
-		this.annotation = annotation;
+	@RDFContainer(ContainerType.LIST)
+	public void setAnnotations(List<URI> annotations) {
+		this.annotations = annotations;
 	}
 
 	@RDF("protocol:hasProvider")
-	public AgentSpec getProvider() {
+	public URI getProvider() {
 		return provider;
 	}
 
 	@RDF("protocol:hasProvider")
-	public void setProvider(AgentSpec provider) {
+	public void setProvider(URI provider) {
 		this.provider = provider;
 	}
 	
-	@RDFSubject(prefix="protocol:AssertionCapability/")
+	@RDFSubject
 	public String getId() {
 		return this.id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 }

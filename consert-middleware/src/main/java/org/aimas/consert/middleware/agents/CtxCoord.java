@@ -1,10 +1,19 @@
 package org.aimas.consert.middleware.agents;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.sail.nativerdf.NativeStore;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
@@ -20,6 +29,10 @@ public class CtxCoord extends AbstractVerticle {
 	private AgentConfig agentConfig;  // configuration values for this agent
 	private String host;              // where this agent is hosted
 	
+	private Repository repo;  // repository containing the RDF data
+	
+	private Map<UUID, AssertionCapability> assertionCapabilities;  // list of assertion capabilities
+	
 	private AgentConfig ctxSensor;  // configuration to communicate with the CtxSensor agent
 	private AgentConfig ctxUser;    // configuration to communicate with the CtxUser agent
 	private AgentConfig orgMgr;     // configuration to communicate with the OrgMgr agent
@@ -32,6 +45,13 @@ public class CtxCoord extends AbstractVerticle {
 	
 	@Override
 	public void start() {
+		
+		// Initialization of the repository
+		this.repo = new SailRepository(new NativeStore(new File("C:\\temp\\myRepository\\")));
+		this.repo.initialize();
+		
+		// Initialization of the lists
+		this.assertionCapabilities = new HashMap<UUID, AssertionCapability>();
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
@@ -65,5 +85,22 @@ public class CtxCoord extends AbstractVerticle {
 						this.host);
 				}
 			});
+	}
+	
+	@Override
+	public void stop() {
+		this.repo.shutDown();
+	}
+	
+	public AssertionCapability addAssertionCapability(UUID uuid, AssertionCapability ac) {
+		return this.assertionCapabilities.put(uuid, ac);
+	}
+	
+	public AssertionCapability getAssertionCapability(UUID uuid) {
+		return this.assertionCapabilities.get(uuid);
+	}
+	
+	public Repository getRepo() {
+		return this.repo;
 	}
 }

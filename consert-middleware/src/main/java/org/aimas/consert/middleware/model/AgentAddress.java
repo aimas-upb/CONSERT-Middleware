@@ -11,6 +11,7 @@ public class AgentAddress {
 
 	private String ipAddress;
 	private int port;
+	private String id;
 	
 	
 	@RDF("protocol:ipAddress")
@@ -33,8 +34,12 @@ public class AgentAddress {
 		this.port = port;
 	}
 
-	@RDFSubject(prefix="protocol:AgentAddress/")
+	@RDFSubject
 	public String getId() {
-		return this.ipAddress + ":" + this.port;
+		return this.id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 }

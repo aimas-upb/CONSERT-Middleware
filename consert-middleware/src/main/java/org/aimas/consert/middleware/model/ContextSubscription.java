@@ -41,8 +41,12 @@ public class ContextSubscription {
 		this.subscriber = subscriber;
 	}
 	
-	@RDFSubject(prefix="protocol:ContextSubscription/")
+	@RDFSubject
 	public String getId() {
 		return this.id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 }

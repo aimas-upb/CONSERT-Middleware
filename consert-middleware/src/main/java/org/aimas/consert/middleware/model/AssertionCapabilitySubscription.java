@@ -1,5 +1,6 @@
 package org.aimas.consert.middleware.model;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.cyberborean.rdfbeans.annotations.RDF;
@@ -12,7 +13,7 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 public class AssertionCapabilitySubscription {
 
 	private String capabilityQuery;
-	private AgentSpec subscriber;
+	private URI subscriber;
 	private String id;
 	
 	
@@ -32,17 +33,21 @@ public class AssertionCapabilitySubscription {
 	}
 	
 	@RDF("protocol:hasSubscriber")
-	public AgentSpec getSubscriber() {
+	public URI getSubscriber() {
 		return subscriber;
 	}
 	
 	@RDF("protocol:hasSubscriber")
-	public void setSubscriber(AgentSpec subscriber) {
+	public void setSubscriber(URI subscriber) {
 		this.subscriber = subscriber;
 	}
 	
-	@RDFSubject(prefix="protocol:AssertionCapabilitySubscription/")
+	@RDFSubject
 	public String getId() {
 		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 }

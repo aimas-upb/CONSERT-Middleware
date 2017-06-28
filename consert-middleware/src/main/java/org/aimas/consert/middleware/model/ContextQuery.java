@@ -11,6 +11,7 @@ public class ContextQuery {
 
 	private String assertionQuery;
 	private AgentSpec queryAgent;
+	private String id;
 	
 	
 	@RDF("protocol:hasAssertionQuery")
@@ -33,8 +34,12 @@ public class ContextQuery {
 		this.queryAgent = queryAgent;
 	}
 	
-	@RDFSubject(prefix="protocol:ContextQuery/")
+	@RDFSubject
 	public String getId() {
-		return this.assertionQuery + "/" + this.queryAgent.getId();
+		return this.id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
 	}
 }
