@@ -111,20 +111,11 @@ public class AssertionCapabilityRoutesTest
 										@Override
 										public void handle(Buffer buffer) {
 
-											context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert"
-													+ "/protocol#AssertionCapability/foo> a <http://pervasive."
-													+ "semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability"
-													+ "> ;<http://pervasive.semanticweb.org/ont/2017/06/consert"
-													+ "/protocol#hasAnnotation> <http://pervasive.semanticweb.org/ont/"
-													+ "2017/06/consert/annotation#ContextAnnotation/ann1> , "
-													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/"
-													+ "annotation#ContextAnnotation/ann2> ;"
-													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol"
-													+ "#hasContent> <http://pervasive.semanticweb.org/ont/2014/05/"
-													+ "consert/core#ContextAssertion/ctx-assertion> ;"
-													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol"
-													+ "#hasProvider> <http://pervasive.semanticweb.org/ont/2017/06/"
-													+ "consert/protocol#AgentSpec/CtxSensor> .",
+											context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability> ;"
+													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann1> , "
+													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann2> ;"
+													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasContent> <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAssertion/ctx-assertion> ;"
+													+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxSensor> .",
 													buffer.toString().trim().replace("\r", "").replace("\n", "")
 													.replace("\t", ""));
 											async.complete();
