@@ -12,6 +12,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
@@ -88,8 +89,8 @@ public class CtxCoord extends AbstractVerticle {
 	}
 	
 	@Override
-	public void stop() {
-		this.repo.shutDown();
+	public void stop() {		
+		//this.repo.shutDown();
 	}
 	
 	public AssertionCapability addAssertionCapability(UUID uuid, AssertionCapability ac) {

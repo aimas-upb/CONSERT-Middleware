@@ -68,6 +68,8 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 					break;
 				}
 			}
+
+			conn.close();
 			
 			// Answer by giving the UUID associated to the AssertionCapability
 			rtCtx.response()
@@ -75,12 +77,12 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 				.putHeader("content-type", "text/plain")
 				.end(uuid.toString());
 		} catch (RDF4JException | RDFBeanException | IOException e) {
+
+			conn.close();
 			System.err.println("Error while creating new AssertionCapability: " + e.getMessage());
 			e.printStackTrace();
-			rtCtx.response().setStatusCode(500);
+			rtCtx.response().setStatusCode(500).end();
 		}
-		
-		conn.close();
 	}
 	
 	/**
@@ -126,11 +128,15 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 						
 						writer.handleStatement(iter.next());
 					}
+
+					conn.close();
 					
 				} catch (RepositoryException | RDFBeanException e) {
+
+					conn.close();
 					System.err.println("Error while getting information for AssertionCapability " + ac.getId());
 					e.printStackTrace();
-					rtCtx.response().setStatusCode(500);
+					rtCtx.response().setStatusCode(500).end();
 				}
 			}
 		}
@@ -142,8 +148,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			.setStatusCode(200)
 			.putHeader("content-type", "text/turtle")
 			.end(baos.toString());
-		
-		conn.close();
 	}
 	
 	/**
@@ -151,7 +155,59 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleGetCtxAssert(RoutingContext rtCtx) {
-		// TODO
+		
+		// Get UUID of the AssertionCapability from query
+		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
+
+		// Get the corresponding AssertionCapability
+		AssertionCapability ac = this.ctxCoord.getAssertionCapability(uuid);
+		
+		if(ac != null) {
+
+			// Connection to repository to get the provider of each AssertionCapability and the statements
+			RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+			RDFBeanManager manager = new RDFBeanManager(conn);
+			
+			// Prepare to write RDF statements
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+			writer.startRDF();
+			
+			try {
+
+				// Get all the statements corresponding to the AssertionCapability (as the subject)
+				Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
+
+				RepositoryResult<Statement> iter = this.ctxCoord.getRepo().getConnection()
+						.getStatements(acRes, null, null);
+				
+				// Write all the statements
+				while(iter.hasNext()) {
+					
+					writer.handleStatement(iter.next());
+				}
+
+				conn.close();
+				
+			} catch (RepositoryException | RDFBeanException e) {
+
+				conn.close();
+				System.err.println("Error while getting information for AssertionCapability " + ac.getId());
+				e.printStackTrace();
+				rtCtx.response().setStatusCode(500).end();
+			}
+			
+			writer.endRDF();
+
+			// Answer with the RDF statements
+			rtCtx.response()
+				.setStatusCode(200)
+				.putHeader("content-type", "text/turtle")
+				.end(baos.toString());
+			
+		} else {
+			rtCtx.response().setStatusCode(404).end();
+		}
 	}
 	
 	/**
