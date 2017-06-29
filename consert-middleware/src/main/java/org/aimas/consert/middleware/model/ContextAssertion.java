@@ -17,7 +17,7 @@ public class ContextAssertion {
 	public ContextEntity getAssertionRole() {
 		return assertionRole;
 	}
-
+	
 	@RDF("core:assertionRole")
 	public void setAssertionRole(ContextEntity assertionRole) {
 		this.assertionRole = assertionRole;
