@@ -1,6 +1,5 @@
 package org.aimas.consert.middleware.model;
 
-import java.net.URI;
 import java.util.List;
 
 import org.cyberborean.rdfbeans.annotations.RDF;
@@ -17,41 +16,41 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 @RDFBean("protocol:AssertionCapability")
 public class AssertionCapability {
 
-	private URI content;
-	private List<URI> annotations;
-	private URI provider;
+	private ContextAssertion content;
+	private List<ContextAnnotation> annotations;
+	private AgentSpec provider;
 	private String id;
 	
 
 	@RDF("protocol:hasContent")
-	public URI getContent() {
+	public ContextAssertion getContent() {
 		return content;
 	}
 
 	@RDF("protocol:hasContent")
-	public void setContent(URI content) {
+	public void setContent(ContextAssertion content) {
 		this.content = content;
 	}
 
 	@RDF("annotation:hasAnnotation")
 	@RDFContainer(ContainerType.LIST)
-	public List<URI> getAnnotations() {
+	public List<ContextAnnotation> getAnnotations() {
 		return annotations;
 	}
 
 	@RDF("annotation:hasAnnotation")
 	@RDFContainer(ContainerType.LIST)
-	public void setAnnotations(List<URI> annotations) {
+	public void setAnnotations(List<ContextAnnotation> annotations) {
 		this.annotations = annotations;
 	}
 
 	@RDF("protocol:hasProvider")
-	public URI getProvider() {
+	public AgentSpec getProvider() {
 		return provider;
 	}
 
 	@RDF("protocol:hasProvider")
-	public void setProvider(URI provider) {
+	public void setProvider(AgentSpec provider) {
 		this.provider = provider;
 	}
 	

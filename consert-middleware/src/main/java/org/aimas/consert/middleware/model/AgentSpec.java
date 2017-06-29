@@ -1,7 +1,5 @@
 package org.aimas.consert.middleware.model;
 
-import java.net.URI;
-
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
@@ -11,18 +9,18 @@ import org.cyberborean.rdfbeans.annotations.RDFSubject;
 @RDFBean("protocol:AgentSpec")
 public class AgentSpec {
 
-	private URI address;
+	private AgentAddress address;
 	private String identifier;
 	private String id;
 	
 	
 	@RDF("protocol:hasAddress")
-	public URI getAddress() {
+	public AgentAddress getAddress() {
 		return address;
 	}
 	
 	@RDF("protocol:hasAddress")
-	public void setAddress(URI address) {
+	public void setAddress(AgentAddress address) {
 		this.address = address;
 	}
 	
