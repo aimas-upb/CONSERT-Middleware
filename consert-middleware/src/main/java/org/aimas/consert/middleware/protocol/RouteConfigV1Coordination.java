@@ -3,10 +3,7 @@ package org.aimas.consert.middleware.protocol;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.CtxCoord;
@@ -110,18 +107,17 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// For each AssertionCapability from CtxCoord, fetch the AgentSpec provider.
 		// If the provider is the requested one, write all the statements where the AssertionCapability is the subject.
 		for(AssertionCapability ac : acs) {
+
+			// Check the provider
+			AgentSpec as = ac.getProvider();
 			
-			URI agentSpecURI = ac.getProvider();
-			
-			try {
-				
-				// Check the provider
-				AgentSpec as = manager.get(agentSpecURI.toString(), AgentSpec.class);
-				
-				if(as.getIdentifier().equals(agent)) {
-						
+			if(as.getIdentifier().equals(agent)) {
+					
+				try {
+
 					// Get all the statements corresponding to the AssertionCapability (as the subject)
 					Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
+
 					RepositoryResult<Statement> iter = this.ctxCoord.getRepo().getConnection()
 							.getStatements(acRes, null, null);
 					
@@ -130,11 +126,12 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 						
 						writer.handleStatement(iter.next());
 					}
+					
+				} catch (RepositoryException | RDFBeanException e) {
+					System.err.println("Error while getting information for AssertionCapability " + ac.getId());
+					e.printStackTrace();
+					rtCtx.response().setStatusCode(500);
 				}
-			} catch (RepositoryException | RDFBeanException e1) {
-				System.err.println("Error while getting information for AssertionCapability " + ac.getId());
-				e1.printStackTrace();
-				rtCtx.response().setStatusCode(500);
 			}
 		}
 		
