@@ -1,6 +1,5 @@
 package org.aimas.consert.middleware.agents;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +13,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.sail.nativerdf.NativeStore;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
@@ -48,7 +47,7 @@ public class CtxCoord extends AbstractVerticle {
 	public void start() {
 		
 		// Initialization of the repository
-		this.repo = new SailRepository(new NativeStore(new File("C:\\temp\\myRepository\\")));
+		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
 		
 		// Initialization of the lists

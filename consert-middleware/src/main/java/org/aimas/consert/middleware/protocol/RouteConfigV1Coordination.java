@@ -98,7 +98,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// Get all known AssertionCapabilities
 		Collection<AssertionCapability> acs = this.ctxCoord.getAssertionCapabilitiesValues();
 		
-		// Connection to repository to get the provider of each AssertionCapability
+		// Connection to repository to get the provider of each AssertionCapability and the statements
 		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 		
@@ -121,7 +121,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 				if(as.getIdentifier().equals(agent)) {
 						
 					// Get all the statements corresponding to the AssertionCapability (as the subject)
-					Resource acRes = manager.getResource(ac.getId(), AgentSpec.class);
+					Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
 					RepositoryResult<Statement> iter = this.ctxCoord.getRepo().getConnection()
 							.getStatements(acRes, null, null);
 					
