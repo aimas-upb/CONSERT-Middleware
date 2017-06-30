@@ -89,7 +89,12 @@ public class CtxCoord extends AbstractVerticle {
 	}
 	
 	@Override
-	public void stop() {		
+	public void stop() {
+		
+		RepositoryConnection conn = this.repo.getConnection();
+		conn.clear();
+		conn.close();
+		this.assertionCapabilities.clear();
 		//this.repo.shutDown();
 	}
 	
@@ -103,6 +108,10 @@ public class CtxCoord extends AbstractVerticle {
 	
 	public Collection<AssertionCapability> getAssertionCapabilitiesValues() {
 		return this.assertionCapabilities.values();
+	}
+	
+	public AssertionCapability removeAssertionCapability(UUID uuid) {
+		return this.assertionCapabilities.remove(uuid);
 	}
 	
 	public Repository getRepo() {

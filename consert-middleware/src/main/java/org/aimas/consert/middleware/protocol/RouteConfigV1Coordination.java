@@ -46,7 +46,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// Initialization
 		String rdf = rtCtx.getBodyAsString();
 		UUID uuid = UUID.randomUUID();
-		
+
 		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 
@@ -70,7 +70,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			}
 
 			conn.close();
-			
+
 			// Answer by giving the UUID associated to the AssertionCapability
 			rtCtx.response()
 				.setStatusCode(201)
@@ -120,27 +120,24 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 					// Get all the statements corresponding to the AssertionCapability (as the subject)
 					Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
 
-					RepositoryResult<Statement> iter = this.ctxCoord.getRepo().getConnection()
-							.getStatements(acRes, null, null);
+					RepositoryResult<Statement> iter = conn.getStatements(acRes, null, null);
 					
 					// Write all the statements
 					while(iter.hasNext()) {
 						
 						writer.handleStatement(iter.next());
 					}
-
-					conn.close();
 					
 				} catch (RepositoryException | RDFBeanException e) {
 
-					conn.close();
 					System.err.println("Error while getting information for AssertionCapability " + ac.getId());
 					e.printStackTrace();
 					rtCtx.response().setStatusCode(500).end();
 				}
 			}
 		}
-		
+
+		conn.close();
 		writer.endRDF();
 		
 		// Answer with the RDF statements
@@ -178,8 +175,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 				// Get all the statements corresponding to the AssertionCapability (as the subject)
 				Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
 
-				RepositoryResult<Statement> iter = this.ctxCoord.getRepo().getConnection()
-						.getStatements(acRes, null, null);
+				RepositoryResult<Statement> iter = conn.getStatements(acRes, null, null);
 				
 				// Write all the statements
 				while(iter.hasNext()) {
@@ -215,7 +211,66 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePutCtxAssert(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String rdf = rtCtx.getBodyAsString();
+		String uuid = rtCtx.request().getParam("id");
+		
+		// Connection to the repository to update it
+		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		// Remove old AssertionCapability from the repository
+		String resourceId = this.ctxCoord.getAssertionCapability(UUID.fromString(uuid)).getId();
+		try {
+			manager.delete(resourceId, AssertionCapability.class);
+		} catch (RepositoryException | RDFBeanException e1) {
+			
+			conn.close();
+			System.err.println("Error while removing old AssertionCapability: " + e1.getMessage());
+			e1.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+		
+		// Remove old AssertionCapability from CtxCoord
+		AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
+		if(ac == null) {
+			rtCtx.response().setStatusCode(404).end();
+			return;
+		}
+
+		try {
+			// Insertion of the new AssertionCapability in RDF store
+			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TURTLE);
+			conn.add(model);
+
+			// Getting the object we want to update
+			for(Statement s : model) {
+				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/06/consert/protocol"
+						+ "#AssertionCapability")) {
+					
+					AssertionCapability newAc = manager.get(s.getSubject(), AssertionCapability.class);
+					
+					// Insertion in CtxCoord
+					this.ctxCoord.addAssertionCapability(UUID.fromString(uuid), newAc);
+					
+					break;
+				}
+			}
+
+			conn.close();
+			
+			// Answer by giving the 'OK' HTTP code
+			rtCtx.response()
+				.setStatusCode(200)
+				.end();
+		} catch (RDF4JException | RDFBeanException | IOException e) {
+
+			conn.close();
+			System.err.println("Error while creating new AssertionCapability: " + e.getMessage());
+			e.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
 	}
 	
 	/**

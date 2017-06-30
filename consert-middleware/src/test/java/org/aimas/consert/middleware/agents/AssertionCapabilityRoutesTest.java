@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -70,12 +71,11 @@ public class AssertionCapabilityRoutesTest
 	private Vertx vertx;
 	private AgentConfig ctxCoord;
 	private String resourceUUID;
+	private HttpClient httpClient;
 	
 	
 	@Before
 	public void setUp(TestContext context) throws IOException, ConfigurationException, InterruptedException {
-		
-    	Async async = context.async();
 
     	// Read configuration files
 		Configuration config;
@@ -87,51 +87,69 @@ public class AssertionCapabilityRoutesTest
 		this.vertx = Vertx.vertx();
 		this.vertx.deployVerticle(CtxCoord.class.getName(), context.asyncAssertSuccess());
 		
-		
-		// POST: insert data that we will try to fetch in the test methods
-		
-		this.vertx.createHttpClient()
-			.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(),
-					"/api/v1/coordination/context_assertions/", new Handler<HttpClientResponse>() {
-				
-				@Override
-				public void handle(HttpClientResponse resp) {
-					
-					if(resp.statusCode() != 201) {
-						context.fail("Failed to create AssertionCapability");
-						async.complete();
-					} else {
-						
-						// Get the created resource's UUID to make requests on it later
-						resp.bodyHandler(new Handler<Buffer>() {
-
-							@Override
-							public void handle(Buffer buffer) {
-								resourceUUID = buffer.toString();
-								async.complete();
-							}
-							
-						});
-					}
-				}
-			})
-			.putHeader("content-type", "text/turtle")
-			.end(this.postQuery);
+		this.httpClient = this.vertx.createHttpClient();
 	}
 	
     @After
     public void tearDown(TestContext context) {
-    	this.vertx.close(context.asyncAssertSuccess());
+    	
+		this.vertx.close(context.asyncAssertSuccess());
+    }
+    
+    
+    @Test
+    public void testPost(TestContext context) {
+    	
+		Async async = context.async();
+		this.post(context, async);
+		async.await();
+    }
+    
+    public void post(TestContext context, Async async) {
+    	
+    	// POST: insert data that we will try to fetch in the test methods
+		
+		this.httpClient
+			.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(),
+					"/api/v1/coordination/context_assertions/", new Handler<HttpClientResponse>() {
+				
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				if(resp.statusCode() != 201) {
+					context.fail("Failed to create AssertionCapability, code " + resp.statusCode());
+					async.complete();
+				} else {
+					
+					// Get the created resource's UUID to make requests on it later
+					resp.bodyHandler(new Handler<Buffer>() {
+
+						@Override
+						public void handle(Buffer buffer) {
+							resourceUUID = buffer.toString();
+							async.complete();
+						}
+						
+					});
+				}
+			}
+		})
+		.putHeader("content-type", "text/turtle")
+		.end(this.postQuery);
     }
     
     @Test
-    public void testPostAndGetAll(TestContext context) {
-    	
+    public void testGetAll(TestContext context) {
+		
+    	Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
     	Async async = context.async();
 						
 		// GET all
 		
-		vertx.createHttpClient()
+    	this.httpClient
 			.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
 					"/api/v1/coordination/context_assertions/?agentIdentifier=CtxSensor1",
 					new Handler<HttpClientResponse>() {
@@ -163,14 +181,17 @@ public class AssertionCapabilityRoutesTest
     }
     
     @Test
-    public void testPostAndGetOne(TestContext context) {
-    	
+    public void testGetOne(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
     	Async async = context.async();
-    	
     	
 		// GET one
 		
-		vertx.createHttpClient()
+    	this.httpClient
 			.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
 					"/api/v1/coordination/context_assertions/" + this.resourceUUID + "/",
 					new Handler<HttpClientResponse>() {
@@ -199,5 +220,68 @@ public class AssertionCapabilityRoutesTest
 			}
 		})
 		.end();
+    }
+    
+    @Test
+    public void testPut(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+    	String updated = this.postQuery.replace("    protocol:hasAnnotation context-annotation:ann2 ;\n", "");
+    	
+		// PUT
+		
+    	this.httpClient
+			.put(ctxCoord.getPort(), ctxCoord.getAddress(), 
+					"/api/v1/coordination/context_assertions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				if(resp.statusCode() != 200) {
+					context.fail("Failed to get AssertionCapability");
+					async.complete();
+				}
+				
+				// GET one
+				
+				httpClient
+					.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
+							"/api/v1/coordination/context_assertions/" + resourceUUID + "/",
+							new Handler<HttpClientResponse>() {
+					
+					@Override
+					public void handle(HttpClientResponse resp2) {
+						
+						if(resp2.statusCode() != 200) {
+							context.fail("Failed to get AssertionCapability");
+							async.complete();
+						}
+						
+						resp2.bodyHandler(new Handler<Buffer>() {
+							
+							@Override
+							public void handle(Buffer buffer2) {
+
+								context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann1> ;"
+										+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasContent> <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAssertion/assert1> ;"
+										+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxSensor> ;"
+										+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability> .",
+										buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", ""));
+													async.complete();
+							}
+						});
+					}
+				})
+				.end();
+			}
+		})
+		.putHeader("content-type", "text/turtle")
+		.end(updated);
     }
 }
