@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.Agent;
+import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.RDFObject;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
@@ -35,6 +36,7 @@ public class RouteUtils {
 	 * @param rdfClassName the full URI of the RDF class that the inserted instance is from
 	 * @param javaClass the Java class related to the given RDF class name
 	 * @param agent the agent containing the repository that stores the RDF triples
+	 * @return the inserted object and the UUID to get it
 	 */
 	public static Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass,
 			Agent agent) {
@@ -137,7 +139,15 @@ public class RouteUtils {
 		}
 	}
 	
-	
+	/**
+	 * Generic PUT handler
+	 * @param rtCtx the routing context
+	 * @param rdfClassName the full URI of the RDF class that the inserted instance is from
+	 * @param javaClass the Java class related to the given RDF class name
+	 * @param agent the agent containing the repository that stores the RDF triples
+	 * @param resourceId the ID of the resource in the repository
+	 * @return the updated object and the UUID to get it
+	 */
 	public static Entry<UUID, Object> put(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass, Agent agent,
 			String resourceId) {
 		
@@ -192,5 +202,36 @@ public class RouteUtils {
 		}
 		
 		return updated;
+	}
+	
+	
+	public static boolean delete(RoutingContext rtCtx, Class<?> javaClass, Agent agent, String resourceId) {
+		
+		// Initialization
+		boolean done = false;
+		
+		// Connection to the repository to remove the AssertionCapability
+		RepositoryConnection conn = agent.getRepository().getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		// Remove old object from the repository
+		try {
+			manager.delete(resourceId, javaClass);
+			conn.close();
+			done = true;
+		} catch (RepositoryException | RDFBeanException e1) {
+			
+			conn.close();
+			System.err.println("Error while removing object: " + e1.getMessage());
+			e1.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+		
+		// Answer by giving the 'OK' HTTP code
+		rtCtx.response()
+			.setStatusCode(200)
+			.end();
+		
+		return done;
 	}
 }

@@ -218,4 +218,49 @@ public class AssertionCapabilitySubscriptionRoutesTest
 		.putHeader("content-type", "text/turtle")
 		.end(updated);
     }
+    
+    
+    @Test
+    public void testDelete(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+		// DELETE
+		
+    	this.httpClient
+			.delete(ctxCoord.getPort(), ctxCoord.getAddress(), 
+					"/api/v1/coordination/assertion_capability_subscriptions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				if(resp.statusCode() != 200) {
+					context.fail("Failed to delete AssertionCapabilitySubscription");
+					async.complete();
+				}
+				
+				// GET one
+				
+				httpClient
+					.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
+							"/api/v1/coordination/assertion_capability_subscriptions/" + resourceUUID + "/",
+							new Handler<HttpClientResponse>() {
+					
+					@Override
+					public void handle(HttpClientResponse resp2) {
+						
+						context.assertEquals(404, resp2.statusCode());
+						async.complete();
+					}
+				})
+				.end();
+			}
+		})
+		.end();
+    }
 }

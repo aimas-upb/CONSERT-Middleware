@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.aimas.consert.middleware.agents.Agent;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
@@ -167,34 +168,21 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// Initialization
 		String uuid = rtCtx.request().getParam("id");
 		
-		// Connection to the repository to remove the AssertionCapability
-		RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
-		RDFBeanManager manager = new RDFBeanManager(conn);
-		
 		// Remove old AssertionCapability from the repository
 		String resourceId = this.ctxCoord.getAssertionCapability(UUID.fromString(uuid)).getId();
-		try {
-			manager.delete(resourceId, AssertionCapability.class);
-			conn.close();
-		} catch (RepositoryException | RDFBeanException e1) {
+		
+		boolean done = this.delete(rtCtx, AssertionCapability.class, resourceId);
+		
+		if(done) {
 			
-			conn.close();
-			System.err.println("Error while removing AssertionCapability: " + e1.getMessage());
-			e1.printStackTrace();
-			rtCtx.response().setStatusCode(500).end();
-		}
-		
-		// Remove old AssertionCapability from CtxCoord
-		AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
-		if(ac == null) {
+			// Remove old AssertionCapability from CtxCoord
+			AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
+			if(ac == null) {
+				rtCtx.response().setStatusCode(404).end();
+			}
+		} else {
 			rtCtx.response().setStatusCode(404).end();
-			return;
 		}
-		
-		// Answer by giving the 'OK' HTTP code
-		rtCtx.response()
-			.setStatusCode(200)
-			.end();
 	}
 	
 	
@@ -266,7 +254,26 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleDeleteCapSub(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String uuid = rtCtx.request().getParam("id");
+		
+		// Remove old AssertionCapability from the repository
+		String resourceId = this.ctxCoord.getAssertionCapabilitySubscription(UUID.fromString(uuid)).getId();
+		
+		boolean done = this.delete(rtCtx, AssertionCapabilitySubscription.class, resourceId);
+		
+		if(done) {
+			
+			// Remove old AssertionCapabilitySubscription from CtxCoord
+			AssertionCapabilitySubscription acs = this.ctxCoord.removeAssertionCapabilitySubscription(
+					UUID.fromString(uuid));
+			if(acs == null) {
+				rtCtx.response().setStatusCode(404).end();
+			}
+		} else {
+			rtCtx.response().setStatusCode(404).end();
+		}
 	}
 	
 	
@@ -330,5 +337,9 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	
 	private Entry<UUID, Object> put(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass, String resourceId) {
 		return RouteUtils.put(rtCtx, rdfClassName, javaClass, this.ctxCoord, resourceId);
+	}
+	
+	private boolean delete(RoutingContext rtCtx, Class<?> javaClass, String resourceId) {
+		return RouteUtils.delete(rtCtx, javaClass, this.ctxCoord, resourceId);
 	}
 }
