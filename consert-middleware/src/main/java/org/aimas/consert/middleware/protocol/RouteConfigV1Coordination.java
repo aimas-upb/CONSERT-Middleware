@@ -1,8 +1,6 @@
 package org.aimas.consert.middleware.protocol;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -14,8 +12,6 @@ import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
 import org.aimas.consert.middleware.model.RDFObject;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
-import org.eclipse.rdf4j.RDF4JException;
-import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
@@ -123,10 +119,10 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	public void handleGetCtxAssert(RoutingContext rtCtx) {
 		
 		// Get UUID of the AssertionCapability from query
-		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
-
+ 		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
+		 		
 		// Get the corresponding AssertionCapability
-		AssertionCapability ac = this.ctxCoord.getAssertionCapability(uuid);
+  		AssertionCapability ac = this.ctxCoord.getAssertionCapability(uuid);
 		
 		this.get(rtCtx, AssertionCapability.class, ac);
 	}
@@ -138,63 +134,27 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	public void handlePutCtxAssert(RoutingContext rtCtx) {
 		
 		// Initialization
-		String rdf = rtCtx.getBodyAsString();
 		String uuid = rtCtx.request().getParam("id");
-		
-		// Connection to the repository to update it
-		RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
-		RDFBeanManager manager = new RDFBeanManager(conn);
-		
-		// Remove old AssertionCapability from the repository
 		String resourceId = this.ctxCoord.getAssertionCapability(UUID.fromString(uuid)).getId();
-		try {
-			manager.delete(resourceId, AssertionCapability.class);
-		} catch (RepositoryException | RDFBeanException e1) {
-			
-			conn.close();
-			System.err.println("Error while removing old AssertionCapability: " + e1.getMessage());
-			e1.printStackTrace();
-			rtCtx.response().setStatusCode(500).end();
-		}
 		
-		// Remove old AssertionCapability from CtxCoord
-		AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
-		if(ac == null) {
-			rtCtx.response().setStatusCode(404).end();
-			return;
-		}
-
-		try {
-			// Insertion of the new AssertionCapability in RDF store
-			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TURTLE);
-			conn.add(model);
-
-			// Getting the object we want to update
-			for(Statement s : model) {
-				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/06/consert/protocol"
-						+ "#AssertionCapability")) {
-					
-					AssertionCapability newAc = manager.get(s.getSubject(), AssertionCapability.class);
-					
-					// Insertion in CtxCoord
-					this.ctxCoord.addAssertionCapability(UUID.fromString(uuid), newAc);
-					
-					break;
-				}
-			}
-
-			conn.close();
+		
+		Entry<UUID, Object> entry = this.put(rtCtx,
+				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability",
+				AssertionCapability.class, resourceId);
+		
+		if(entry != null) {
 			
-			// Answer by giving the 'OK' HTTP code
-			rtCtx.response()
-				.setStatusCode(200)
-				.end();
-		} catch (RDF4JException | RDFBeanException | IOException e) {
-
-			conn.close();
-			System.err.println("Error while creating new AssertionCapability: " + e.getMessage());
-			e.printStackTrace();
-			rtCtx.response().setStatusCode(500).end();
+			// Remove old AssertionCapability from CtxCoord
+			AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
+			if(ac == null) {
+				rtCtx.response().setStatusCode(404).end();
+				return;
+			}
+			
+			AssertionCapability newAc = (AssertionCapability) entry.getValue();
+			
+			// Insertion in CtxCoord
+			this.ctxCoord.addAssertionCapability(UUID.fromString(uuid), newAc);
 		}
 	}
 	
@@ -273,7 +233,32 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePutAssertCapSub(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String uuid = rtCtx.request().getParam("id");
+		String resourceId = this.ctxCoord.getAssertionCapabilitySubscription(UUID.fromString(uuid)).getId();
+		
+		
+		Entry<UUID, Object> entry = this.put(rtCtx,
+				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription",
+				AssertionCapabilitySubscription.class, resourceId);
+		
+		if(entry != null) {
+			
+			// Remove old AssertionCapabilitySubscription from CtxCoord
+			AssertionCapabilitySubscription acs =
+					this.ctxCoord.removeAssertionCapabilitySubscription(UUID.fromString(uuid));
+			
+			if(acs == null) {
+				rtCtx.response().setStatusCode(404).end();
+				return;
+			}
+			
+			AssertionCapabilitySubscription newAc = (AssertionCapabilitySubscription) entry.getValue();
+			
+			// Insertion in CtxCoord
+			this.ctxCoord.addAssertionCapabilitySubscription(UUID.fromString(uuid), newAc);
+		}
 	}
 	
 	/**
@@ -341,5 +326,9 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	
 	private void get(RoutingContext rtCtx, Class<?> javaClass, RDFObject obj) {
 		RouteUtils.get(rtCtx, javaClass, this.ctxCoord, obj);
+	}
+	
+	private Entry<UUID, Object> put(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass, String resourceId) {
+		return RouteUtils.put(rtCtx, rdfClassName, javaClass, this.ctxCoord, resourceId);
 	}
 }
