@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
+import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.RDF4JException;
@@ -288,7 +289,16 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePostAssertCapSubs(RoutingContext rtCtx) {
-		// TODO
+		
+		List<Entry<UUID, Object>> entries = this.post(rtCtx,
+				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription",
+				AssertionCapabilitySubscription.class);
+		
+		// Insertion in CtxCoord
+		for(Entry<UUID, Object> entry : entries) {
+			AssertionCapabilitySubscription acs = (AssertionCapabilitySubscription) entry.getValue();
+			this.ctxCoord.addAssertionCapabilitySubscription(entry.getKey(), acs);
+		}
 	}
 	
 	/**

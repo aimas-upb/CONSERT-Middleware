@@ -57,8 +57,9 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
 		
-		// Initialization of the list
+		// Initialization of the lists
 		this.assertionCapabilities = new HashMap<UUID, AssertionCapability>();
+		this.assertionCapabilitySubscriptions = new HashMap<UUID, AssertionCapabilitySubscription>();
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
