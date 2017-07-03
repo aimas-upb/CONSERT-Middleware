@@ -19,7 +19,6 @@ public class AgentSpec {
 		return address;
 	}
 	
-	@RDF("protocol:hasAddress")
 	public void setAddress(AgentAddress address) {
 		this.address = address;
 	}
@@ -29,7 +28,6 @@ public class AgentSpec {
 		return identifier;
 	}
 	
-	@RDF("protocol:hasIdentifier")
 	public void setIdentifier(String identifier) {
 		this.identifier = identifier;
 	}

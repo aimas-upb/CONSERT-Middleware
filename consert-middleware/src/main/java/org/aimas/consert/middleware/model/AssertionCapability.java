@@ -27,19 +27,16 @@ public class AssertionCapability {
 		return content;
 	}
 
-	@RDF("protocol:hasContent")
 	public void setContent(ContextAssertion content) {
 		this.content = content;
 	}
 
 	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.SEQ)
+	@RDFContainer(ContainerType.LIST)
 	public List<ContextAnnotation> getAnnotations() {
 		return annotations;
 	}
 
-	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.SEQ)
 	public void setAnnotations(List<ContextAnnotation> annotations) {
 		this.annotations = annotations;
 	}
@@ -49,7 +46,6 @@ public class AssertionCapability {
 		return provider;
 	}
 
-	@RDF("protocol:hasProvider")
 	public void setProvider(AgentSpec provider) {
 		this.provider = provider;
 	}

@@ -26,7 +26,6 @@ public class AssertionCapabilitySubscription {
 		return capabilityQuery;
 	}
 	
-	@RDF("protocol:hasCapabilityQuery")
 	public void setCapabilityQuery(String capabilityQuery) {
 		this.capabilityQuery = capabilityQuery;
 	}
@@ -36,7 +35,6 @@ public class AssertionCapabilitySubscription {
 		return subscriber;
 	}
 	
-	@RDF("protocol:hasSubscriber")
 	public void setSubscriber(AgentSpec subscriber) {
 		this.subscriber = subscriber;
 	}

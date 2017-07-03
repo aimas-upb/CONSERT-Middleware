@@ -19,7 +19,6 @@ public class AgentAddress {
 		return ipAddress;
 	}
 	
-	@RDF("protocol:ipAddress")
 	public void setIpAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
 	}
@@ -29,7 +28,6 @@ public class AgentAddress {
 		return port;
 	}
 	
-	@RDF("protocol:port")
 	public void setPort(int port) {
 		this.port = port;
 	}
@@ -65,11 +63,6 @@ public class AgentAddress {
 		if (port != other.port)
 			return false;
 		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "AgentAddress [ipAddress=" + ipAddress + ", port=" + port + ", id=" + id + "]";
 	}
 	
 	

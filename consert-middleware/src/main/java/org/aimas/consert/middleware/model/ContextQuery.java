@@ -19,7 +19,6 @@ public class ContextQuery {
 		return assertionQuery;
 	}
 	
-	@RDF("protocol:hasAssertionQuery")
 	public void setAssertionQuery(String assertionQuery) {
 		this.assertionQuery = assertionQuery;
 	}
@@ -29,7 +28,6 @@ public class ContextQuery {
 		return queryAgent;
 	}
 	
-	@RDF("protocol:hasQueryAgent")
 	public void setQueryAgent(AgentSpec queryAgent) {
 		this.queryAgent = queryAgent;
 	}

@@ -28,7 +28,6 @@ public class ContextEntity {
 		return derivedDataAssertion;
 	}
 
-	@RDF("core:derivedDataAssertion")
 	public void setDerivedDataAssertion(URI derivedDataAssertion) {
 		this.derivedDataAssertion = derivedDataAssertion;
 	}
@@ -38,7 +37,6 @@ public class ContextEntity {
 		return derivedRelationAssertion;
 	}
 
-	@RDF("core:derivedRelationAssertion")
 	public void setDerivedRelationAssertion(ContextEntity derivedRelationAssertion) {
 		this.derivedRelationAssertion = derivedRelationAssertion;
 	}
@@ -48,7 +46,6 @@ public class ContextEntity {
 		return entityDataAssertion;
 	}
 
-	@RDF("core:entityDataAssertion")
 	public void setEntityDataAssertion(URI entityDataAssertion) {
 		this.entityDataAssertion = entityDataAssertion;
 	}
@@ -58,7 +55,6 @@ public class ContextEntity {
 		return entityDataDescription;
 	}
 
-	@RDF("core:entityDataDescription")
 	public void setEntityDataDescription(URI entityDataDescription) {
 		this.entityDataDescription = entityDataDescription;
 	}
@@ -68,7 +64,6 @@ public class ContextEntity {
 		return entityRelationAssertion;
 	}
 
-	@RDF("core:entityRelationAssertion")
 	public void setEntityRelationAssertion(ContextEntity entityRelationAssertion) {
 		this.entityRelationAssertion = entityRelationAssertion;
 	}
@@ -78,7 +73,6 @@ public class ContextEntity {
 		return entityRelationDescription;
 	}
 
-	@RDF("core:entityRelationDescription")
 	public void setEntityRelationDescription(ContextEntity entityRelationDescription) {
 		this.entityRelationDescription = entityRelationDescription;
 	}
@@ -88,7 +82,6 @@ public class ContextEntity {
 		return profiledDataAssertion;
 	}
 
-	@RDF("core:profiledDataAssertion")
 	public void setProfiledDataAssertion(URI profiledDataAssertion) {
 		this.profiledDataAssertion = profiledDataAssertion;
 	}
@@ -98,7 +91,6 @@ public class ContextEntity {
 		return sensedDataAssertion;
 	}
 
-	@RDF("core:sensedDataAssertion")
 	public void setSensedDataAssertion(URI sensedDataAssertion) {
 		this.sensedDataAssertion = sensedDataAssertion;
 	}
@@ -108,7 +100,6 @@ public class ContextEntity {
 		return sensedRelationAssertion;
 	}
 
-	@RDF("core:sensedRelationAssertion")
 	public void setSensedRelationAssertion(ContextEntity sensedRelationAssertion) {
 		this.sensedRelationAssertion = sensedRelationAssertion;
 	}

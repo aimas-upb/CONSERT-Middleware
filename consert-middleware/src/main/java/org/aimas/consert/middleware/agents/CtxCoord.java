@@ -12,11 +12,11 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
@@ -32,7 +32,7 @@ public class CtxCoord extends AbstractVerticle {
 	
 	private Repository repo;  // repository containing the RDF data
 	
-	private Map<UUID, AssertionCapability> assertionCapabilities;  // list of assertion capabilities
+	public Map<UUID, AssertionCapability> assertionCapabilities;  // list of assertion capabilities
 	
 	private AgentConfig ctxSensor;  // configuration to communicate with the CtxSensor agent
 	private AgentConfig ctxUser;    // configuration to communicate with the CtxUser agent
@@ -45,13 +45,13 @@ public class CtxCoord extends AbstractVerticle {
 	}
 	
 	@Override
-	public void start() {
+	public void start(Future<Void> future) {
 		
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
 		
-		// Initialization of the lists
+		// Initialization of the list
 		this.assertionCapabilities = new HashMap<UUID, AssertionCapability>();
 		
 		// Create router
@@ -85,17 +85,14 @@ public class CtxCoord extends AbstractVerticle {
 					System.out.println("Failed to start CtxCoord on port " + this.agentConfig.getPort() + " host " +
 						this.host);
 				}
+				
+				future.complete();
 			});
 	}
 	
 	@Override
 	public void stop() {
-		
-		RepositoryConnection conn = this.repo.getConnection();
-		conn.clear();
-		conn.close();
-		this.assertionCapabilities.clear();
-		//this.repo.shutDown();
+		this.repo.shutDown();
 	}
 	
 	public AssertionCapability addAssertionCapability(UUID uuid, AssertionCapability ac) {

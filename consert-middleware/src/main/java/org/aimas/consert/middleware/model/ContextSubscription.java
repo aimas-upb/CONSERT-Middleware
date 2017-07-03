@@ -26,7 +26,6 @@ public class ContextSubscription {
 		return subscriptionQuery;
 	}
 	
-	@RDF("protocol:hasSubscriptionQuery")
 	public void setSubscriptionQuery(String subscriptionQuery) {
 		this.subscriptionQuery = subscriptionQuery;
 	}
@@ -36,7 +35,6 @@ public class ContextSubscription {
 		return subscriber;
 	}
 	
-	@RDF("hasSubscriber")
 	public void setSubscriber(AgentSpec subscriber) {
 		this.subscriber = subscriber;
 	}

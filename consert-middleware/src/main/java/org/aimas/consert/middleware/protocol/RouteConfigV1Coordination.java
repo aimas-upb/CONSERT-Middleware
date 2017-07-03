@@ -109,7 +109,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// For each AssertionCapability from CtxCoord, fetch the AgentSpec provider.
 		// If the provider is the requested one, write all the statements where the AssertionCapability is the subject.
 		for(AssertionCapability ac : acs) {
-
+			
 			// Check the provider
 			AgentSpec as = ac.getProvider();
 			
@@ -124,7 +124,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 					
 					// Write all the statements
 					while(iter.hasNext()) {
-						
 						writer.handleStatement(iter.next());
 					}
 					
@@ -278,7 +277,37 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleDeleteCtxAssert(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String uuid = rtCtx.request().getParam("id");
+		
+		// Connection to the repository to remove the AssertionCapability
+		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		// Remove old AssertionCapability from the repository
+		String resourceId = this.ctxCoord.getAssertionCapability(UUID.fromString(uuid)).getId();
+		try {
+			manager.delete(resourceId, AssertionCapability.class);
+		} catch (RepositoryException | RDFBeanException e1) {
+			
+			conn.close();
+			System.err.println("Error while removing AssertionCapability: " + e1.getMessage());
+			e1.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+		
+		// Remove old AssertionCapability from CtxCoord
+		AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
+		if(ac == null) {
+			rtCtx.response().setStatusCode(404).end();
+			return;
+		}
+		
+		// Answer by giving the 'OK' HTTP code
+		rtCtx.response()
+			.setStatusCode(200)
+			.end();
 	}
 	
 	

@@ -28,10 +28,10 @@ public class AssertionCapabilityRoutesTest
 	private final String CONFIG_FILE = "agents.properties";
 	private final String postQuery = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#> .\n"
 			+ "@prefix core: <http://pervasive.semanticweb.org/ont/2014/05/consert/core#> .\n"
-			+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#> .\n"
+			+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#> .\n"
 			+ "@prefix assertion-capability: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/> .\n"
 			+ "@prefix context-assertion: <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAssertion/> .\n"
-			+ "@prefix context-annotation: <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/> .\n"
+			+ "@prefix context-annotation: <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation/> .\n"
 			+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/> .\n"
 			+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentAddress/> .\n"
 			+ "@prefix context-entity: <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity/> .\n"
@@ -44,8 +44,8 @@ public class AssertionCapabilityRoutesTest
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n\n"
 			+ "assertion-capability:foo a protocol:AssertionCapability ;\n"
 			+ "    protocol:hasContent context-assertion:assert1 ;\n"
-			+ "    protocol:hasAnnotation context-annotation:ann1 ;\n"
-			+ "    protocol:hasAnnotation context-annotation:ann2 ;\n"
+			+ "    annotation:hasAnnotation context-annotation:ann1 ;\n"
+			+ "    annotation:hasAnnotation context-annotation:ann2 ;\n"
 			+ "    protocol:hasProvider agent-spec:CtxSensor .\n"
 			+ "context-assertion:assert1 a core:ContextAssertion ;\n"
 			+ "    core:assertionRole context-entity:role1 .\n"
@@ -75,8 +75,8 @@ public class AssertionCapabilityRoutesTest
 	
 	
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException, InterruptedException {
-
+	public void setUp(TestContext context) throws IOException, ConfigurationException {
+		
     	// Read configuration files
 		Configuration config;
 		
@@ -92,7 +92,7 @@ public class AssertionCapabilityRoutesTest
 	
     @After
     public void tearDown(TestContext context) {
-    	
+
 		this.vertx.close(context.asyncAssertSuccess());
     }
     
@@ -167,7 +167,7 @@ public class AssertionCapabilityRoutesTest
 						@Override
 						public void handle(Buffer buffer) {
 
-							context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann2> ;"
+							context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#hasAnnotation> <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation/ann2> ;"
 									+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasContent> <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAssertion/assert1> ;"
 									+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxSensor> ;"
 									+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability> .",
@@ -209,12 +209,12 @@ public class AssertionCapabilityRoutesTest
 					@Override
 					public void handle(Buffer buffer2) {
 
-						context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann2> ;"
+						context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#hasAnnotation> <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation/ann2> ;"
 								+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasContent> <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAssertion/assert1> ;"
 								+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxSensor> ;"
 								+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability> .",
 								buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", ""));
-											async.complete();
+						async.complete();
 					}
 				});
 			}
@@ -231,7 +231,7 @@ public class AssertionCapabilityRoutesTest
 		
     	Async async = context.async();
     	
-    	String updated = this.postQuery.replace("    protocol:hasAnnotation context-annotation:ann2 ;\n", "");
+    	String updated = this.postQuery.replace("    annotation:hasAnnotation context-annotation:ann2 ;\n", "");
     	
 		// PUT
 		
@@ -268,12 +268,12 @@ public class AssertionCapabilityRoutesTest
 							@Override
 							public void handle(Buffer buffer2) {
 
-								context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/ann1> ;"
+								context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#hasAnnotation> <http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#ContextAnnotation/ann1> ;"
 										+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasContent> <http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextAssertion/assert1> ;"
 										+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxSensor> ;"
 										+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability> .",
 										buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", ""));
-													async.complete();
+								async.complete();
 							}
 						});
 					}
@@ -283,5 +283,49 @@ public class AssertionCapabilityRoutesTest
 		})
 		.putHeader("content-type", "text/turtle")
 		.end(updated);
+    }
+    
+    @Test
+    public void testDelete(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+		// DELETE
+		
+    	this.httpClient
+			.delete(ctxCoord.getPort(), ctxCoord.getAddress(), 
+					"/api/v1/coordination/context_assertions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				if(resp.statusCode() != 200) {
+					context.fail("Failed to delete AssertionCapability");
+					async.complete();
+				}
+				
+				// GET one
+				
+				httpClient
+					.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
+							"/api/v1/coordination/context_assertions/" + resourceUUID + "/",
+							new Handler<HttpClientResponse>() {
+					
+					@Override
+					public void handle(HttpClientResponse resp2) {
+						
+						context.assertEquals(404, resp2.statusCode());
+						async.complete();
+					}
+				})
+				.end();
+			}
+		})
+		.end();
     }
 }
