@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.model.AssertionCapability;
+import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
@@ -20,19 +21,22 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
-public class CtxCoord extends AbstractVerticle {
+public class CtxCoord extends AbstractVerticle implements Agent {
+
 
 	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
 	
-	private static Vertx vertx = Vertx.vertx();  // Vertx instance
-	private Router router;                       // router for communication with this agent
+	private Vertx vertx;   // Vertx instance
+	private Router router; // router for communication with this agent
 	
 	private AgentConfig agentConfig;  // configuration values for this agent
 	private String host;              // where this agent is hosted
 	
 	private Repository repo;  // repository containing the RDF data
 	
-	public Map<UUID, AssertionCapability> assertionCapabilities;  // list of assertion capabilities
+	public Map<UUID, AssertionCapability> assertionCapabilities;             // list of assertion capabilities
+	public Map<UUID, AssertionCapabilitySubscription> assertionCapabilitySubscriptions;  // list of subscriptions for
+	                                                                                     // assertion capabilities
 	
 	private AgentConfig ctxSensor;  // configuration to communicate with the CtxSensor agent
 	private AgentConfig ctxUser;    // configuration to communicate with the CtxUser agent
@@ -41,11 +45,13 @@ public class CtxCoord extends AbstractVerticle {
 	
 	public static void main(String[] args) {
 		
-		CtxCoord.vertx.deployVerticle(CtxCoord.class.getName());		
+		//CtxCoord.vertx.deployVerticle(CtxCoord.class.getName());		
 	}
 	
 	@Override
 	public void start(Future<Void> future) {
+		
+		this.vertx = this.context.owner();
 		
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
@@ -76,7 +82,7 @@ public class CtxCoord extends AbstractVerticle {
 		}
 		
 		// Start server
-		CtxCoord.vertx.createHttpServer()
+		vertx.createHttpServer()
 			.requestHandler(router::accept)
 			.listen(this.agentConfig.getPort(), this.host, res -> {
 				if (res.succeeded()) {
@@ -111,7 +117,12 @@ public class CtxCoord extends AbstractVerticle {
 		return this.assertionCapabilities.remove(uuid);
 	}
 	
-	public Repository getRepo() {
+	public AssertionCapabilitySubscription addAssertionCapabilitySubscription(UUID uuid,
+			AssertionCapabilitySubscription acs) {
+		return this.assertionCapabilitySubscriptions.put(uuid, acs);
+	}
+	
+	public Repository getRepository() {
 		return this.repo;
 	}
 }

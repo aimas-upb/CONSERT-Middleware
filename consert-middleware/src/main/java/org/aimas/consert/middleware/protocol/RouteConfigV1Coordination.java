@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.CtxCoord;
@@ -43,45 +45,14 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostCtxAsserts(RoutingContext rtCtx) {
 		
-		// Initialization
-		String rdf = rtCtx.getBodyAsString();
-		UUID uuid = UUID.randomUUID();
-
-		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
-		RDFBeanManager manager = new RDFBeanManager(conn);
-
-		try {
-			// Insertion in RDF store
-			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TURTLE);
-			conn.add(model);
-
-			// Getting the object we just inserted
-			for(Statement s : model) {
-				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/06/consert/protocol"
-						+ "#AssertionCapability")) {
-					
-					AssertionCapability ac = manager.get(s.getSubject(), AssertionCapability.class);
-					
-					// Insertion in CtxCoord
-					this.ctxCoord.addAssertionCapability(uuid, ac);
-					
-					break;
-				}
-			}
-
-			conn.close();
-
-			// Answer by giving the UUID associated to the AssertionCapability
-			rtCtx.response()
-				.setStatusCode(201)
-				.putHeader("content-type", "text/plain")
-				.end(uuid.toString());
-		} catch (RDF4JException | RDFBeanException | IOException e) {
-
-			conn.close();
-			System.err.println("Error while creating new AssertionCapability: " + e.getMessage());
-			e.printStackTrace();
-			rtCtx.response().setStatusCode(500).end();
+		List<Entry<UUID, Object>> entries = this.post(rtCtx,
+				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability",
+				AssertionCapability.class);
+		
+		// Insertion in CtxCoord
+		for(Entry<UUID, Object> entry : entries) {
+			AssertionCapability ac = (AssertionCapability) entry.getValue();
+			this.ctxCoord.addAssertionCapability(entry.getKey(), ac);
 		}
 	}
 	
@@ -98,7 +69,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		Collection<AssertionCapability> acs = this.ctxCoord.getAssertionCapabilitiesValues();
 		
 		// Connection to repository to get the provider of each AssertionCapability and the statements
-		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+		RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 		
 		// Prepare to write RDF statements
@@ -161,7 +132,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		if(ac != null) {
 
 			// Connection to repository to get the provider of each AssertionCapability and the statements
-			RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+			RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
 			RDFBeanManager manager = new RDFBeanManager(conn);
 			
 			// Prepare to write RDF statements
@@ -216,7 +187,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		String uuid = rtCtx.request().getParam("id");
 		
 		// Connection to the repository to update it
-		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+		RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 		
 		// Remove old AssertionCapability from the repository
@@ -282,13 +253,14 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		String uuid = rtCtx.request().getParam("id");
 		
 		// Connection to the repository to remove the AssertionCapability
-		RepositoryConnection conn = this.ctxCoord.getRepo().getConnection();
+		RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 		
 		// Remove old AssertionCapability from the repository
 		String resourceId = this.ctxCoord.getAssertionCapability(UUID.fromString(uuid)).getId();
 		try {
 			manager.delete(resourceId, AssertionCapability.class);
+			conn.close();
 		} catch (RepositoryException | RDFBeanException e1) {
 			
 			conn.close();
@@ -391,5 +363,10 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostUnregQueryHandler(RoutingContext rtCtx) {
 		// TODO
+	}
+	
+	
+	private List<Entry<UUID, Object>> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {
+		return RouteUtils.post(rtCtx, rdfClassName, javaClass, this.ctxCoord);
 	}
 }
