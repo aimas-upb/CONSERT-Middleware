@@ -5,11 +5,10 @@ import java.net.URI;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
-import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
 @RDFNamespaces("core=http://pervasive.semanticweb.org/ont/2014/05/consert/core#")
 @RDFBean("core:ContextEntity")
-public class ContextEntity {
+public class ContextEntity extends RDFObject {
 
 	private URI derivedDataAssertion;
 	private ContextEntity derivedRelationAssertion;
@@ -20,7 +19,6 @@ public class ContextEntity {
 	private URI profiledDataAssertion;
 	private URI sensedDataAssertion;
 	private ContextEntity sensedRelationAssertion;
-	private String id;
 	
 	
 	@RDF("core:derivedDataAssertion")
@@ -102,14 +100,5 @@ public class ContextEntity {
 
 	public void setSensedRelationAssertion(ContextEntity sensedRelationAssertion) {
 		this.sensedRelationAssertion = sensedRelationAssertion;
-	}
-	
-	@RDFSubject
-	public String getId() {
-		return id;
-	}
-	
-	public void setId(String id) {
-		this.id = id;
 	}
 }

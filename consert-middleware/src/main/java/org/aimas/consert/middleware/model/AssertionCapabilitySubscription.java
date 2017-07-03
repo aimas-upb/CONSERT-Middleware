@@ -1,24 +1,16 @@
 package org.aimas.consert.middleware.model;
 
-import java.util.UUID;
-
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
-import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
 @RDFBean("protocol:AssertionCapabilitySubscription")
-public class AssertionCapabilitySubscription {
+public class AssertionCapabilitySubscription extends RDFObject {
 
 	private String capabilityQuery;
 	private AgentSpec subscriber;
-	private String id;
 	
-	
-	public AssertionCapabilitySubscription() {
-		this.id = UUID.randomUUID().toString();
-	}
 	
 	
 	@RDF("protocol:hasCapabilityQuery")
@@ -37,14 +29,5 @@ public class AssertionCapabilitySubscription {
 	
 	public void setSubscriber(AgentSpec subscriber) {
 		this.subscriber = subscriber;
-	}
-	
-	@RDFSubject
-	public String getId() {
-		return id;
-	}
-	
-	public void setId(String id) {
-		this.id = id;
 	}
 }

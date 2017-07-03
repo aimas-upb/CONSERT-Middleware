@@ -35,7 +35,7 @@ public class AssertionCapabilitySubscriptionRoutesTest
 			+ "protocol:AgentSpec rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentSpec\"^^xsd:string .\n"
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n\n"
 			+ "assertion-capability-subscription:foo a protocol:AssertionCapabilitySubscription ;\n"
-			+ "    protocol:hasCapabilityQuery \"the capability query\"^^xsd:string;\n"
+			+ "    protocol:hasCapabilityQuery \"the capability query\"^^xsd:string ;\n"
 			+ "    protocol:hasSubscriber agent-spec:CtxUser .\n"
 			+ "agent-spec:CtxUser a protocol:AgentSpec ;\n"
 			+ "    protocol:hasAddress agent-address:CtxUserAddress ;\n"
@@ -112,5 +112,46 @@ public class AssertionCapabilitySubscriptionRoutesTest
 		})
 		.putHeader("content-type", "text/turtle")
 		.end(this.postQuery);
+    }
+    
+    @Test
+    public void testGetOne(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+		// GET one
+		
+    	this.httpClient
+			.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
+					"/api/v1/coordination/assertion_capability_subscriptions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp2) {
+				
+				if(resp2.statusCode() != 200) {
+					context.fail("Failed to get AssertionCapability");
+					async.complete();
+				}
+				
+				resp2.bodyHandler(new Handler<Buffer>() {
+					
+					@Override
+					public void handle(Buffer buffer2) {
+
+						context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasCapabilityQuery> \"the capability query\" ;"
+								+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxUser> ;"
+								+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription> .",
+								buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", ""));
+						async.complete();
+					}
+				});
+			}
+		})
+		.end();
     }
 }

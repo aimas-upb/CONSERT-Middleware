@@ -3,11 +3,10 @@
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
-import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
 @RDFBean("protocol:AgentAddress")
-public class AgentAddress {
+public class AgentAddress extends RDFObject {
 
 	private String ipAddress;
 	private int port;
@@ -30,15 +29,6 @@ public class AgentAddress {
 	
 	public void setPort(int port) {
 		this.port = port;
-	}
-
-	@RDFSubject
-	public String getId() {
-		return this.id;
-	}
-	
-	public void setId(String id) {
-		this.id = id;
 	}
 
 	@Override

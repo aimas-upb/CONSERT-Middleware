@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -12,6 +11,7 @@ import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
+import org.aimas.consert.middleware.model.RDFObject;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.RDF4JException;
@@ -46,15 +46,13 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostCtxAsserts(RoutingContext rtCtx) {
 		
-		List<Entry<UUID, Object>> entries = this.post(rtCtx,
+		Entry<UUID, Object> entry = this.post(rtCtx,
 				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability",
 				AssertionCapability.class);
 		
 		// Insertion in CtxCoord
-		for(Entry<UUID, Object> entry : entries) {
-			AssertionCapability ac = (AssertionCapability) entry.getValue();
-			this.ctxCoord.addAssertionCapability(entry.getKey(), ac);
-		}
+		AssertionCapability ac = (AssertionCapability) entry.getValue();
+		this.ctxCoord.addAssertionCapability(entry.getKey(), ac);
 	}
 	
 	/**
@@ -130,51 +128,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// Get the corresponding AssertionCapability
 		AssertionCapability ac = this.ctxCoord.getAssertionCapability(uuid);
 		
-		if(ac != null) {
-
-			// Connection to repository to get the provider of each AssertionCapability and the statements
-			RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
-			RDFBeanManager manager = new RDFBeanManager(conn);
-			
-			// Prepare to write RDF statements
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
-			writer.startRDF();
-			
-			try {
-
-				// Get all the statements corresponding to the AssertionCapability (as the subject)
-				Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
-
-				RepositoryResult<Statement> iter = conn.getStatements(acRes, null, null);
-				
-				// Write all the statements
-				while(iter.hasNext()) {
-					
-					writer.handleStatement(iter.next());
-				}
-
-				conn.close();
-				
-			} catch (RepositoryException | RDFBeanException e) {
-
-				conn.close();
-				System.err.println("Error while getting information for AssertionCapability " + ac.getId());
-				e.printStackTrace();
-				rtCtx.response().setStatusCode(500).end();
-			}
-			
-			writer.endRDF();
-
-			// Answer with the RDF statements
-			rtCtx.response()
-				.setStatusCode(200)
-				.putHeader("content-type", "text/turtle")
-				.end(baos.toString());
-			
-		} else {
-			rtCtx.response().setStatusCode(404).end();
-		}
+		this.get(rtCtx, AssertionCapability.class, ac);
 	}
 	
 	/**
@@ -290,15 +244,13 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostAssertCapSubs(RoutingContext rtCtx) {
 		
-		List<Entry<UUID, Object>> entries = this.post(rtCtx,
+		Entry<UUID, Object> entry = this.post(rtCtx,
 				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription",
 				AssertionCapabilitySubscription.class);
 		
 		// Insertion in CtxCoord
-		for(Entry<UUID, Object> entry : entries) {
-			AssertionCapabilitySubscription acs = (AssertionCapabilitySubscription) entry.getValue();
-			this.ctxCoord.addAssertionCapabilitySubscription(entry.getKey(), acs);
-		}
+		AssertionCapabilitySubscription acs = (AssertionCapabilitySubscription) entry.getValue();
+		this.ctxCoord.addAssertionCapabilitySubscription(entry.getKey(), acs);
 	}
 	
 	/**
@@ -306,7 +258,14 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleGetAssertCapSub(RoutingContext rtCtx) {
-		// TODO
+
+		// Get UUID of the object from query
+		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
+
+		// Get the corresponding object
+		AssertionCapabilitySubscription acs = this.ctxCoord.getAssertionCapabilitySubscription(uuid);
+		
+		this.get(rtCtx, AssertionCapabilitySubscription.class, acs);
 	}
 	
 	/**
@@ -376,7 +335,11 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	}
 	
 	
-	private List<Entry<UUID, Object>> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {
+	private Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {
 		return RouteUtils.post(rtCtx, rdfClassName, javaClass, this.ctxCoord);
+	}
+	
+	private void get(RoutingContext rtCtx, Class<?> javaClass, RDFObject obj) {
+		RouteUtils.get(rtCtx, javaClass, this.ctxCoord, obj);
 	}
 }

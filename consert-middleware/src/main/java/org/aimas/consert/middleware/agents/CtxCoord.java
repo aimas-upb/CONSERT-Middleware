@@ -122,6 +122,10 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 			AssertionCapabilitySubscription acs) {
 		return this.assertionCapabilitySubscriptions.put(uuid, acs);
 	}
+
+	public AssertionCapabilitySubscription getAssertionCapabilitySubscription(UUID uuid) {
+		return this.assertionCapabilitySubscriptions.get(uuid);
+	}
 	
 	public Repository getRepository() {
 		return this.repo;

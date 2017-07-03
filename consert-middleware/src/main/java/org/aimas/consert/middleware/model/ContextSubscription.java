@@ -5,15 +5,13 @@ import java.util.UUID;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
-import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
 @RDFBean("protocol:ContextSubscription")
-public class ContextSubscription {
+public class ContextSubscription extends RDFObject {
 
 	private String subscriptionQuery;
 	private AgentSpec subscriber;
-	private String id;
 	
 	
 	public ContextSubscription() {
@@ -37,14 +35,5 @@ public class ContextSubscription {
 	
 	public void setSubscriber(AgentSpec subscriber) {
 		this.subscriber = subscriber;
-	}
-	
-	@RDFSubject
-	public String getId() {
-		return this.id;
-	}
-	
-	public void setId(String id) {
-		this.id = id;
 	}
 }
