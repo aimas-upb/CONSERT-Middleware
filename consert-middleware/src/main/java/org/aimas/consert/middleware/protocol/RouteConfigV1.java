@@ -120,5 +120,4 @@ public class RouteConfigV1 extends RouteConfig {
 		
 		return router;
 	}
-
 }

@@ -28,7 +28,7 @@ public class ContextSubscription extends RDFObject {
 		this.subscriptionQuery = subscriptionQuery;
 	}
 	
-	@RDF("hasSubscriber")
+	@RDF("protocol:hasSubscriber")
 	public AgentSpec getSubscriber() {
 		return subscriber;
 	}
