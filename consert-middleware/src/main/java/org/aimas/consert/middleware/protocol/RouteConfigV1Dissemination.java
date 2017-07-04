@@ -3,11 +3,13 @@ package org.aimas.consert.middleware.protocol;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
-import org.aimas.consert.middleware.model.AssertionCapability;
+import org.aimas.consert.middleware.agents.Participant;
 import org.aimas.consert.middleware.model.ContextSubscription;
-import org.aimas.consert.middleware.model.RDFObject;
 
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -44,6 +46,9 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePostCtxSubs(RoutingContext rtCtx) {
+
+		RequestBean reqBean = Json.decodeValue(rtCtx.getBodyAsString(), RequestBean.class);
+		rtCtx.setBody(Buffer.buffer(reqBean.getRequest()));
 		
 		Entry<UUID, Object> entry = this.post(rtCtx,
 				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#ContextSubscription",
@@ -51,7 +56,22 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		
 		// Insertion in CtxQueryhandler
 		ContextSubscription cs = (ContextSubscription) entry.getValue();
-		this.ctxQueryHandler.addContextSubscription(entry.getKey(), cs);
+		
+		// Create the resource
+		AgentConfig ctxQHConfig = this.ctxQueryHandler.getAgentConfig();
+		ContextSubscriptionResource ctxSubsRes = new ContextSubscriptionResource();
+		ctxSubsRes.setResourceURI(ctxQHConfig.getAddress() + ":" + ctxQHConfig.getPort() + RouteConfig.API_ROUTE +
+				RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE + "/context_subscriptions/" +
+				entry.getKey().toString());
+		ctxSubsRes.setInitiatorURI(reqBean.getInitiatorURI());
+		ctxSubsRes.setParticipantURI(Participant.ADDRESS + ":" + Participant.LISTENING_PORT);
+		ctxSubsRes.setRequest(reqBean.getRequest());
+		ctxSubsRes.setState(RequestState.REQ_RECEIVED);
+		ctxSubsRes.setInitiatorCallbackURI(reqBean.getInitiatorCallbackURI());
+		ctxSubsRes.setContextSubscription(cs);
+		
+		// Add the resource in CtxQueryHandler
+		this.ctxQueryHandler.addContextSubscription(entry.getKey(), ctxSubsRes);
 	}
 	
 	/**
@@ -60,13 +80,19 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxSub(RoutingContext rtCtx) {
 		
-		// Get UUID of the ContextSubscription from query
- 		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
-		 		
-		// Get the corresponding ContextSubscription
-  		ContextSubscription cs = this.ctxQueryHandler.getContextSubscription(uuid);
+		// Get resource
+		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
+		ContextSubscriptionResource resource = this.ctxQueryHandler.getContextSubscription(resourceUUID);
 		
-		this.get(rtCtx, ContextSubscription.class, cs);
+		// Send resource if found
+		if(resource != null) {
+			rtCtx.response()
+				.putHeader("content-type", "application/json")
+				.setStatusCode(200)
+				.end(Json.encodePrettily(resource));
+		} else {
+			rtCtx.response().setStatusCode(404).end();
+		}
 	}
 	
 	/**
@@ -77,8 +103,11 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		
 		// Initialization
 		String uuid = rtCtx.request().getParam("id");
-		String resourceId = this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid)).getId();
-		
+		String resourceId = this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid))
+				.getContextSubscription().getId();
+
+		RequestBean reqBean = Json.decodeValue(rtCtx.getBodyAsString(), RequestBean.class);
+		rtCtx.setBody(Buffer.buffer(reqBean.getRequest()));
 		
 		Entry<UUID, Object> entry = this.put(rtCtx,
 				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#ContextSubscription",
@@ -86,17 +115,10 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		
 		if(entry != null) {
 			
-			// Remove old ContextSubscription from CtxQueryhandler
-			ContextSubscription cs = this.ctxQueryHandler.removeContextSubscription(UUID.fromString(uuid));
-			if(cs == null) {
-				rtCtx.response().setStatusCode(404).end();
-				return;
-			}
-			
 			ContextSubscription newCs = (ContextSubscription) entry.getValue();
 			
 			// Insertion in CtxQueryHandler
-			this.ctxQueryHandler.addContextSubscription(UUID.fromString(uuid), newCs);
+			this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid)).setContextSubscription(newCs);
 		}
 	}
 	
@@ -110,14 +132,15 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		String uuid = rtCtx.request().getParam("id");
 		
 		// Remove old ContextSubscription from the repository
-		String resourceId = this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid)).getId();
+		String resourceId = this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid))
+				.getContextSubscription().getId();
 		
 		boolean done = this.delete(rtCtx, ContextSubscription.class, resourceId);
 		
 		if(done) {
 			
 			// Remove old ContextSubscription from CtxQueryHandler
-			ContextSubscription cs = this.ctxQueryHandler.removeContextSubscription(UUID.fromString(uuid));
+			ContextSubscriptionResource cs = this.ctxQueryHandler.removeContextSubscription(UUID.fromString(uuid));
 			if(cs == null) {
 				rtCtx.response().setStatusCode(404).end();
 			}
@@ -129,10 +152,6 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
 	private Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {
 		return RouteUtils.post(rtCtx, rdfClassName, javaClass, this.ctxQueryHandler);
-	}
-	
-	private void get(RoutingContext rtCtx, Class<?> javaClass, RDFObject obj) {
-		RouteUtils.get(rtCtx, javaClass, this.ctxQueryHandler, obj);
 	}
 	
 	private Entry<UUID, Object> put(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass, String resourceId) {

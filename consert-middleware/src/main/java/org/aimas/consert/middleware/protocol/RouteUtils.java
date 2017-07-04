@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.Agent;
-import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.RDFObject;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
