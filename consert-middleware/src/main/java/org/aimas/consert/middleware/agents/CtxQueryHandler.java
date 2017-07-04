@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.ContextSubscription;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
@@ -107,5 +106,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	public ContextSubscription getContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.get(uuid);
+	}
+
+	public ContextSubscription removeContextSubscription(UUID uuid) {
+		return this.contextSubscriptions.remove(uuid);
 	}
 }

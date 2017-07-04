@@ -60,10 +60,10 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxSub(RoutingContext rtCtx) {
 		
-		// Get UUID of the AssertionCapability from query
+		// Get UUID of the ContextSubscription from query
  		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
 		 		
-		// Get the corresponding AssertionCapability
+		// Get the corresponding ContextSubscription
   		ContextSubscription cs = this.ctxQueryHandler.getContextSubscription(uuid);
 		
 		this.get(rtCtx, ContextSubscription.class, cs);
@@ -74,7 +74,30 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePutCtxSub(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String uuid = rtCtx.request().getParam("id");
+		String resourceId = this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid)).getId();
+		
+		
+		Entry<UUID, Object> entry = this.put(rtCtx,
+				"http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#ContextSubscription",
+				ContextSubscription.class, resourceId);
+		
+		if(entry != null) {
+			
+			// Remove old ContextSubscription from CtxQueryhandler
+			ContextSubscription cs = this.ctxQueryHandler.removeContextSubscription(UUID.fromString(uuid));
+			if(cs == null) {
+				rtCtx.response().setStatusCode(404).end();
+				return;
+			}
+			
+			ContextSubscription newCs = (ContextSubscription) entry.getValue();
+			
+			// Insertion in CtxQueryHandler
+			this.ctxQueryHandler.addContextSubscription(UUID.fromString(uuid), newCs);
+		}
 	}
 	
 	/**
