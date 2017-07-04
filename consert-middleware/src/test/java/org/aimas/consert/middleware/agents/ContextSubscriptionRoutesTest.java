@@ -113,4 +113,45 @@ public class ContextSubscriptionRoutesTest
 		.putHeader("content-type", "text/turtle")
 		.end(this.postQuery);
     }
+
+    @Test
+    public void testGetOne(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+		// GET one
+		
+    	this.httpClient
+			.get(ctxQueryHandler.getPort(), ctxQueryHandler.getAddress(), 
+					"/api/v1/dissemination/context_subscriptions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp2) {
+				
+				if(resp2.statusCode() != 200) {
+					context.fail("Failed to get ContextSubscription");
+					async.complete();
+				}
+				
+				resp2.bodyHandler(new Handler<Buffer>() {
+					
+					@Override
+					public void handle(Buffer buffer2) {
+
+						context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#ContextSubscription/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxUser> ;"
+								+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasSubscriptionQuery> \"the subscription query\" ;"
+								+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#ContextSubscription> .",
+								buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", ""));
+						async.complete();
+					}
+				});
+			}
+		})
+		.end();
+    }
 }

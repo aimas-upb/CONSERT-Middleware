@@ -4,6 +4,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.ContextSubscription;
 import org.aimas.consert.middleware.model.RDFObject;
 
@@ -58,7 +59,14 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleGetCtxSub(RoutingContext rtCtx) {
-		// TODO
+		
+		// Get UUID of the AssertionCapability from query
+ 		UUID uuid = UUID.fromString(rtCtx.request().getParam("id"));
+		 		
+		// Get the corresponding AssertionCapability
+  		ContextSubscription cs = this.ctxQueryHandler.getContextSubscription(uuid);
+		
+		this.get(rtCtx, ContextSubscription.class, cs);
 	}
 	
 	/**
