@@ -8,6 +8,7 @@ import org.aimas.consert.middleware.agents.OrgMgr;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 
 /**
  * Defines the configuration of a router
@@ -68,6 +69,9 @@ public abstract class RouteConfig {
 	 * @return the created router
 	 */
 	protected Router createRouter(Vertx vertx) {
-		return Router.router(vertx);
+		Router router = Router.router(vertx);
+		router.route().handler(BodyHandler.create());
+		
+		return router;
 	}
 }
