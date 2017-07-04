@@ -102,10 +102,28 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
 	/**
 	 * DELETE unsubscribe for context
-	 * @param rtCtx
+	 * @param rtCtx the routing context
 	 */
 	public void handleDeleteCtxSub(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String uuid = rtCtx.request().getParam("id");
+		
+		// Remove old ContextSubscription from the repository
+		String resourceId = this.ctxQueryHandler.getContextSubscription(UUID.fromString(uuid)).getId();
+		
+		boolean done = this.delete(rtCtx, ContextSubscription.class, resourceId);
+		
+		if(done) {
+			
+			// Remove old ContextSubscription from CtxQueryHandler
+			ContextSubscription cs = this.ctxQueryHandler.removeContextSubscription(UUID.fromString(uuid));
+			if(cs == null) {
+				rtCtx.response().setStatusCode(404).end();
+			}
+		} else {
+			rtCtx.response().setStatusCode(404).end();
+		}
 	}
 	
 	
