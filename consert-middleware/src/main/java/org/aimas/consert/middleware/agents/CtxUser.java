@@ -5,6 +5,9 @@ import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -14,7 +17,7 @@ import io.vertx.ext.web.Router;
 /**
  * CtxUser agent implemented as a Vert.x server
  */
-public class CtxUser extends AbstractVerticle {
+public class CtxUser extends AbstractVerticle implements Agent {
 
 	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
 	
@@ -23,6 +26,8 @@ public class CtxUser extends AbstractVerticle {
 	
 	private AgentConfig agentConfig;  // configuration values for this agent
 	private String host;              // where this agent is hosted
+	
+	private Repository repo;  // repository containing the RDF data
 	
 	private AgentConfig ctxCoord;         // configuration to communicate with the CtxCoord agent
 	private AgentConfig ctxQueryHandler;  // configuration to communicate with the CtxQueryHandler agent
@@ -38,6 +43,10 @@ public class CtxUser extends AbstractVerticle {
 	public void start(Future<Void> future) {
 		
 		this.vertx = this.context.owner();
+
+		// Initialization of the repository
+		this.repo = new SailRepository(new MemoryStore());
+		this.repo.initialize();
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
@@ -73,5 +82,15 @@ public class CtxUser extends AbstractVerticle {
 				
 				future.complete();
 			});
+	}
+	
+	@Override
+	public void stop() {
+		this.repo.shutDown();
+	}
+
+	@Override
+	public Repository getRepository() {
+		return this.repo;
 	}
 }
