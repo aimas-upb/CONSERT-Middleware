@@ -4,6 +4,9 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * ContextQuery from CONSERT protocol ontology
+ */
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
 @RDFBean("protocol:ContextQuery")
 public class ContextQuery extends RDFObject {

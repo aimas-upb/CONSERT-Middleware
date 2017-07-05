@@ -204,6 +204,14 @@ public class RouteUtils {
 	}
 	
 	
+	/**
+	 * Generic DELETE handler
+	 * @param rtCtx the routing context
+	 * @param javaClass the Java class related to the given RDF class name
+	 * @param agent the agent containing the repository that stores the RDF triples
+	 * @param resourceId the ID of the resource in the repository
+	 * @return true if the object has been correctly removed
+	 */
 	public static boolean delete(RoutingContext rtCtx, Class<?> javaClass, Agent agent, String resourceId) {
 		
 		// Initialization

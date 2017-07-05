@@ -21,8 +21,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
+/**
+ * CtxCoord agent implemented as a Vert.x server
+ */
 public class CtxCoord extends AbstractVerticle implements Agent {
-
 
 	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
 	

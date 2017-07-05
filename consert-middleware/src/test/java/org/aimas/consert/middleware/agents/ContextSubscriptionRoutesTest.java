@@ -37,7 +37,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 /**
- * Unit test for AssertionCapability routes
+ * Unit test for ContextSubscription routes
  */
 @RunWith(VertxUnitRunner.class)
 public class ContextSubscriptionRoutesTest

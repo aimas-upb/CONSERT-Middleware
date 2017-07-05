@@ -12,7 +12,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
 /**
- * OrgMgr agent
+ * CtxCoord agent implemented as a Vert.x server
  */
 public class OrgMgr extends AbstractVerticle {
 

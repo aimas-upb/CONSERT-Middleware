@@ -8,6 +8,9 @@ import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * AssertionCapability from CONSERT protocol ontology
+ */
 @RDFNamespaces({
 	"annotation=http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#",
 	"protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#"
