@@ -7,6 +7,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
@@ -17,7 +18,7 @@ public class OrgMgr extends AbstractVerticle {
 
 	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
 	
-	private static Vertx vertx = Vertx.vertx();  // Vertx instance
+	private Vertx vertx;  // Vertx instance
 	private Router router;                       // router for communication with this agent
 	
 	private AgentConfig agentConfig;  // configuration values for this agent
@@ -26,11 +27,13 @@ public class OrgMgr extends AbstractVerticle {
 	
 	public static void main(String[] args) {
 		
-		OrgMgr.vertx.deployVerticle(OrgMgr.class.getName());		
+		//OrgMgr.vertx.deployVerticle(OrgMgr.class.getName());		
 	}
 	
 	@Override
-	public void start() {
+	public void start(Future<Void> future) {
+		
+		this.vertx = this.context.owner();
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
@@ -50,7 +53,7 @@ public class OrgMgr extends AbstractVerticle {
 		}
 		
 		// Start server
-		OrgMgr.vertx.createHttpServer()
+		this.vertx.createHttpServer()
 			.requestHandler(router::accept)
 			.listen(this.agentConfig.getPort(), this.host, res -> {
 				if (res.succeeded()) {
@@ -59,6 +62,8 @@ public class OrgMgr extends AbstractVerticle {
 					System.out.println("Failed to start OrgMgr on port " + this.agentConfig.getPort() + " host " +
 						this.host);
 				}
+				
+				future.complete();
 			});
 	}
 }
