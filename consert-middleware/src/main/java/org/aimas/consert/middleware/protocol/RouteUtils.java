@@ -35,6 +35,7 @@ public class RouteUtils {
 	 * @param rdfClassName the full URI of the RDF class that the inserted instance is from
 	 * @param javaClass the Java class related to the given RDF class name
 	 * @param agent the agent containing the repository that stores the RDF triples
+	 * @return the inserted object and the UUID to get it
 	 */
 	public static Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass,
 			Agent agent) {
@@ -135,5 +136,109 @@ public class RouteUtils {
 		} else {
 			rtCtx.response().setStatusCode(404).end();
 		}
+	}
+	
+	/**
+	 * Generic PUT handler
+	 * @param rtCtx the routing context
+	 * @param rdfClassName the full URI of the RDF class that the inserted instance is from
+	 * @param javaClass the Java class related to the given RDF class name
+	 * @param agent the agent containing the repository that stores the RDF triples
+	 * @param resourceId the ID of the resource in the repository
+	 * @return the updated object and the UUID to get it
+	 */
+	public static Entry<UUID, Object> put(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass, Agent agent,
+			String resourceId) {
+		
+		// Initialization
+		String rdf = rtCtx.getBodyAsString();
+		String uuid = rtCtx.request().getParam("id");
+		Entry<UUID, Object> updated = null;
+		
+		// Connection to the repository to update it
+		RepositoryConnection conn = agent.getRepository().getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		// Remove old object from the repository
+		try {
+			manager.delete(resourceId, javaClass);
+		} catch (RepositoryException | RDFBeanException e1) {
+			
+			conn.close();
+			System.err.println("Error while removing old object: " + e1.getMessage());
+			e1.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+
+		try {
+			// Insertion of the new object in RDF store
+			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TURTLE);
+			conn.add(model);
+
+			// Getting the object we want to update
+			for(Statement s : model) {
+				if(s.getObject().stringValue().equals(rdfClassName)) {
+					
+					Object newObj = manager.get(s.getSubject(), javaClass);
+					updated = new SimpleEntry<UUID, Object>(UUID.fromString(uuid), newObj);
+					
+					break;
+				}
+			}
+
+			conn.close();
+			
+			// Answer by giving the 'OK' HTTP code
+			rtCtx.response()
+				.setStatusCode(200)
+				.end();
+		} catch (RDF4JException | RDFBeanException | IOException e) {
+
+			conn.close();
+			System.err.println("Error while creating new object: " + e.getMessage());
+			e.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+		
+		return updated;
+	}
+	
+	
+	/**
+	 * Generic DELETE handler
+	 * @param rtCtx the routing context
+	 * @param javaClass the Java class related to the given RDF class name
+	 * @param agent the agent containing the repository that stores the RDF triples
+	 * @param resourceId the ID of the resource in the repository
+	 * @return true if the object has been correctly removed
+	 */
+	public static boolean delete(RoutingContext rtCtx, Class<?> javaClass, Agent agent, String resourceId) {
+		
+		// Initialization
+		boolean done = false;
+		
+		// Connection to the repository to remove the AssertionCapability
+		RepositoryConnection conn = agent.getRepository().getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		// Remove old object from the repository
+		try {
+			manager.delete(resourceId, javaClass);
+			conn.close();
+			done = true;
+		} catch (RepositoryException | RDFBeanException e1) {
+			
+			conn.close();
+			System.err.println("Error while removing object: " + e1.getMessage());
+			e1.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+		
+		// Answer by giving the 'OK' HTTP code
+		rtCtx.response()
+			.setStatusCode(200)
+			.end();
+		
+		return done;
 	}
 }

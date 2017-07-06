@@ -20,7 +20,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 /**
- * Unit test for AssertionCapability routes
+ * Unit test for AssertionCapabilitySubscription routes
  */
 @RunWith(VertxUnitRunner.class)
 public class AssertionCapabilitySubscriptionRoutesTest
@@ -114,6 +114,7 @@ public class AssertionCapabilitySubscriptionRoutesTest
 		.end(this.postQuery);
     }
     
+    
     @Test
     public void testGetOne(TestContext context) {
 
@@ -134,7 +135,7 @@ public class AssertionCapabilitySubscriptionRoutesTest
 			public void handle(HttpClientResponse resp2) {
 				
 				if(resp2.statusCode() != 200) {
-					context.fail("Failed to get AssertionCapability");
+					context.fail("Failed to get AssertionCapabilitySubscription");
 					async.complete();
 				}
 				
@@ -150,6 +151,114 @@ public class AssertionCapabilitySubscriptionRoutesTest
 						async.complete();
 					}
 				});
+			}
+		})
+		.end();
+    }
+    
+    
+    @Test
+    public void testPut(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+    	String updated = this.postQuery.replace("CtxUser", "CtxQueryHandler");
+    	
+		// PUT
+		
+    	this.httpClient
+			.put(ctxCoord.getPort(), ctxCoord.getAddress(), 
+					"/api/v1/coordination/assertion_capability_subscriptions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				if(resp.statusCode() != 200) {
+					context.fail("Failed to get AssertionCapabilitySubscription");
+					async.complete();
+				}
+				
+				// GET one
+				
+				httpClient
+					.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
+							"/api/v1/coordination/assertion_capability_subscriptions/" + resourceUUID + "/",
+							new Handler<HttpClientResponse>() {
+					
+					@Override
+					public void handle(HttpClientResponse resp2) {
+						
+						if(resp2.statusCode() != 200) {
+							context.fail("Failed to get AssertionCapabilitySubscription");
+							async.complete();
+						}
+						
+						resp2.bodyHandler(new Handler<Buffer>() {
+							
+							@Override
+							public void handle(Buffer buffer2) {
+
+								context.assertEquals("<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription/foo> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasCapabilityQuery> \"the capability query\" ;"
+										+ "<http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/CtxQueryHandler> ;"
+										+ "a <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapabilitySubscription> .",
+										buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", ""));
+								async.complete();
+							}
+						});
+					}
+				})
+				.end();
+			}
+		})
+		.putHeader("content-type", "text/turtle")
+		.end(updated);
+    }
+    
+    
+    @Test
+    public void testDelete(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost);
+		asyncPost.await();
+		
+    	Async async = context.async();
+    	
+		// DELETE
+		
+    	this.httpClient
+			.delete(ctxCoord.getPort(), ctxCoord.getAddress(), 
+					"/api/v1/coordination/assertion_capability_subscriptions/" + this.resourceUUID + "/",
+					new Handler<HttpClientResponse>() {
+			
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				if(resp.statusCode() != 200) {
+					context.fail("Failed to delete AssertionCapabilitySubscription");
+					async.complete();
+				}
+				
+				// GET one
+				
+				httpClient
+					.get(ctxCoord.getPort(), ctxCoord.getAddress(), 
+							"/api/v1/coordination/assertion_capability_subscriptions/" + resourceUUID + "/",
+							new Handler<HttpClientResponse>() {
+					
+					@Override
+					public void handle(HttpClientResponse resp2) {
+						
+						context.assertEquals(404, resp2.statusCode());
+						async.complete();
+					}
+				})
+				.end();
 			}
 		})
 		.end();

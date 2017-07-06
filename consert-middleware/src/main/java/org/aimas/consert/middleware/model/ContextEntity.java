@@ -6,6 +6,9 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * ContextEntity from CONSERT ontology
+ */
 @RDFNamespaces("core=http://pervasive.semanticweb.org/ont/2014/05/consert/core#")
 @RDFBean("core:ContextEntity")
 public class ContextEntity extends RDFObject {

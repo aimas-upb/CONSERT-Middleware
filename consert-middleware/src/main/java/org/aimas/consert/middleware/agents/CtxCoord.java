@@ -21,20 +21,22 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
+/**
+ * CtxCoord agent implemented as a Vert.x server
+ */
 public class CtxCoord extends AbstractVerticle implements Agent {
-
 
 	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
 	
-	private Vertx vertx;   // Vertx instance
-	private Router router; // router for communication with this agent
+	private Vertx vertx;    // Vertx instance
+	private Router router;  // router for communication with this agent
 	
 	private AgentConfig agentConfig;  // configuration values for this agent
 	private String host;              // where this agent is hosted
 	
 	private Repository repo;  // repository containing the RDF data
 	
-	public Map<UUID, AssertionCapability> assertionCapabilities;             // list of assertion capabilities
+	public Map<UUID, AssertionCapability> assertionCapabilities;  // list of assertion capabilities
 	public Map<UUID, AssertionCapabilitySubscription> assertionCapabilitySubscriptions;  // list of subscriptions for
 	                                                                                     // assertion capabilities
 	
@@ -50,7 +52,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	
 	@Override
 	public void start(Future<Void> future) {
-		
+
 		this.vertx = this.context.owner();
 		
 		// Initialization of the repository
@@ -63,7 +65,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 		
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterCoordination(vertx, this);
+		this.router = routeConfig.createRouterCoordination(this.vertx, this);
 		
 		// Read configuration
 		try {
@@ -83,7 +85,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 		}
 		
 		// Start server
-		vertx.createHttpServer()
+		this.vertx.createHttpServer()
 			.requestHandler(router::accept)
 			.listen(this.agentConfig.getPort(), this.host, res -> {
 				if (res.succeeded()) {
@@ -100,6 +102,11 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	@Override
 	public void stop() {
 		this.repo.shutDown();
+	}
+	
+	@Override
+	public Repository getRepository() {
+		return this.repo;
 	}
 	
 	public AssertionCapability addAssertionCapability(UUID uuid, AssertionCapability ac) {
@@ -126,8 +133,8 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	public AssertionCapabilitySubscription getAssertionCapabilitySubscription(UUID uuid) {
 		return this.assertionCapabilitySubscriptions.get(uuid);
 	}
-	
-	public Repository getRepository() {
-		return this.repo;
+
+	public AssertionCapabilitySubscription removeAssertionCapabilitySubscription(UUID uuid) {
+		return this.assertionCapabilitySubscriptions.remove(uuid);
 	}
 }

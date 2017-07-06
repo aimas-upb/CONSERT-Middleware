@@ -4,6 +4,9 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * AgentSpec from CONSERT protocol ontology
+ */
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
 @RDFBean("protocol:AgentSpec")
 public class AgentSpec extends RDFObject {
