@@ -53,9 +53,15 @@ public class RDFTest {
 			Resource res = manager.getResource("http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentAddress/Address", AgentAddress.class);
 			AgentAddress real = (AgentAddress) manager.get(res, AgentAddress.class);
 			
+			conn.close();
+			repo.shutDown();
+			
 			Assert.assertEquals(expected, real);
 			
 		} catch (RDFParseException | UnsupportedRDFormatException | IOException | RepositoryException | RDFBeanException e) {
+			
+			conn.close();
+			repo.shutDown();
 			e.printStackTrace();
 			Assert.fail();
 		}
