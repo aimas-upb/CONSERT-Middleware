@@ -13,6 +13,11 @@
   owl:imports <http://pervasive.semanticweb.org/ont/2017/07/consert/core> ;
   owl:versionInfo "Created with TopBraid Composer"^^xsd:string ;
 .
+:Alex
+  rdf:type :Person ;
+  :name "Alex"^^xsd:string ;
+  rdfs:label "Alex"^^xsd:string ;
+.
 :AreaType
   rdf:type owl:Class ;
   rdfs:comment "The room area type in which a Person can be located."^^xsd:string ;
@@ -90,6 +95,12 @@
       :WORKING
     ) ;
 .
+:HLA_1
+  rdf:type :HLA ;
+  :hasHLATypeRole :WORKING ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "HLA_1"^^xsd:string ;
+.
 :HYGENE_AREA
   rdf:type :AreaType ;
   rdfs:label "HYGENE_AREA"^^xsd:string ;
@@ -126,6 +137,17 @@
       :WALKING
     ) ;
 .
+:LLA_1
+  rdf:type :LLA ;
+  :hasLLATypeRole :SITTING ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "LLA_1"^^xsd:string ;
+.
+:Mihai
+  rdf:type :Person ;
+  :name "Mihai"^^xsd:string ;
+  rdfs:label "Mihai"^^xsd:string ;
+.
 :Person
   rdf:type owl:Class ;
   rdfs:comment "A person who can be located in a room."^^xsd:string ;
@@ -151,6 +173,12 @@
       owl:hasValue core:Sensed ;
       owl:onProperty core:assertionAcquisitionType ;
     ] ;
+.
+:Position_1
+  rdf:type :Position ;
+  :hasAreaRole :WORK_AREA ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "Position_1"^^xsd:string ;
 .
 :SITTING
   rdf:type :LLAType ;
@@ -180,6 +208,41 @@
   rdf:type :AreaType ;
   rdfs:label "WORK_AREA"^^xsd:string ;
 .
+:hasAreaRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain :Position ;
+  rdfs:label "hasAreaRole"^^xsd:string ;
+  rdfs:range :AreaType ;
+  rdfs:subPropertyOf core:assertionObject ;
+.
+:hasHLATypeRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain :HLA ;
+  rdfs:label "hasHLATypeRole"^^xsd:string ;
+  rdfs:range :HLAType ;
+  rdfs:subPropertyOf core:assertionObject ;
+.
+:hasLLATypeRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain :LLA ;
+  rdfs:label "hasLLATypeRole"^^xsd:string ;
+  rdfs:range :LLAType ;
+  rdfs:subPropertyOf core:assertionObject ;
+.
+:hasPersonRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain [
+      rdf:type owl:Class ;
+      owl:unionOf (
+          :Position
+          :LLA
+          :HLA
+        ) ;
+    ] ;
+  rdfs:label "hasPersonRole"^^xsd:string ;
+  rdfs:range :Person ;
+  rdfs:subPropertyOf core:assertionSubject ;
+.
 :hla
   rdf:type owl:ObjectProperty ;
   rdfs:comment "The derived high level activity of a person in a room."^^xsd:string ;
@@ -195,6 +258,11 @@
   rdfs:label "lla"^^xsd:string ;
   rdfs:range :LLAType ;
   rdfs:subPropertyOf core:sensedRelationAssertion ;
+.
+:lla-ex1
+  :hasLLATypeRole :SITTING ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "lla-ex1"^^xsd:string ;
 .
 :name
   rdf:type owl:DatatypeProperty ;
