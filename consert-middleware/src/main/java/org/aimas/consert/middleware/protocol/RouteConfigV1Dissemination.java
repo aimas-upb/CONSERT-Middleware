@@ -29,7 +29,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * 
 	 * @param rtCtx the routing context
 	 */
-	public void handlePostUnregQueryUser(RoutingContext rtCtx) {
+	public void handlePostRegQueryUser(RoutingContext rtCtx) {
 		// TODO
 	}
 

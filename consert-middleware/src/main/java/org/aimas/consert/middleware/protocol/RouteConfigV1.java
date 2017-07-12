@@ -91,7 +91,7 @@ public class RouteConfigV1 extends RouteConfig {
 		RouteConfigV1Dissemination dissemination = new RouteConfigV1Dissemination(ctxQueryHandler);
 
 		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
-				+ "/unregister_query_user/").handler(dissemination::handlePostUnregQueryUser);
+				+ "/register_query_user/").handler(dissemination::handlePostRegQueryUser);
 		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
 				+ "/context_query/").handler(dissemination::handleGetCtxQuery);
 		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
