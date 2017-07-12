@@ -7,29 +7,28 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 /**
  * AgentSpec from CONSERT protocol ontology
  */
-@RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
+@RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#")
 @RDFBean("protocol:AgentSpec")
 public class AgentSpec extends RDFObject {
 
 	private AgentAddress address;
 	private String identifier;
 	private String id;
-	
-	
+
 	@RDF("protocol:hasAddress")
 	public AgentAddress getAddress() {
 		return address;
 	}
-	
+
 	public void setAddress(AgentAddress address) {
 		this.address = address;
 	}
-	
+
 	@RDF("protocol:hasIdentifier")
 	public String getIdentifier() {
 		return identifier;
 	}
-	
+
 	public void setIdentifier(String identifier) {
 		this.identifier = identifier;
 	}

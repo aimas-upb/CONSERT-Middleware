@@ -7,29 +7,28 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 /**
  * AgentAddress from CONSERT protocol ontology
  */
-@RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#")
+@RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#")
 @RDFBean("protocol:AgentAddress")
 public class AgentAddress extends RDFObject {
 
 	private String ipAddress;
 	private int port;
 	private String id;
-	
-	
+
 	@RDF("protocol:ipAddress")
 	public String getIpAddress() {
 		return ipAddress;
 	}
-	
+
 	public void setIpAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
 	}
-	
+
 	@RDF("protocol:port")
 	public int getPort() {
 		return port;
 	}
-	
+
 	public void setPort(int port) {
 		this.port = port;
 	}
@@ -57,6 +56,5 @@ public class AgentAddress extends RDFObject {
 			return false;
 		return true;
 	}
-	
-	
+
 }
