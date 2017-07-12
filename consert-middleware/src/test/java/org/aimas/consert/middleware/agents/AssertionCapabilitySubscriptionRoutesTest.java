@@ -137,12 +137,10 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 							@Override
 							public void handle(Buffer buffer2) {
 
-								context.assertEquals(
+								context.assertTrue(buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 										"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasCapabilityQuery> \"the capability query\" ;"
 												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxUser> ;"
-												+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription> .",
-										buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t",
-												""));
+												+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription> ."));
 								async.complete();
 							}
 						});
@@ -194,12 +192,10 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 											@Override
 											public void handle(Buffer buffer2) {
 
-												context.assertEquals(
+												context.assertTrue(buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 														"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasCapabilityQuery> \"the capability query\" ;"
 																+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxQueryHandler> ;"
-																+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription> .",
-														buffer2.toString().trim().replace("\r", "").replace("\n", "")
-																.replace("\t", ""));
+																+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription> ."));
 												async.complete();
 											}
 										});
