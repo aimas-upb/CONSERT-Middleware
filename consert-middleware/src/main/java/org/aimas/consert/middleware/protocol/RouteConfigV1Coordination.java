@@ -1,7 +1,12 @@
 package org.aimas.consert.middleware.protocol;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -9,17 +14,26 @@ import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
+import org.aimas.consert.middleware.model.AssertionInstance;
 import org.aimas.consert.middleware.model.RDFObject;
+import org.aimas.consert.model.annotations.ContextAnnotation;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.ext.web.RoutingContext;
 
@@ -287,7 +301,101 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePostInsCtxAssert(RoutingContext rtCtx) {
-		// TODO
+		
+		String rdf = rtCtx.getBodyAsString();
+		
+		// Create a Repository that will contain the two graphs
+		Repository repo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
+		repo.initialize();
+		RepositoryConnection conn = repo.getConnection();
+		
+		try {
+
+			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TRIG);
+			conn.add(model);
+
+			Resource assertG = SimpleValueFactory.getInstance()
+					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#assertionGraph");
+			Resource annG = SimpleValueFactory.getInstance()
+					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#annotationGraph");
+			IRI bindingClass = SimpleValueFactory.getInstance()
+					.createIRI("http://viceversatech.com/rdfbeans/2.0/bindingClass");
+			IRI rdfType = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+			IRI hasAnnotation = SimpleValueFactory.getInstance().createIRI(
+					"http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#hasAnnotation");
+			
+			// Parsing the binding classes from default graph
+			Map<Resource, Class<?>> bindingClasses = new HashMap<Resource, Class<?>>();
+			
+			RepositoryResult<Statement> bindingStatements = conn.getStatements(null, bindingClass, null);
+			
+			while(bindingStatements.hasNext()) {
+				Statement s = bindingStatements.next();
+				bindingClasses.put(s.getSubject(), Class.forName(s.getObject().stringValue()));
+			}
+			
+			// Parsing the assertions graph
+			List<AssertionInstance> assertionInstances = new LinkedList<AssertionInstance>();
+			
+			RepositoryResult<Statement> assertionsStatements = conn.getStatements(null, rdfType, null, assertG);
+			
+			while(assertionsStatements.hasNext()) {
+				Statement s = assertionsStatements.next();
+				
+				AssertionInstance ai = new AssertionInstance();
+				ai.setId(s.getSubject().stringValue());
+				assertionInstances.add(ai);
+			}
+			
+			// Parsing the annotations graph
+			Map<Resource, Class<?>> annotationsClasses = new HashMap<Resource, Class<?>>();
+			
+			RepositoryResult<Statement> annotationsStatements = conn.getStatements(null, rdfType, null, annG);
+			
+			while(annotationsStatements.hasNext()) {
+				Statement s = annotationsStatements.next();
+				annotationsClasses.put(s.getSubject(), bindingClasses.get(s.getObject()));
+			}
+			
+			// Link annotations to assertions
+			RDFBeanManager manager = new RDFBeanManager(conn);
+			RepositoryResult<Statement> hasAnnotationStatements = conn.getStatements(null, hasAnnotation, null, annG);
+			
+			while(hasAnnotationStatements.hasNext()) {
+				Statement s = hasAnnotationStatements.next();
+				
+				for(AssertionInstance ai : assertionInstances) {
+					if(ai.getId().equals(s.getSubject().stringValue())) {
+						Class<?> annClass = annotationsClasses.get(s.getObject());						
+						ContextAnnotation ca = (ContextAnnotation) manager.get(s.getObject().stringValue(), annClass);
+						ai.addAnnotation(ca);
+					}
+				}
+			}
+			
+			// Display
+			for(AssertionInstance ai : assertionInstances) {
+				System.out.println(ai.getId() + ":");
+				for(ContextAnnotation ca : ai.getAnnotations()) {
+					System.out.println("\t" + ca.getAnnotationIdentifier());
+				}
+			}
+			
+			// TODO implement processing of AssertionInstances
+			
+		} catch (Exception e) {
+
+			conn.close();
+			repo.shutDown();
+			System.err.println("Error while creating new ContextAssertion instance: " + e.getMessage());
+			e.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
+		
+		conn.close();
+		repo.shutDown();
+		
+		rtCtx.response().setStatusCode(201).end();
 	}
 
 	/**

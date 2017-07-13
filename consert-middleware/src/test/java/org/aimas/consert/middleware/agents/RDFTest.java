@@ -55,10 +55,7 @@ public class RDFTest {
 			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TURTLE);
 			conn.add(model);
 
-			Resource res = manager.getResource(
-					"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/Address",
-					AgentAddress.class);
-			AgentAddress real = (AgentAddress) manager.get(res, AgentAddress.class);
+			AgentAddress real = (AgentAddress) manager.get("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/Address", AgentAddress.class);
 
 			conn.close();
 			repo.shutDown();
@@ -110,9 +107,7 @@ public class RDFTest {
 			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TURTLE);
 			conn.add(model);
 
-			Resource res = manager.getResource(
-					"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/Spec", AgentSpec.class);
-			AgentSpec real = (AgentSpec) manager.get(res, AgentSpec.class);
+			AgentSpec real = (AgentSpec) manager.get("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/Spec", AgentSpec.class);
 
 			Assert.assertEquals(expected, real);
 			Assert.assertEquals(addr, real.getAddress());
@@ -199,9 +194,9 @@ public class RDFTest {
 
 		String rdfData = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 				+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#> .\n"
-				+ "@prefix assertion-instance: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionInstance> .\n"
-				+ "@prefix timestamp-annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#TimestampAnnotation> .\n"
-				+ "@prefix certainty-annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#CertaintyAnnotation> .\n\n"
+				+ "@prefix assertion-instance: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionInstance/> .\n"
+				+ "@prefix timestamp-annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#TimestampAnnotation/> .\n"
+				+ "@prefix certainty-annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#CertaintyAnnotation/> .\n\n"
 				+ "protocol:assertionGraph {\n"
 				+ "    assertion-instance:assertionUpdate a protocol:AssertionInstance ;\n"
 				+ "        protocol:hasContent assertion-instance:assertionContent .\n"
@@ -216,10 +211,9 @@ public class RDFTest {
 		repo.initialize();
 		RepositoryConnection conn = repo.getConnection();
 
-		Model model;
 		try {
 
-			model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TRIG);
+			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TRIG);
 			conn.add(model);
 
 			Resource assertG = SimpleValueFactory.getInstance()

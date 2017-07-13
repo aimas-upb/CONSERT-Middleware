@@ -13,7 +13,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -260,9 +259,7 @@ public class AssertionCapabilityRoutesTest {
 									Model model = Rio.parse(new ByteArrayInputStream(buffer2.getBytes()), "", RDFFormat.TURTLE);
 									conn.add(model);
 
-									Resource res = manager.getResource(
-											"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/foo", AssertionCapability.class);
-									AssertionCapability ac = (AssertionCapability) manager.get(res, AssertionCapability.class);
+									AssertionCapability ac = (AssertionCapability) manager.get("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/foo", AssertionCapability.class);
 									
 									for(ContextAnnotation ann : ac.getAnnotations()) {
 										if(ann instanceof TemporalValidityAnnotation) {
