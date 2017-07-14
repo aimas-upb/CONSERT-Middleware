@@ -1,10 +1,15 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
+import org.aimas.consert.middleware.model.AssertionInstance;
+import org.aimas.consert.model.annotations.ContextAnnotation;
+import org.aimas.consert.model.annotations.NumericCertaintyAnnotation;
+import org.aimas.consert.model.annotations.NumericTimestampAnnotation;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.model.IRI;
@@ -19,6 +24,7 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
@@ -257,5 +263,46 @@ public class RDFTest {
 			e.printStackTrace();
 			Assert.fail();
 		}
+	}
+	
+	@Test
+	public void testList() {
+		
+		ContextAnnotation ca1 = new NumericTimestampAnnotation();
+		ContextAnnotation ca2 = new NumericCertaintyAnnotation();
+		AssertionInstance ai = new AssertionInstance();
+		ai.addAnnotation(ca1);
+		ai.addAnnotation(ca2);
+		
+		Repository repo = new SailRepository(new MemoryStore());
+		repo.initialize();
+		RepositoryConnection conn = repo.getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		try {
+			manager.add(ai);
+		} catch (RepositoryException | RDFBeanException e) {
+			e.printStackTrace();
+			Assert.fail();
+		}
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
+		RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+		writer.startRDF();
+		
+		RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+		
+		while(iter.hasNext()) {
+			writer.handleStatement(iter.next());
+		}
+		
+		writer.endRDF();
+		
+		conn.close();
+		repo.shutDown();
+		
+		//System.out.println(baos.toString());
+		
+		Assert.assertTrue(baos.toString().contains("<annotation:hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericCertaintyAnnotation-2> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericTimestampAnnotation-1> ;"));
 	}
 }

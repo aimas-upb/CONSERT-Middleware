@@ -25,7 +25,7 @@ public class AssertionInstance {
 
 	
 	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.LIST)
+	@RDFContainer(ContainerType.NONE)
 	public List<ContextAnnotation> getAnnotations() {
 		return annotations;
 	}
