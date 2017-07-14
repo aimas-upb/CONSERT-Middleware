@@ -477,7 +477,69 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePostUpdateEntDescs(RoutingContext rtCtx) {
-		// TODO
+		
+		// Initialization
+		String rdf = rtCtx.getBodyAsString();
+
+		Repository tmpRep = new SailRepository(new MemoryStore());
+		tmpRep.initialize();
+		RepositoryConnection conn = tmpRep.getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+
+		try {
+			// Insertion in RDF store
+			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TURTLE);
+			conn.add(model);
+			
+			
+			
+			// Get all the binding classes
+			IRI bindingIRI = SimpleValueFactory.getInstance()
+					.createIRI("http://viceversatech.com/rdfbeans/2.0/bindingClass");
+			Map<Value, Class<?>> bindingClasses = new HashMap<Value, Class<?>>();
+			RepositoryResult<Statement> iter = conn.getStatements(null, bindingIRI, null);
+			
+			while(iter.hasNext()) {
+				Statement s = iter.next();
+				bindingClasses.put(s.getSubject(), Class.forName(s.getObject().stringValue()));
+			}
+			
+			// Get the ContextEntity instances
+			IRI rdfType = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+			List<ContextEntity> entities = new LinkedList<ContextEntity>();
+			iter = conn.getStatements(null, rdfType, null);
+			
+			while(iter.hasNext()) {
+				Statement s = iter.next();
+				Class<?> c = bindingClasses.get(s.getObject());
+					
+				Class<?>[] ifaces = c.getInterfaces();
+				
+				for(Class<?> iface : ifaces) {
+					if(iface == ContextEntity.class) {
+						entities.add((ContextEntity) manager.get(s.getSubject()));
+					}
+				}
+			}
+			
+			// Display
+			/*for(ContextEntity ce : entities) {
+				System.out.println(ce);
+			}*/
+
+			conn.close();
+			tmpRep.shutDown();
+
+			// Answer with a status code only
+			rtCtx.response().setStatusCode(200).end();
+		} catch (Exception e) {
+
+			conn.close();
+			tmpRep.shutDown();
+			System.err.println("Error while getting static context update: " + e.getMessage());
+			e.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
 	}
 
 	/**

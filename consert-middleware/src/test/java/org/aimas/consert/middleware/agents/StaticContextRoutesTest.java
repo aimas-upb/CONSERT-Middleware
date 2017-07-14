@@ -83,4 +83,24 @@ public class StaticContextRoutesTest {
 			}
 		}).putHeader("content-type", "text/turtle").end(this.postQuery);
 	}
+	
+	@Test
+	public void testStaticContextUpdate(TestContext context) {
+		
+		Async async = context.async();
+		
+		this.httpClient.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(),
+				"/api/v1/coordination/update_entity_descriptions/", new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+
+				if (resp.statusCode() != 200) {
+					context.fail("Failed to get static context update, code " + resp.statusCode());
+				}
+				
+				async.complete();
+			}
+		}).putHeader("content-type", "text/turtle").end(this.postQuery);
+	}
 }
