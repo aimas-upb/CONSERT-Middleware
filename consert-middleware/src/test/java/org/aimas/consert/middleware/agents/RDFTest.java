@@ -3,10 +3,12 @@ package org.aimas.consert.middleware.agents;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
-import org.aimas.consert.middleware.model.AssertionInstance;
+import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.model.annotations.ContextAnnotation;
 import org.aimas.consert.model.annotations.NumericCertaintyAnnotation;
 import org.aimas.consert.model.annotations.NumericTimestampAnnotation;
@@ -270,9 +272,11 @@ public class RDFTest {
 		
 		ContextAnnotation ca1 = new NumericTimestampAnnotation();
 		ContextAnnotation ca2 = new NumericCertaintyAnnotation();
-		AssertionInstance ai = new AssertionInstance();
-		ai.addAnnotation(ca1);
-		ai.addAnnotation(ca2);
+		AssertionCapability ac = new AssertionCapability();
+		List<ContextAnnotation> l = new LinkedList<ContextAnnotation>();
+		l.add(ca1);
+		l.add(ca2);
+		ac.setAnnotations(l);
 		
 		Repository repo = new SailRepository(new MemoryStore());
 		repo.initialize();
@@ -280,7 +284,7 @@ public class RDFTest {
 		RDFBeanManager manager = new RDFBeanManager(conn);
 		
 		try {
-			manager.add(ai);
+			manager.add(ac);
 		} catch (RepositoryException | RDFBeanException e) {
 			e.printStackTrace();
 			Assert.fail();
@@ -301,8 +305,8 @@ public class RDFTest {
 		conn.close();
 		repo.shutDown();
 		
-		//System.out.println(baos.toString());
+		System.out.println(baos.toString());
 		
-		Assert.assertTrue(baos.toString().contains("<annotation:hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericCertaintyAnnotation-2> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericTimestampAnnotation-1> ;"));
+		Assert.assertTrue(baos.toString().contains("hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericCertaintyAnnotation-2> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericTimestampAnnotation-1> ;"));
 	}
 }

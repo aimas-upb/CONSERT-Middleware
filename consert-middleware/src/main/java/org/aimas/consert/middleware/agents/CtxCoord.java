@@ -4,18 +4,25 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import org.aimas.consert.engine.EngineRunner;
+import org.aimas.consert.engine.EventTracker;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
+import org.aimas.consert.model.content.ContextAssertion;
+import org.aimas.consert.tests.hla.TestSetup;
+import org.aimas.consert.utils.PlotlyExporter;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.kie.api.runtime.KieSession;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -56,6 +63,11 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 									// CtxUser agent
 	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr
 								// agent
+	
+	private Thread engineRunner;        // thread to run the CONSERT Engine
+	private EventTracker eventTracker;  // service that allows to add events in the engine
+	private KieSession kSession;        // rules for the engine
+	private ExecutorService insertionService;
 
 	public static void main(String[] args) {
 
@@ -109,16 +121,38 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 
 					future.complete();
 				});
+		
+		
+		// Start CONSERT Engine
+		this.kSession = TestSetup.getKieSessionFromResources("rules/HLA.drl");
+    	this.engineRunner = new Thread(new EngineRunner(kSession));
+    	this.eventTracker = new EventTracker(kSession);
+    	this.insertionService = Executors.newSingleThreadExecutor();
+    	
+    	this.engineRunner.start();
+	}
+	
+	public void stopVertx() {
+		this.vertx.close();
 	}
 
 	@Override
 	public void stop() {
 		this.repo.shutDown();
+
+    	PlotlyExporter.exportToHTML(null, kSession);
+    	this.insertionService.shutdownNow();
+    	this.kSession.halt();
+    	this.kSession.dispose();
 	}
 
 	@Override
 	public Repository getRepository() {
 		return this.repo;
+	}
+	
+	public void insertEvent(ContextAssertion ca) {
+		this.insertionService.execute(new EventInsertionTask(ca));
 	}
 
 	public AssertionCapability addAssertionCapability(UUID uuid, AssertionCapability ac) {
@@ -148,5 +182,18 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 
 	public AssertionCapabilitySubscription removeAssertionCapabilitySubscription(UUID uuid) {
 		return this.assertionCapabilitySubscriptions.remove(uuid);
+	}
+	
+	
+	private class EventInsertionTask implements Runnable {
+		private ContextAssertion ca;
+		
+		EventInsertionTask(ContextAssertion ca) {
+			this.ca = ca;
+		}
+		
+		public void run() {
+			eventTracker.insertAtomicEvent(ca);
+        }
 	}
 }
