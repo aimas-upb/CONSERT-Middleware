@@ -14,6 +14,13 @@ public class AgentSpec extends RDFObject {
 	private AgentAddress address;
 	private String identifier;
 	private String id;
+	
+	public AgentSpec() { }
+	
+	public AgentSpec(AgentAddress address, String identifier) {
+		this.address = address;
+		this.identifier = identifier;
+	}
 
 	@RDF("protocol:hasAddress")
 	public AgentAddress getAddress() {

@@ -14,6 +14,13 @@ public class AgentAddress extends RDFObject {
 	private String ipAddress;
 	private int port;
 	private String id;
+	
+	public AgentAddress() { }
+	
+	public AgentAddress(String ipAddress, int port) {
+		this.ipAddress = ipAddress;
+		this.port = port;
+	}
 
 	@RDF("protocol:ipAddress")
 	public String getIpAddress() {
