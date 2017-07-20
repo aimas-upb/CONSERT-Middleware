@@ -13,6 +13,8 @@ import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.Constants;
 import org.aimas.consert.model.content.ContextAssertion;
+import org.aimas.consert.tests.hla.assertions.LLA;
+import org.aimas.consert.tests.hla.assertions.Position;
 import org.aimas.consert.utils.JSONEventReader;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -39,6 +41,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 
 /**
@@ -58,6 +61,7 @@ public class CtxSensor extends AbstractVerticle implements Agent {
 
 	private AgentConfig agentConfig; // configuration values for this agent
 	private String host; // where this agent is hosted
+	private int id; // identifier to distinguish CtxSensor instances
 
 	private Repository repo; // repository containing the RDF data
 
@@ -92,11 +96,12 @@ public class CtxSensor extends AbstractVerticle implements Agent {
 		this.router = routeConfig.createRouterSensing(vertx, this);
 
 		// Read configuration
+		this.id = this.config().getInteger("id");
 		try {
 
 			Configuration config = new PropertiesConfiguration(CONFIG_FILE);
 
-			this.agentConfig = AgentConfig.readCtxSensorConfig(config);
+			this.agentConfig = AgentConfig.readCtxSensorConfig(config).get(this.id);
 			this.host = config.getString("CtxSensor.host");
 
 			this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
@@ -108,13 +113,14 @@ public class CtxSensor extends AbstractVerticle implements Agent {
 		}
 
 		// Start server
-		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
+		HttpServer server = this.vertx.createHttpServer();
+		server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
 				res -> {
 					if (res.succeeded()) {
 						System.out.println(
-								"Started CtxSensor on port " + this.agentConfig.getPort() + " host " + this.host);
+								"Started CtxSensor on port " + server.actualPort() + " host " + this.host);
 					} else {
-						System.out.println("Failed to start CtxSensor on port " + this.agentConfig.getPort() + " host "
+						System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host "
 								+ this.host);
 					}
 
@@ -158,7 +164,13 @@ public class CtxSensor extends AbstractVerticle implements Agent {
 			ContextAssertion event = (ContextAssertion)events.poll();
 			if (event != null) {
 				
-				this.sendEvent(event);
+				// one CtxSensor sends LLA events, and the other sends position events
+				if((id == 0 && event instanceof LLA)
+						|| (id == 1 && event instanceof Position)) {
+					
+					System.out.println("CtxSensor " + id + " sends event " + event);
+					this.sendEvent(event);					
+				}
 				
 				// look at the next event if there is one
 				ContextAssertion nextEvent = (ContextAssertion)events.peek();

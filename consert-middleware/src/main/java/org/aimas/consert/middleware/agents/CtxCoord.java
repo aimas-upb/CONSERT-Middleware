@@ -2,6 +2,7 @@ package org.aimas.consert.middleware.agents;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -57,12 +58,9 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 																						// assertion
 																						// capabilities
 
-	private AgentConfig ctxSensor; // configuration to communicate with the
-									// CtxSensor agent
-	private AgentConfig ctxUser; // configuration to communicate with the
-									// CtxUser agent
-	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr
-								// agent
+	private List<AgentConfig> ctxSensors;  // configuration to communicate with the CtxSensor agents
+	private AgentConfig ctxUser;           // configuration to communicate with the CtxUser agent
+	private AgentConfig orgMgr;            // configuration to communicate with the OrgMgr agent
 	
 	private Thread engineRunner;        // thread to run the CONSERT Engine
 	private EventTracker eventTracker;  // service that allows to add events in the engine
@@ -99,7 +97,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 			this.agentConfig = AgentConfig.readCtxCoordConfig(config);
 			this.host = config.getString("CtxCoord.host");
 
-			this.ctxSensor = AgentConfig.readCtxSensorConfig(config);
+			this.ctxSensors = AgentConfig.readCtxSensorConfig(config);
 			this.ctxUser = AgentConfig.readCtxUserConfig(config);
 			this.orgMgr = AgentConfig.readOrgMgrConfig(config);
 
