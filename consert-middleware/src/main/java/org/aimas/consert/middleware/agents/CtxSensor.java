@@ -47,7 +47,7 @@ import io.vertx.ext.web.Router;
 /**
  * CtxSensor agent implemented as a Vert.x server
  */
-public class CtxSensor extends AbstractVerticle implements Agent {
+public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
 	private final String CONFIG_FILE = "agents.properties"; // path to the
 															// configuration
@@ -148,6 +148,8 @@ public class CtxSensor extends AbstractVerticle implements Agent {
 		return this.repo;
 	}
 	
+	protected abstract boolean canSendEvent(ContextAssertion event);
+	
 	private class EventReadTask implements Runnable {
 		
 		private HttpClient client;
@@ -164,9 +166,8 @@ public class CtxSensor extends AbstractVerticle implements Agent {
 			ContextAssertion event = (ContextAssertion)events.poll();
 			if (event != null) {
 				
-				// one CtxSensor sends LLA events, and the other sends position events
-				if((id == 0 && event instanceof LLA)
-						|| (id == 1 && event instanceof Position)) {
+				// send the event only if the CtxSensor should handle it
+				if(canSendEvent(event)) {
 					
 					System.out.println("CtxSensor " + id + " sends event " + event);
 					this.sendEvent(event);					
@@ -209,7 +210,7 @@ public class CtxSensor extends AbstractVerticle implements Agent {
         }
 		
 		// Sends the event to the known CtxCoord
-		private void sendEvent(/*AssertionInstance*/ ContextAssertion event) {
+		private void sendEvent(ContextAssertion event) {
 			
 			// First, we need to convert the objects to RDF statements
 			// We use the repository for this

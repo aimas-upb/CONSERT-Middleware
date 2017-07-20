@@ -15,8 +15,8 @@ public class Test {
 			JsonObject config0 = new JsonObject().put("id", 0);
 			JsonObject config1 = new JsonObject().put("id", 1);
 			
-			vertx.deployVerticle(CtxSensor.class.getName(), new DeploymentOptions().setConfig(config0));
-			vertx.deployVerticle(CtxSensor.class.getName(), new DeploymentOptions().setConfig(config1));
+			vertx.deployVerticle(CtxSensorLLA.class.getName(), new DeploymentOptions().setConfig(config0));
+			vertx.deployVerticle(CtxSensorPosition.class.getName(), new DeploymentOptions().setConfig(config1));
 		});
 	}
 }
