@@ -5,16 +5,16 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.Constants;
 import org.aimas.consert.model.content.ContextAssertion;
-import org.aimas.consert.tests.hla.assertions.LLA;
-import org.aimas.consert.tests.hla.assertions.Position;
 import org.aimas.consert.utils.JSONEventReader;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -39,6 +39,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServer;
@@ -59,7 +60,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
 
-	private AgentConfig agentConfig; // configuration values for this agent
+	protected AgentConfig agentConfig; // configuration values for this agent
 	private String host; // where this agent is hosted
 	private int id; // identifier to distinguish CtxSensor instances
 
@@ -76,6 +77,8 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	private boolean isFinished = false;     // allows to know when the CtxSensor has finished sending all the events
 	private Queue<Object> events;           // list of the read events
 	private Object syncObj = new Object();  // object used for the synchronization of the threads
+	
+	private List<UUID> assertionCapabilitiesIds;  // identifiers of the sent assertion capabilities
 
 	public static void main(String[] args) {
 
@@ -114,20 +117,23 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
 		// Start server
 		HttpServer server = this.vertx.createHttpServer();
-		server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
-				res -> {
-					if (res.succeeded()) {
-						System.out.println(
-								"Started CtxSensor on port " + server.actualPort() + " host " + this.host);
-					} else {
-						System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host "
-								+ this.host);
-					}
+		server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host, res -> {
+			if (res.succeeded()) {
+				System.out.println(
+						"Started CtxSensor on port " + server.actualPort() + " host " + this.host);
+			} else {
+				System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host "
+						+ this.host);
+			}
 
-					future.complete();
-				});
+			future.complete();
+		});
 		
-		
+
+		// Send the assertion capabilities before doing anything
+		this.assertionCapabilitiesIds = new LinkedList<UUID>();
+		this.sendAssertionCapabilities();
+			
 		// Start reading the context assertions and their annotations
 		ClassLoader classLoader = CtxSensor.class.getClassLoader();
         File eventsFile = new File(classLoader.getResource(this.EVENTS_FILE_NAME).getFile());
@@ -148,7 +154,104 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		return this.repo;
 	}
 	
+	// allows to know whether the current CtxSensor should handle the given event
 	protected abstract boolean canSendEvent(ContextAssertion event);
+	
+	// send the assertion capabilities to the CtxCoord
+	protected void sendAssertionCapabilities(List<AssertionCapability> acs) {
+		
+		HttpClient client = this.vertx.createHttpClient();
+		
+		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
+				"/context_assertions/";
+		
+		// using a repository to convert the AssertionCapability objects to RDF statements
+		Repository repository = new SailRepository(new MemoryStore());
+		repository.initialize();
+		RepositoryConnection conn = repository.getConnection();
+		
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
+		try {
+			
+			// Convert each AssertionCapability one by one
+			for(AssertionCapability ac : acs) {
+				
+				baos.reset();
+				RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+				writer.startRDF();
+				
+				conn.clear();
+				manager.add(ac);
+				
+				RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+				
+				while(iter.hasNext()) {
+					writer.handleStatement(iter.next());
+				}
+				
+				writer.endRDF();
+				
+				// send to the CtxCoord
+				client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+
+					@Override
+					public void handle(HttpClientResponse resp) {
+						
+						if(resp.statusCode() == 201) {
+							resp.bodyHandler(new Handler<Buffer>() {
+
+								@Override
+								public void handle(Buffer buffer) {
+									assertionCapabilitiesIds.add(UUID.fromString(buffer.toString()));
+								}
+
+							});
+						}
+					}
+					
+				}).putHeader("content-type", "text/turtle").end(baos.toString());
+			}
+			
+		} catch (RepositoryException | RDFBeanException e) {
+			e.printStackTrace();
+		}
+		
+		conn.close();
+		repository.shutDown();
+	}
+	
+	// Delete all the assertion capabilities from this CtxSensor on the CtxCoord
+	private void deleteAssertionCapabilities() {
+		
+		HttpClient client = this.vertx.createHttpClient();
+		
+		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
+				"/context_assertions/";
+		
+		// send to the CtxCoord
+		for(UUID uuid : this.assertionCapabilitiesIds) {
+			
+			client.delete(ctxCoord.getPort(), ctxCoord.getAddress(), route + uuid.toString() + "/",
+					new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					if(resp.statusCode() != 200) {
+						System.err.println("Error while deleting assertion capability " + uuid.toString());
+					}
+				}
+				
+			}).end();
+		}
+		
+		this.assertionCapabilitiesIds.clear();
+	}
+	
+	protected abstract void sendAssertionCapabilities();
 	
 	private class EventReadTask implements Runnable {
 		
@@ -194,18 +297,10 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 				this.repo.shutDown();
 			}
 			
-			// Send a message to the CtxCoord when there is no more data
+			// Tell the CtxCoord that there is no more data
 			if(isFinished()) {
 				
-				String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
-						"/insert_context_assertion/";
-				
-				this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
-
-					@Override
-					public void handle(HttpClientResponse resp) {}
-					
-				}).putHeader("content-type", "text/plain").end("finished");
+				deleteAssertionCapabilities();
 			}
         }
 		
