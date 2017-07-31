@@ -45,9 +45,16 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 
 	private CtxCoord ctxCoord; // the agent that can be accessed with the
 								// defined routes
+	
+	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
+	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
 
 	public RouteConfigV1Coordination(CtxCoord ctxCoord) {
 		this.ctxCoord = ctxCoord;
+		
+		this.convRepo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
+		this.convRepo.initialize();
+		this.convRepoConn = this.convRepo.getConnection();
 	}
 
 	/**
@@ -206,7 +213,13 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		
 		// Stop CtxCoord if there is no more data to receive
 		if(this.ctxCoord.getAssertionCapabilitiesValues().isEmpty()) {
-			this.ctxCoord.stopVertx();
+			
+			this.ctxCoord.getVertx().executeBlocking(future -> {
+				
+				this.ctxCoord.stopVertx();
+				future.complete();
+				
+			}, null);
 		}
 	}
 
@@ -312,21 +325,11 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		
 		String rdf = rtCtx.getBodyAsString();
 		
-		if(rdf.equals("finished")) {
-			rtCtx.response().setStatusCode(200).end();
-			this.ctxCoord.stopVertx();
-			return;
-		}
-		
-		// Create a Repository that will contain the two graphs
-		Repository repo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
-		repo.initialize();
-		RepositoryConnection conn = repo.getConnection();
-		
+		// Insert the two graphs in the conversion repository
 		try {
 
 			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TRIG);
-			conn.add(model);
+			this.convRepoConn.add(model);
 
 			Resource assertG = SimpleValueFactory.getInstance()
 					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#assertionGraph");
@@ -337,7 +340,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			// Parsing the binding classes from default graph
 			Map<Resource, Class<?>> bindingClasses = new HashMap<Resource, Class<?>>();
 			
-			RepositoryResult<Statement> bindingStatements = conn.getStatements(null, bindingClass, null);
+			RepositoryResult<Statement> bindingStatements = this.convRepoConn.getStatements(null, bindingClass, null);
 			
 			while(bindingStatements.hasNext()) {
 				Statement s = bindingStatements.next();
@@ -345,10 +348,11 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			}
 			
 			// Parsing the assertions graph
-			RDFBeanManager manager = new RDFBeanManager(conn);
+			RDFBeanManager manager = new RDFBeanManager(this.convRepoConn);
 			List<ContextAssertion> contextAssertions = new LinkedList<ContextAssertion>();
 			
-			RepositoryResult<Statement> assertionsStatements = conn.getStatements(null, rdfType, null, assertG);
+			RepositoryResult<Statement> assertionsStatements = this.convRepoConn.getStatements(null, rdfType, null,
+					assertG);
 			
 			while(assertionsStatements.hasNext()) {
 				
@@ -371,15 +375,13 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 				this.ctxCoord.insertEvent(ca);
 			}
 			
-			conn.close();
-			repo.shutDown();
+			this.convRepoConn.clear();
 			
 			rtCtx.response().setStatusCode(201).end();
 			
 		} catch (Exception e) {
 
-			conn.close();
-			repo.shutDown();
+			this.convRepoConn.clear();
 			System.err.println("Error while creating new ContextAssertion: " + e.getMessage());
 			e.printStackTrace();
 			rtCtx.response().setStatusCode(500).end();

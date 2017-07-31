@@ -281,11 +281,11 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 				
 				if (nextEvent != null) {
 					//long delay = (long)(nextEvent.getStartTimestamp() - event.getStartTimestamp());
-					int delay = 50;
-					System.out.println("Next Event due in " + delay + " ms");
+					//int delay = 50;
+					//System.out.println("Next Event due in " + delay + " ms");
 					
-					readerService.schedule(new EventReadTask(), delay, TimeUnit.MILLISECONDS);
-					//readerService.schedule(new EventReadTask(), 1, TimeUnit.MILLISECONDS);
+					//readerService.schedule(new EventReadTask(), delay, TimeUnit.MILLISECONDS);
+					readerService.schedule(new EventReadTask(), 1, TimeUnit.MILLISECONDS);
 				}
 				else {
 					setFinished(true);
