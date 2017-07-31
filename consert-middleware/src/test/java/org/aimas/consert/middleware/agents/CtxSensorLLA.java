@@ -1,21 +1,18 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
-import org.aimas.consert.model.annotations.DefaultAnnotationData;
 import org.aimas.consert.model.content.ContextAssertion;
 import org.aimas.consert.tests.hla.assertions.LLA;
-import org.aimas.consert.tests.hla.assertions.SittingLLA;
-import org.aimas.consert.tests.hla.assertions.StandingLLA;
-import org.aimas.consert.tests.hla.entities.Person;
 import org.aimas.consert.utils.JSONEventReader;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -33,33 +30,20 @@ public class CtxSensorLLA extends CtxSensor {
 	
 
 	@Override
-	protected void sendAssertionCapabilities() {
-		
-		Person mihai = new Person("mihai");
+	protected void sendAssertionCapability() {
 		
 		AgentAddress ctxSensorAddress = new AgentAddress(this.agentConfig.getAddress(), this.agentConfig.getPort());
 		
-		AssertionCapability acStanding = new AssertionCapability();
-		acStanding.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/Standing");
-		acStanding.setContent(new StandingLLA(mihai, new DefaultAnnotationData()));
-		acStanding.setProvider(new AgentSpec(ctxSensorAddress, acStanding.getId()));
+		AssertionCapability ac = new AssertionCapability();
+		ac.setProvider(new AgentSpec(ctxSensorAddress, ac.getId()));
+		ac.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/LLA");
+		try {
+			ac.setContent(new URI("http://example.org/hlatest/LLA"));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 		
-		AssertionCapability acSitting= new AssertionCapability();
-		acSitting.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/Sitting");
-		acSitting.setContent(new SittingLLA(mihai, new DefaultAnnotationData()));
-		acSitting.setProvider(new AgentSpec(ctxSensorAddress, acSitting.getId()));
-		
-		AssertionCapability acWalking= new AssertionCapability();
-		acWalking.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/Walking");
-		acWalking.setContent(new StandingLLA(mihai, new DefaultAnnotationData()));
-		acWalking.setProvider(new AgentSpec(ctxSensorAddress, acWalking.getId()));
-		
-		List<AssertionCapability> acs = new LinkedList<AssertionCapability>();
-		acs.add(acStanding);
-		acs.add(acSitting);
-		acs.add(acWalking);
-		
-		this.sendAssertionCapabilities(acs);
+		this.sendAssertionCapability(ac);
 	}
 
 	@Override

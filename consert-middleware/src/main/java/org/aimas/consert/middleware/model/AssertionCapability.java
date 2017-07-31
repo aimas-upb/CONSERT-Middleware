@@ -1,10 +1,10 @@
 package org.aimas.consert.middleware.model;
 
+import java.net.URI;
 import java.util.List;
 
 import org.aimas.consert.model.Constants;
 import org.aimas.consert.model.annotations.ContextAnnotation;
-import org.aimas.consert.model.content.ContextAssertion;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFContainer;
@@ -19,16 +19,16 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 @RDFBean("protocol:AssertionCapability")
 public class AssertionCapability extends RDFObject {
 
-	private ContextAssertion content;
+	private URI content;
 	private List<ContextAnnotation> annotations;
 	private AgentSpec provider;
 
 	@RDF("protocol:hasContent")
-	public ContextAssertion getContent() {
+	public URI getContent() {
 		return content;
 	}
 
-	public void setContent(ContextAssertion content) {
+	public void setContent(URI content) {
 		this.content = content;
 	}
 

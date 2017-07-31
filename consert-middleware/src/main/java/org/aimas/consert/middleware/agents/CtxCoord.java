@@ -138,7 +138,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	public void stop() {
 		this.repo.shutDown();
 
-    	PlotlyExporter.exportToHTML(null, kSession);
+    	PlotlyExporter.exportToHTML(null, this.kSession);
     	this.insertionService.shutdownNow();
     	this.kSession.halt();
     	this.kSession.dispose();

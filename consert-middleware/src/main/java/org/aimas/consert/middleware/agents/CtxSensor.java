@@ -115,7 +115,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
 			// Send the assertion capabilities before doing anything
 			this.assertionCapabilitiesIds = new LinkedList<UUID>();
-			this.sendAssertionCapabilities();
+			this.sendAssertionCapability();
 			
 			// Read events from the adaptor and send them to the CtxCoord agent
 			this.readEvents();
@@ -140,15 +140,15 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	protected abstract void readEvents();
 
 	/**
-	 * send default assertion capabilities
+	 * send default assertion capability
 	 */
-	protected abstract void sendAssertionCapabilities();
+	protected abstract void sendAssertionCapability();
 	
 	/**
-	 * send the assertion capabilities to the CtxCoord
-	 * @param acs the assertion capabilities to send
+	 * send the assertion capability to the CtxCoord
+	 * @param acs the assertion capability to send
 	 */
-	protected void sendAssertionCapabilities(List<AssertionCapability> acs) {
+	protected void sendAssertionCapability(AssertionCapability ac) {
 		
 		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
 				"/context_assertions/";
@@ -164,44 +164,42 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		
 		try {
 			
-			// Convert each AssertionCapability one by one
-			for(AssertionCapability ac : acs) {
-				
-				baos.reset();
-				RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
-				writer.startRDF();
-				
-				conn.clear();
-				manager.add(ac);
-				
-				RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
-				
-				while(iter.hasNext()) {
-					writer.handleStatement(iter.next());
+			// Convert the AssertionCapability
+			
+			baos.reset();
+			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+			writer.startRDF();
+			
+			conn.clear();
+			manager.add(ac);
+			
+			RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+			
+			while(iter.hasNext()) {
+				writer.handleStatement(iter.next());
+			}
+			
+			writer.endRDF();
+			
+			// send to the CtxCoord
+			this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					if(resp.statusCode() == 201) {
+						resp.bodyHandler(new Handler<Buffer>() {
+
+							@Override
+							public void handle(Buffer buffer) {
+								assertionCapabilitiesIds.add(UUID.fromString(buffer.toString()));
+							}
+
+						});
+					}
 				}
 				
-				writer.endRDF();
-				
-				// send to the CtxCoord
-				this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
-
-					@Override
-					public void handle(HttpClientResponse resp) {
-						
-						if(resp.statusCode() == 201) {
-							resp.bodyHandler(new Handler<Buffer>() {
-
-								@Override
-								public void handle(Buffer buffer) {
-									assertionCapabilitiesIds.add(UUID.fromString(buffer.toString()));
-								}
-
-							});
-						}
-					}
-					
-				}).putHeader("content-type", "text/turtle").end(baos.toString());
-			}
+			}).putHeader("content-type", "text/turtle").end(baos.toString());
 			
 		} catch (RepositoryException | RDFBeanException e) {
 			e.printStackTrace();
