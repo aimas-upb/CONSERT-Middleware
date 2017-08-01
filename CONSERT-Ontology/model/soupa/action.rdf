@@ -1,55 +1,55 @@
 <?xml version="1.0"?>
 <rdf:RDF
-    xmlns:space="http://pervasive.semanticweb.org/ont/2004/06/space#"
-    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns="http://pervasive.semanticweb.org/ont/2004/06/action#"
-    xmlns:spin="http://spinrdf.org/spin#"
     xmlns:owl="http://www.w3.org/2002/07/owl#"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:space="http://pervasive.semanticweb.org/ont/2004/06/space#"
+    xmlns="http://pervasive.semanticweb.org/ont/2004/06/action#"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2017/07/consert/core#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
   xml:base="http://pervasive.semanticweb.org/ont/2004/06/action">
   <owl:Ontology rdf:about="">
-    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
-    <rdfs:label>SOUPA Action Ontology</rdfs:label>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core"/>
     <owl:versionInfo>$Revision: 1.6 $, $Date: 2004/07/15 15:40:46 $</owl:versionInfo>
-    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <rdfs:label>SOUPA Action Ontology</rdfs:label>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
   </owl:Ontology>
   <owl:Class rdf:ID="Action">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity"/>
     <rdfs:label>Action</rdfs:label>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
   </owl:Class>
-  <owl:ObjectProperty rdf:ID="time">
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#InstantThing"/>
-    <rdfs:domain rdf:resource="#Action"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
-  </owl:ObjectProperty>
-  <owl:ObjectProperty rdf:ID="instrument">
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
-    <rdfs:domain rdf:resource="#Action"/>
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
-  </owl:ObjectProperty>
-  <owl:ObjectProperty rdf:ID="target">
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
-    <rdfs:domain rdf:resource="#Action"/>
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
-  </owl:ObjectProperty>
-  <owl:ObjectProperty rdf:ID="recipient">
-    <rdfs:domain rdf:resource="#Action"/>
-    <rdfs:label>recipient</rdfs:label>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
-  </owl:ObjectProperty>
   <owl:ObjectProperty rdf:ID="actor">
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
-    <rdfs:label>actor</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#dynamicRelationAssertion"/>
     <rdfs:domain rdf:resource="#Action"/>
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
+    <rdfs:label>actor</rdfs:label>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity"/>
   </owl:ObjectProperty>
   <owl:ObjectProperty rdf:ID="location">
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#dynamicRelationAssertion"/>
     <rdfs:domain rdf:resource="#Action"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#dynamicRelationAssertion"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpatialThing"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="recipient">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#dynamicRelationAssertion"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity"/>
+    <rdfs:label>recipient</rdfs:label>
+    <rdfs:domain rdf:resource="#Action"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="target">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#dynamicRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Action"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="time">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#dynamicRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Action"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#InstantThing"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="instrument">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#dynamicRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Action"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity"/>
   </owl:ObjectProperty>
 </rdf:RDF>
 

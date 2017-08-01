@@ -1,108 +1,323 @@
 package org.aimas.consert.middleware.agents;
 
+import java.io.ByteArrayOutputStream;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+
+import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
+import org.aimas.consert.model.Constants;
+import org.aimas.consert.model.content.ContextAssertion;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.cyberborean.rdfbeans.RDFBeanManager;
+import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFWriter;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 
-public class CtxSensor extends AbstractVerticle {
+/**
+ * CtxSensor agent implemented as a Vert.x server
+ */
+public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties";  // path to the configuration file for this agent
+	private final String CONFIG_FILE = "agents.properties"; // path to the
+															// configuration
+															// file for this
+															// agent
+
+	private Vertx vertx; // Vertx instance
+	private Router router; // router for communication with this agent
+
+	protected AgentConfig agentConfig; // configuration values for this agent
+	private String host; // where this agent is hosted
+	protected int id; // identifier to distinguish CtxSensor instances
+
+	private Repository repo; // repository containing the RDF data
+
+	private AgentConfig ctxCoord; // configuration to communicate with the CtxCoord agent
+	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr agent
 	
-	private static Vertx vertx = Vertx.vertx();  // Vertx instance
-	private Router router;                       // router for communication with this agent
+	private HttpClient client;  // an HTTP client that can be used to send requests
 	
-	private AgentConfig agentConfig;  // configuration values for this agent
-	private String host;              // where this agent is hosted
+	private List<UUID> assertionCapabilitiesIds;  // identifiers of the sent assertion capabilities
 	
-	private AgentConfig ctxCoord;  // configuration to communicate with the CtxCoord agent
-	private AgentConfig orgMgr;    // configuration to communicate with the OrgMgr agent 
-	
-	
+	private boolean isFinished = false;     // allows to know when the CtxSensor has finished sending all the events
+
 	public static void main(String[] args) {
-		
-		CtxSensor.vertx.deployVerticle(CtxSensor.class.getName());		
+
+		// CtxSensor.vertx.deployVerticle(CtxSensor.class.getName());
 	}
-	
+
 	@Override
-	public void start() {
-		
+	public void start(Future<Void> future) {
+
+		this.vertx = this.context.owner();
+		this.client = this.vertx.createHttpClient();
+
+		// Initialization of the repository
+		this.repo = new SailRepository(new MemoryStore());
+		this.repo.initialize();
+
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
 		this.router = routeConfig.createRouterSensing(vertx, this);
-		
+
 		// Read configuration
+		this.id = this.config().getInteger("id");
 		try {
-			
+
 			Configuration config = new PropertiesConfiguration(CONFIG_FILE);
-			
-			this.agentConfig = AgentConfig.readCtxSensorConfig(config);
+
+			this.agentConfig = AgentConfig.readCtxSensorConfig(config).get(this.id);
 			this.host = config.getString("CtxSensor.host");
-			
+
 			this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
 			this.orgMgr = AgentConfig.readOrgMgrConfig(config);
-			
+
 		} catch (ConfigurationException e) {
 			System.err.println("Error while reading configuration file '" + CONFIG_FILE + "': " + e.getMessage());
 			e.printStackTrace();
 		}
-		
+
 		// Start server
-		CtxSensor.vertx.createHttpServer()
-			.requestHandler(router::accept)
-			.listen(this.agentConfig.getPort(), this.host, res -> {
-				if (res.succeeded()) {
-					System.out.println("Started CtxSensor on port " + this.agentConfig.getPort() + " host " +
-						this.host);
-				} else {
-					System.out.println("Failed to start CtxSensor on port " + this.agentConfig.getPort() + " host " +
-						this.host);
-				}
-			});
+		HttpServer server = this.vertx.createHttpServer();
+		server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host, res -> {
+			if (res.succeeded()) {
+				System.out.println(
+						"Started CtxSensor on port " + server.actualPort() + " host " + this.host);
+			} else {
+				System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host "
+						+ this.host);
+			}
+
+			// Send the assertion capabilities before doing anything
+			this.assertionCapabilitiesIds = new LinkedList<UUID>();
+			this.sendAssertionCapability();
+			
+			// Read events from the adaptor and send them to the CtxCoord agent
+			this.readEvents();
+			
+			future.complete();
+		});
+	}
+
+	@Override
+	public void stop() {
+		this.repo.shutDown();
+	}
+
+	@Override
+	public Repository getRepository() {
+		return this.repo;
+	}
+	
+	/**
+	 * starts reading the events from the adaptor and sending them to the CtxCoord
+	 */
+	protected abstract void readEvents();
+
+	/**
+	 * send default assertion capability
+	 */
+	protected abstract void sendAssertionCapability();
+	
+	/**
+	 * send the assertion capability to the CtxCoord
+	 * @param acs the assertion capability to send
+	 */
+	protected void sendAssertionCapability(AssertionCapability ac) {
 		
+		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
+				"/context_assertions/";
 		
-		String rdfData = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#> .\n"
-				+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#> .\n"
-				+ "@prefix assertion-capability: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AssertionCapability/> .\n"
-				+ "@prefix context-annotation: <http://pervasive.semanticweb.org/ont/2017/06/consert/annotation#ContextAnnotation/> .\n"
-				+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentSpec/> .\n"
-				+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentAddress/> .\n\n"
-				+ "assertion-capability:foo a protocol:AssertionCapability ;\n"
-				+ "    protocol:hasContent context-annotation:ann1 ;\n"
-				+ "    protocol:hasProvider agent-spec:CtxSensor .\n"
-				+ "context-annotation:ann1 a annotation:TimestampAnnotation .\n"
-				+ "agent-spec:CtxSensor a protocol:AgentSpec ;\n"
-				+ "    protocol:hasAddress agent-address:CtxSensorAddress ;\n"
-				+ "    protocol:hasIdentifier \"CtxSensor\" .\n"
-				+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
-				+ "    protocol:ipAddress \"127.0.0.1\" ;\n"
-				+ "    protocol:port 8080 .\n";
+		// using a repository to convert the AssertionCapability objects to RDF statements
+		Repository repository = new SailRepository(new MemoryStore());
+		repository.initialize();
+		RepositoryConnection conn = repository.getConnection();
 		
-		CtxSensor.vertx.createHttpClient()
-			.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(), "/api/v1/coordination/context_assertions/", new Handler<HttpClientResponse>() {
-				
-					@Override
-					public void handle(HttpClientResponse resp) {
-						
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
+		try {
+			
+			// Convert the AssertionCapability
+			
+			baos.reset();
+			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+			writer.startRDF();
+			
+			conn.clear();
+			manager.add(ac);
+			
+			RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+			
+			while(iter.hasNext()) {
+				writer.handleStatement(iter.next());
+			}
+			
+			writer.endRDF();
+			
+			// send to the CtxCoord
+			this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					if(resp.statusCode() == 201) {
 						resp.bodyHandler(new Handler<Buffer>() {
-							
+
 							@Override
 							public void handle(Buffer buffer) {
-								
-								System.out.println("CtxCoord answered: " + buffer.toString());
+								assertionCapabilitiesIds.add(UUID.fromString(buffer.toString()));
 							}
+
 						});
 					}
-				})
-			.putHeader("content-type", "text/plain")
-			.end(rdfData);
+				}
+				
+			}).putHeader("content-type", "text/turtle").end(baos.toString());
+			
+		} catch (RepositoryException | RDFBeanException e) {
+			e.printStackTrace();
+		}
+		
+		conn.close();
+		repository.shutDown();
+	}
+	
+	/**
+	 *  Delete all the assertion capabilities from this CtxSensor on the CtxCoord
+	 */
+	protected void deleteAssertionCapabilities() {
+		
+		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
+				"/context_assertions/";
+		
+		// send to the CtxCoord
+		for(UUID uuid : this.assertionCapabilitiesIds) {
+			
+			this.client.delete(ctxCoord.getPort(), ctxCoord.getAddress(), route + uuid.toString() + "/",
+					new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					if(resp.statusCode() != 200) {
+						System.err.println("Error while deleting assertion capability " + uuid.toString());
+					}
+				}
+				
+			}).end();
+		}
+		
+		this.assertionCapabilitiesIds.clear();
+	}
+	
+	/**
+	 *  Sends the event to the known CtxCoord
+	 * @param event the context assertion to send
+	 */
+	protected void sendEvent(ContextAssertion event) {
+		
+		// First, we need to convert the objects to RDF statements
+		// We use the repository for this
+		RepositoryConnection conn = this.repo.getConnection();
+		RDFBeanManager manager = new RDFBeanManager(conn);
+		
+		try {
+			manager.add(event);
+		} catch (RepositoryException | RDFBeanException e) {
+			e.printStackTrace();
+		}
+		
+		// Prepare to write the RDF statements
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		RDFWriter writer = Rio.createWriter(RDFFormat.TRIG, baos);
+		writer.startRDF();
+
+		List<Statement> bindingStatements = new LinkedList<Statement>();
+		List<Statement> assertionStatements = new LinkedList<Statement>();
+		List<Statement> annotationStatements = new LinkedList<Statement>();
+		RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+		
+		// Separation of statements for binding classes and for assertions
+		while(iter.hasNext()) {
+			Statement s = iter.next();
+			
+			if(s.getPredicate().stringValue().contains("bindingClass")) {
+				bindingStatements.add(s);
+			} else if(s.getPredicate().stringValue().contains(Constants.ANNOTATION_NS)
+					|| s.getObject().stringValue().contains(Constants.ANNOTATION_NS)) {
+				annotationStatements.add(s);
+			} else {
+				assertionStatements.add(s);
+			}
+		}
+		
+		conn.clear();
+		Resource assertG = SimpleValueFactory.getInstance()
+				.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#assertionGraph");
+		Resource annG = SimpleValueFactory.getInstance()
+				.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#annotationGraph");
+		conn.add(bindingStatements);
+		conn.add(assertionStatements, assertG);
+		conn.add(annotationStatements, annG);
+		
+		// Write all the graphs
+		iter = conn.getStatements(null, null, null);
+		while(iter.hasNext()) {
+			writer.handleStatement(iter.next());
+		}
+		
+		// Clean
+		writer.endRDF();
+		conn.clear();
+		conn.close();
+
+		// submit insertion task
+		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
+				"/insert_context_assertion/";
+		
+		this.client.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				if(resp.statusCode() != 201) {
+					System.err.println("CtxCoord returned error while inserting context assertion");
+				}
+			}
+		}).end(baos.toString());
+	}
+	
+	public boolean isFinished() {
+		return isFinished;
+	}
+	
+	protected void setFinished(boolean finished) {
+		isFinished = finished;
 	}
 }

@@ -1,76 +1,108 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.aimas.consert</groupId>
-  <artifactId>middleware</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+	<groupId>org.aimas.consert</groupId>
+	<artifactId>middleware</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
-  <name>consert-midleware</name>
+	<name>consert-midleware</name>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <vertx.version>3.4.1</vertx.version>
-    <apache.commons.version>1.10</apache.commons.version>
-    <rdf4j.version>2.2</rdf4j.version>
-  </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<vertx.version>3.4.1</vertx.version>
+		<apache.commons.version>1.10</apache.commons.version>
+		<rdf4j.version>2.2</rdf4j.version>
+	</properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-      <version>${vertx.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>${apache.commons.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cyberborean</groupId>
-      <artifactId>rdfbeans</artifactId>
-      <version>2.2</version>
-     </dependency>
-     <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-repository-sail</artifactId>
-      <version>${rdf4j.version}</version>
-     </dependency>
-	<dependency>
-	  <groupId>org.eclipse.rdf4j</groupId>
-	  <artifactId>rdf4j-sail-nativerdf</artifactId>
-	  <version>${rdf4j.version}</version>
-	</dependency>
-  </dependencies>
+	<repositories>
+		<repository>
+			<id>cep-engine-repository</id>
+			<name>CONSERT Engine Local Repository</name>
+			<url>file://C:\Users\Hugo\git\CONSERT-Engine\consert-engine\repo</url>
+		</repository>
+	</repositories>
 
-  <build>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Vert.x dependencies -->
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-core</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web</artifactId>
+			<version>${vertx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-unit</artifactId>
+			<version>${vertx.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>${apache.commons.version}</version>
+		</dependency>
+		
+		<!-- RDFBeans and RDF4J dependencies -->
+		<dependency>
+			<groupId>org.cyberborean</groupId>
+			<artifactId>rdfbeans</artifactId>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.rdf4j</groupId>
+			<artifactId>rdf4j-repository-sail</artifactId>
+			<version>${rdf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.rdf4j</groupId>
+			<artifactId>rdf4j-sail-memory</artifactId>
+			<version>${rdf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.rdf4j</groupId>
+			<artifactId>rdf4j-sail-inferencer</artifactId>
+			<version>${rdf4j.version}</version>
+		</dependency>
+		
+		<!-- CONSERT Engine dependency -->
+		<dependency>
+			<groupId>org.aimas.consert</groupId>
+			<artifactId>cep-engine</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 
-    <pluginManagement>
-      <plugins>
-        <!-- We specify the Maven compiler plugin as we need to set it to Java 1.8 -->
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.1</version>
-          <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  
-  </build>
-  
+	<build>
+
+		<pluginManagement>
+			<plugins>
+				<!-- We specify the Maven compiler plugin as we need to set it to Java 
+					1.8 -->
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.1</version>
+					<configuration>
+						<source>1.8</source>
+						<target>1.8</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+	</build>
+
 </project>

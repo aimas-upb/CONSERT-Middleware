@@ -1,0 +1,291 @@
+package org.aimas.consert
+
+// Declare the metadata for the `Position` and `LLA` events
+import org.aimas.consert.tests.hla.entities.Area
+
+import org.aimas.consert.tests.hla.assertions.Position
+import org.aimas.consert.tests.hla.assertions.SittingLLA
+import org.aimas.consert.tests.hla.assertions.WalkingLLA
+import org.aimas.consert.tests.hla.assertions.StandingLLA
+
+import org.aimas.consert.tests.hla.assertions.WorkingHLA
+import org.aimas.consert.tests.hla.assertions.DiscussingHLA
+import org.aimas.consert.tests.hla.assertions.ExerciseHLA
+import org.aimas.consert.tests.hla.assertions.DiningHLA
+
+
+
+import org.aimas.consert.model.annotations.AnnotationData
+import org.aimas.consert.model.annotations.DefaultAnnotationData
+import org.aimas.consert.model.annotations.AnnotationUtils
+
+import org.aimas.consert.engine.EventTracker
+
+global EventTracker eventTracker;
+
+// ============ Declare Position metadata
+declare Position
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+// ============ Declare LLA metadata
+declare SittingLLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+declare WalkingLLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+declare StandingLLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+// =========== Declare HLA metadata
+declare WorkingHLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+declare DiscussingHLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+declare ExerciseHLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+declare DiningHLA
+    @role(event)
+    @timestamp(startTimestamp)
+    @duration(eventDuration)
+end
+
+// =========== BaseEvent insert rules
+
+rule "PositionInsertTest"
+    when
+        $pos : Position(p : person, t : type) from entry-point "PositionStream" 
+    then
+        System.out.println("Inserted POS event with person: " + p.getName() + ", type: " + t + ", timestamp: " +
+            (long)$pos.getStartTimestamp() + ", duration: " + $pos.getEventDuration());
+end
+
+rule "SittingLLAInsertTest"
+    when
+        $lla : SittingLLA(p : person, t : type) from entry-point "LLAStream"
+    then
+        System.out.println("Inserted LLA event with person: " + p.getName() + ", type: " + t + ", timestamp: " +
+            (long)$lla.getStartTimestamp() + ", duration: " + $lla.getEventDuration());
+end
+
+rule "WalkingLLAInsertTest"
+    when
+        $lla : WalkingLLA(p : person, t : type) from entry-point "LLAStream"
+    then
+        System.out.println("Inserted LLA event with person: " + p.getName() + ", type: " + t + ", timestamp: " +
+            (long)$lla.getStartTimestamp() + ", duration: " + $lla.getEventDuration());
+end
+
+rule "StandingLLAInsertTest"
+    when
+        $lla : StandingLLA(p : person, t : type) from entry-point "LLAStream"
+    then
+        System.out.println("Inserted LLA event with person: " + p.getName() + ", type: " + t + ", timestamp: " +
+            (long)$lla.getStartTimestamp() + ", duration: " + $lla.getEventDuration());
+end
+
+rule "ExtendedPositionInsertTest"
+    when
+        $pos : Position(p : person, t : type) from entry-point "ExtendedPositionStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$pos.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED POS event with person: " + p.getName() + ", type: " + t +
+            ", lastUpdated: " + (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+rule "ExtendedSittingLLAInsertTest"
+    when
+        $lla : SittingLLA(p : person, t : type) from entry-point "ExtendedLLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$lla.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED LLA event with person: " + p.getName() + ", type: " + t +
+            ", lastUpdated: " + (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+
+rule "ExtendedWalkingLLAInsertTest"
+    when
+        $lla : WalkingLLA(p : person, t : type) from entry-point "ExtendedLLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$lla.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED LLA event with person: " + p.getName() + ", type: " + t +
+            ", lastUpdated: " + (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+
+rule "ExtendedStandingLLAInsertTest"
+    when
+        $lla : StandingLLA(p : person, t : type) from entry-point "ExtendedLLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$lla.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED LLA event with person: " + p.getName() + ", type: " + t +
+            ", lastUpdated: " + (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+rule "ExtendedWorkingHLATest"
+    when
+        $hla : WorkingHLA(p : person) from entry-point "ExtendedWorkingHLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$hla.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED WORKING HLA event with person: " + p.getName()  + ", lastUpdated: " +
+            (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+
+rule "ExtendedDiscussingHLATest"
+    when
+        $hla : DiscussingHLA(p : person) from entry-point "ExtendedDiscussingHLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$hla.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED DISCUSSING HLA event with person: " + p.getName()  + ", lastUpdated: " +
+            (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+
+rule "ExtendedExerciseHLATest"
+    when
+        $hla : ExerciseHLA(p : person) from entry-point "ExtendedExerciseHLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$hla.getAnnotations();
+        
+        System.out.println("Inserted EXTENDED EXERCISE HLA event with person: " + p.getName()  + ", lastUpdated: " +
+            (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+rule "ExtendedDiningHLATest"
+    when
+        $hla : DiningHLA(p : person) from entry-point "ExtendedDiningHLAStream"
+    then
+        DefaultAnnotationData ann = (DefaultAnnotationData)$hla.getAnnotations();
+        System.out.println("Inserted EXTENDED DINING HLA event with person: " + p.getName()  + ", lastUpdated: " +
+            (long)ann.getLastUpdated() + ", from: " +
+            ann.getStartTime().getTime() + ", to: " +
+            ann.getEndTime().getTime());
+end
+
+
+// =========== HLA detection rules
+rule "WorkingHLA"
+    when
+        $pos : Position($p : person, type.getValue() == "WORK_AREA", $annPos : annotations) from entry-point "ExtendedPositionStream"
+        $lla : SittingLLA(person == $p, $annLLA : annotations) from entry-point "ExtendedLLAStream"
+
+        eval(AnnotationUtils.intersects($annPos, $annLLA))
+    then
+        // create WorkingHLA
+        //double hlaTs = AnnotationUtils.maxTimestamp($pos.getAnnotations().getLastUpdated(), $lla.getAnnotations().getLastUpdated());
+        //double hlaConfidence = AnnotationUtils.maxConfidence($pos.getAnnotations().getConfidence(), $lla.getAnnotations().getConfidence());
+        //ValidityInterval hlaInterval = AnnotationUtils.computeIntersection(
+        //    $pos.getAnnotations().getStartTime(),
+        //    $pos.getAnnotations().getEndTime(),
+        //    $lla.getAnnotations().getStartTime(),
+        //    $lla.getAnnotations().getEndTime());
+        
+        //AnnotationInfo ann = new AnnotationInfo(hlaTs, hlaConfidence, hlaInterval.getStart(), hlaInterval.getEnd());
+        //AnnotationData ann = $pos.getAnnotations().applyCombinationOperator($lla.getAnnotations());
+        AnnotationData ann = $annPos.applyCombinationOperator($annLLA);
+        WorkingHLA hla = new WorkingHLA($p, ann);
+
+        //entryPoints["ExtendedWorkingHLA"].insert(hla);
+        eventTracker.insertDerivedEvent(hla);
+        
+        System.out.println("[INFO] Derived HLA: " + hla + " FROM :\n\t POS: " + $pos + " \n\t LLA: " + $lla);
+end
+
+
+rule "DiscussingHLA"
+    when
+        $pos : Position($p : person, type.getValue() == "CONFERENCE_AREA", $annPos : annotations) from entry-point "ExtendedPositionStream"
+        $lla : StandingLLA(person == $p, $annLLA : annotations) from entry-point "ExtendedLLAStream"
+        eval(AnnotationUtils.intersects($annPos, $annLLA))
+    then
+        // create DiscussingHLA
+        AnnotationData ann = $annPos.applyCombinationOperator($annLLA);
+        DiscussingHLA hla = new DiscussingHLA($p, ann);
+
+        //entryPoints["ExtendedDiscussingHLA"].insert(hla);
+        eventTracker.insertDerivedEvent(hla);
+        
+        System.out.println("[INFO] Derived HLA: " + hla + " FROM :\n\t POS: " + $pos + " \n\t LLA: " + $lla);
+end
+
+
+
+rule "ExerciseHLA"
+    when
+        $pos : Position($p : person, type.getValue() == "EXERCISE_AREA", $annPos : annotations) from entry-point "ExtendedPositionStream"
+        $lla : StandingLLA(person == $p, $annLLA : annotations) from entry-point "ExtendedLLAStream"
+        eval(AnnotationUtils.intersects($annPos, $annLLA))
+    then
+        // create ExerciseHLA
+        AnnotationData ann = $annPos.applyCombinationOperator($annLLA);
+        ExerciseHLA hla = new ExerciseHLA($p, ann);
+
+        //entryPoints["ExtendedExerciseHLA"].insert(hla);
+        eventTracker.insertDerivedEvent(hla);
+        
+        System.out.println("[INFO] Derived HLA: " + hla + " FROM :\n\t POS: " + $pos + " \n\t LLA: " + $lla);
+end
+
+
+
+rule "DiningHLA"
+    when
+        $pos : Position($p : person, type.getValue() == "DINING_AREA", $annPos : annotations) from entry-point "ExtendedPositionStream"
+        $lla : SittingLLA(person == $p, $annLLA : annotations) from entry-point "ExtendedLLAStream"
+        //eval(AnnotationUtils.intersects($pos.getAnnotations(), $lla.getAnnotations())
+        eval(AnnotationUtils.intersects($annPos, $annLLA))
+    then
+        // create DiningHLA
+        AnnotationData ann = $annPos.applyCombinationOperator($annLLA);
+        DiningHLA hla = new DiningHLA($p, ann);
+
+        //entryPoints["ExtendedDiningHLA"].insert(hla);
+        eventTracker.insertDerivedEvent(hla);
+        
+        System.out.println("[INFO] Derived HLA: " + hla + " FROM :\n\t POS: " + $pos + " \n\t LLA: " + $lla);
+end
