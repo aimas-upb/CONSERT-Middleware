@@ -1,0 +1,40 @@
+name: consert
+
+channels:
+    - menpo
+    - defaults
+    
+dependencies:
+    - mkl=2017.0.1=0
+    - numpy=1.12.1=py27_0
+    - pandas=0.20.1=np112py27_0
+    - pip=9.0.1=py27_1
+    - python=2.7.13=0
+    - python-dateutil=2.6.0=py27_0
+    - pytz=2017.2=py27_0
+    - setuptools=27.2.0=py27_0
+    - six=1.10.0=py27_0
+    - wheel=0.29.0=py27_0
+
+    - pip:
+      - backports-abc==0.5
+      - certifi==2017.4.17
+      - decorator==4.0.11
+      - enum34==1.1.6
+      - flatdict==1.2.0
+      - functools32==3.2.3.post2
+      - ipython-genutils==0.2.0
+      - jsonschema==2.6.0
+      - jupyter-core==4.3.0
+      - nbformat==4.3.0
+      - olefile==0.44
+      - pillow==4.1.1
+      - plotly==2.0.8
+      - pyzmq==16.0.2
+      - requests==2.14.2
+      - singledispatch==3.4.0.3
+      - tornado==4.5.1
+      - traitlets==4.3.2
+      - visdom==0.1.4
+      
+prefix: !!python/unicode '/home/mihai/miniconda2/envs/consert'

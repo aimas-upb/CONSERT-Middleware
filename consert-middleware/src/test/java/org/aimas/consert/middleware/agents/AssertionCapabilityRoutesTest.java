@@ -55,14 +55,8 @@ public class AssertionCapabilityRoutesTest {
 			+ "@prefix context-entity: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity/> .\n"
 			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n\n"
 			
-			+ ":Position rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.Position\"^^xsd:string .\n"
-			+ ":Person rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.Person\"^^xsd:string .\n"
-			
-			+ ":LLA rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.SittingLLA\"^^xsd:string .\n"
-			+ ":LLAType rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.LLAType\"^^xsd:string .\n"
-			+ ":Person rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.Person\"^^xsd:string .\n"
+			+ ":LLA rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.LLA\"^^xsd:string .\n"
 			+ "protocol:AssertionCapability rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AssertionCapability\"^^xsd:string .\n"
-			+ "core:ContextEntity rdfbeans:bindingClass \"org.aimas.consert.model.content.ContextEntity\"^^xsd:string .\n"
 			
 			+ "annotation:ContextAnnotation rdfbeans:bindingClass \"org.aimas.consert.model.annotations.ContextAnnotation\"^^xsd:string .\n"
 			+ "annotation:DatetimeInterval rdfbeans:bindingClass \"org.aimas.consert.model.annotations.DatetimeInterval\"^^xsd:string .\n"
@@ -73,7 +67,7 @@ public class AssertionCapabilityRoutesTest {
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n"
 			+ "\n"
 			+ "assertion-capability:foo a protocol:AssertionCapability ;\n"
-			+ "    protocol:hasContent :LLA_1 ;\n"
+			+ "    protocol:hasContent :LLA ;\n"
 			+ "    annotation:hasAnnotation context-annotation:ann1 ;\n"
 			+ "    annotation:hasAnnotation context-annotation:ann2 ;\n"
 			+ "    annotation:hasAnnotation context-annotation:ann3 ;\n"
@@ -102,16 +96,7 @@ public class AssertionCapabilityRoutesTest {
 			+ "    protocol:hasIdentifier \"CtxSensor1\" .\n"
 			+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8080\"^^xsd:int .\n"
-			
-			+ ":LLA_1 rdf:type :LLA ;\n"
-			+ "    :hasLLATypeRole :SITTING ;\n"
-			+ "    :hasPersonRole :Mihai .\n"
-			
-			+ ":SITTING a :LLAType ;\n"
-			+ "		rdfs:label \"SITTING\"^^xsd:string .\n"
-			+ ":Mihai rdf:type :Person ;\n"
-            + "    :name \"Mihai\"^^xsd:string .\n";
+			+ "    protocol:port \"8080\"^^xsd:int .\n";
             
 
 	private Vertx vertx;
@@ -145,11 +130,11 @@ public class AssertionCapabilityRoutesTest {
 	public void testPost(TestContext context) {
 
 		Async async = context.async();
-		this.post(context, async);
+		this.post(context, async, this.postQuery);
 		async.await();
 	}
 
-	public void post(TestContext context, Async async) {
+	public void post(TestContext context, Async async, String data) {
 
 		// POST: insert data that we will try to fetch in the test methods
 
@@ -177,14 +162,14 @@ public class AssertionCapabilityRoutesTest {
 							});
 						}
 					}
-				}).putHeader("content-type", "text/turtle").end(this.postQuery);
+				}).putHeader("content-type", "text/turtle").end(data);
 	}
 
 	@Test
 	public void testGetAll(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost);
+		this.post(context, asyncPost, this.postQuery);
 		asyncPost.await();
 
 		Async async = context.async();
@@ -210,7 +195,7 @@ public class AssertionCapabilityRoutesTest {
 
 								context.assertTrue(buffer.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 										"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann2> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann3> ;"
-												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasContent> <http://example.org/hlatest/LLA_1> ;"
+												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasContent> <http://example.org/hlatest/LLA> ;"
 												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxSensor> ;"
 												+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability> ."));
 								async.complete();
@@ -224,7 +209,7 @@ public class AssertionCapabilityRoutesTest {
 	public void testGetOne(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost);
+		this.post(context, asyncPost, this.postQuery);
 		asyncPost.await();
 
 		Async async = context.async();
@@ -278,7 +263,7 @@ public class AssertionCapabilityRoutesTest {
 								// Check statements
 								context.assertTrue(buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t","").contains(
 										"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann2> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann3> ;"
-												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasContent> <http://example.org/hlatest/LLA_1> ;"
+												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasContent> <http://example.org/hlatest/LLA> ;"
 												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxSensor> ;"
 												+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability> ."));
 								async.complete();
@@ -292,7 +277,7 @@ public class AssertionCapabilityRoutesTest {
 	public void testPut(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost);
+		this.post(context, asyncPost, this.postQuery);
 		asyncPost.await();
 
 		Async async = context.async();
@@ -334,7 +319,7 @@ public class AssertionCapabilityRoutesTest {
 
 												context.assertTrue(buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 														"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann1> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/ann3> ;"
-																+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasContent> <http://example.org/hlatest/LLA_1> ;"
+																+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasContent> <http://example.org/hlatest/LLA> ;"
 																+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasProvider> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxSensor> ;"
 																+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability> ."));
 												async.complete();
@@ -350,7 +335,11 @@ public class AssertionCapabilityRoutesTest {
 	public void testDelete(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost);
+		this.post(context, asyncPost, this.postQuery);
+		asyncPost.await();
+		
+		asyncPost = context.async();
+		this.post(context, asyncPost, this.postQuery.replace("foo", "foo2"));
 		asyncPost.await();
 
 		Async async = context.async();

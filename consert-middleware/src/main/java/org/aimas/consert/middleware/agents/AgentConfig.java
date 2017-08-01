@@ -1,5 +1,8 @@
 package org.aimas.consert.middleware.agents;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.configuration.Configuration;
 
 /**
@@ -26,13 +29,28 @@ public class AgentConfig {
 	 * Creates a new AgentConfig for a CtxSensor with values from the given
 	 * configuration file
 	 * 
-	 * @param file the configuration file containing the values for the
-	 *            CtxSensor agent
+	 * @param file the configuration file containing the values for the CtxSensor agent
 	 * @return a new AgentConfig with the values from the file
 	 */
-	public static AgentConfig readCtxSensorConfig(Configuration file) {
+	public static List<AgentConfig> readCtxSensorConfig(Configuration file) {
 
-		return new AgentConfig(file.getString("CtxSensor.address"), file.getInt("CtxSensor.port"));
+		List<Object> listAddresses = file.getList("CtxSensor.address");
+		List<Object> listPorts = file.getList("CtxSensor.port");
+		
+		List<AgentConfig> configs = new ArrayList<AgentConfig>();
+		
+		String address = null;
+		int port;
+		
+		for(int i = 0 ; i < listAddresses.size() ; i++) {
+			
+			address = (String) listAddresses.get(i);
+			port = Integer.parseInt(((String) listPorts.get(i)));
+			
+			configs.add(new AgentConfig(address, port));
+		}
+		
+		return configs;
 	}
 
 	/**

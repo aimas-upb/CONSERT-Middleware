@@ -14,9 +14,8 @@ import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
-import org.aimas.consert.middleware.model.AssertionInstance;
 import org.aimas.consert.middleware.model.RDFObject;
-import org.aimas.consert.model.annotations.ContextAnnotation;
+import org.aimas.consert.model.content.ContextAssertion;
 import org.aimas.consert.model.content.ContextEntity;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
@@ -46,9 +45,16 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 
 	private CtxCoord ctxCoord; // the agent that can be accessed with the
 								// defined routes
+	
+	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
+	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
 
 	public RouteConfigV1Coordination(CtxCoord ctxCoord) {
 		this.ctxCoord = ctxCoord;
+		
+		this.convRepo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
+		this.convRepo.initialize();
+		this.convRepoConn = this.convRepo.getConnection();
 	}
 
 	/**
@@ -57,6 +63,8 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePostCtxAsserts(RoutingContext rtCtx) {
+		
+		//System.out.println("got assertion capability: " + rtCtx.getBodyAsString());
 
 		Entry<UUID, Object> entry = this.post(rtCtx,
 				"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability",
@@ -183,7 +191,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleDeleteCtxAssert(RoutingContext rtCtx) {
-
+		
 		// Initialization
 		String uuid = rtCtx.request().getParam("id");
 
@@ -201,6 +209,17 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			}
 		} else {
 			rtCtx.response().setStatusCode(404).end();
+		}
+		
+		// Stop CtxCoord if there is no more data to receive
+		if(this.ctxCoord.getAssertionCapabilitiesValues().isEmpty()) {
+			
+			this.ctxCoord.getVertx().executeBlocking(future -> {
+				
+				this.ctxCoord.stopVertx();
+				future.complete();
+				
+			}, null);
 		}
 	}
 
@@ -306,30 +325,22 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		
 		String rdf = rtCtx.getBodyAsString();
 		
-		// Create a Repository that will contain the two graphs
-		Repository repo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
-		repo.initialize();
-		RepositoryConnection conn = repo.getConnection();
-		
+		// Insert the two graphs in the conversion repository
 		try {
 
 			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TRIG);
-			conn.add(model);
+			this.convRepoConn.add(model);
 
 			Resource assertG = SimpleValueFactory.getInstance()
 					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#assertionGraph");
-			Resource annG = SimpleValueFactory.getInstance()
-					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#annotationGraph");
 			IRI bindingClass = SimpleValueFactory.getInstance()
 					.createIRI("http://viceversatech.com/rdfbeans/2.0/bindingClass");
 			IRI rdfType = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-			IRI hasAnnotation = SimpleValueFactory.getInstance().createIRI(
-					"http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#hasAnnotation");
 			
 			// Parsing the binding classes from default graph
 			Map<Resource, Class<?>> bindingClasses = new HashMap<Resource, Class<?>>();
 			
-			RepositoryResult<Statement> bindingStatements = conn.getStatements(null, bindingClass, null);
+			RepositoryResult<Statement> bindingStatements = this.convRepoConn.getStatements(null, bindingClass, null);
 			
 			while(bindingStatements.hasNext()) {
 				Statement s = bindingStatements.next();
@@ -337,67 +348,44 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			}
 			
 			// Parsing the assertions graph
-			List<AssertionInstance> assertionInstances = new LinkedList<AssertionInstance>();
+			RDFBeanManager manager = new RDFBeanManager(this.convRepoConn);
+			List<ContextAssertion> contextAssertions = new LinkedList<ContextAssertion>();
 			
-			RepositoryResult<Statement> assertionsStatements = conn.getStatements(null, rdfType, null, assertG);
+			RepositoryResult<Statement> assertionsStatements = this.convRepoConn.getStatements(null, rdfType, null,
+					assertG);
 			
 			while(assertionsStatements.hasNext()) {
+				
 				Statement s = assertionsStatements.next();
 				
-				AssertionInstance ai = new AssertionInstance();
-				ai.setId(s.getSubject().stringValue());
-				assertionInstances.add(ai);
-			}
-			
-			// Parsing the annotations graph
-			Map<Resource, Class<?>> annotationsClasses = new HashMap<Resource, Class<?>>();
-			
-			RepositoryResult<Statement> annotationsStatements = conn.getStatements(null, rdfType, null, annG);
-			
-			while(annotationsStatements.hasNext()) {
-				Statement s = annotationsStatements.next();
-				annotationsClasses.put(s.getSubject(), bindingClasses.get(s.getObject()));
-			}
-			
-			// Link annotations to assertions
-			RDFBeanManager manager = new RDFBeanManager(conn);
-			RepositoryResult<Statement> hasAnnotationStatements = conn.getStatements(null, hasAnnotation, null, annG);
-			
-			while(hasAnnotationStatements.hasNext()) {
-				Statement s = hasAnnotationStatements.next();
-				
-				for(AssertionInstance ai : assertionInstances) {
-					if(ai.getId().equals(s.getSubject().stringValue())) {
-						Class<?> annClass = annotationsClasses.get(s.getObject());						
-						ContextAnnotation ca = (ContextAnnotation) manager.get(s.getObject().stringValue(), annClass);
-						ai.addAnnotation(ca);
-					}
+				try {
+					
+					ContextAssertion ca = (ContextAssertion) manager.get(s.getSubject(), bindingClasses.get(s.getObject()));
+					ca.setProcessingTimeStamp(System.currentTimeMillis());
+					ca.setAssertionIdentifier(s.getSubject().stringValue());
+					contextAssertions.add(ca);
+					
+				} catch(ClassCastException e) {
+					continue;
 				}
 			}
 			
-			// Display
-			for(AssertionInstance ai : assertionInstances) {
-				System.out.println(ai.getId() + ":");
-				for(ContextAnnotation ca : ai.getAnnotations()) {
-					System.out.println("\t" + ca.getAnnotationIdentifier());
-				}
+			// Insertion in CONSERT Engine
+			for(ContextAssertion ca : contextAssertions) {
+				this.ctxCoord.insertEvent(ca);
 			}
 			
-			// TODO implement processing of AssertionInstances
+			this.convRepoConn.clear();
+			
+			rtCtx.response().setStatusCode(201).end();
 			
 		} catch (Exception e) {
 
-			conn.close();
-			repo.shutDown();
-			System.err.println("Error while creating new ContextAssertion instance: " + e.getMessage());
+			this.convRepoConn.clear();
+			System.err.println("Error while creating new ContextAssertion: " + e.getMessage());
 			e.printStackTrace();
 			rtCtx.response().setStatusCode(500).end();
 		}
-		
-		conn.close();
-		repo.shutDown();
-		
-		rtCtx.response().setStatusCode(201).end();
 	}
 
 	/**
