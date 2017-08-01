@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
-import org.aimas.consert.middleware.agents.Participant;
 import org.aimas.consert.middleware.model.ContextSubscription;
 
 import io.vertx.core.buffer.Buffer;
@@ -66,7 +65,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 				+ RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE + "/context_subscriptions/"
 				+ entry.getKey().toString());
 		ctxSubsRes.setInitiatorURI(reqBean.getInitiatorURI());
-		ctxSubsRes.setParticipantURI(Participant.ADDRESS + ":" + Participant.LISTENING_PORT);
+		ctxSubsRes.setParticipantURI(ctxQHConfig.getAddress() + ":" + ctxQHConfig.getPort());
 		ctxSubsRes.setRequest(reqBean.getRequest());
 		ctxSubsRes.setState(RequestState.REQ_RECEIVED);
 		ctxSubsRes.setInitiatorCallbackURI(reqBean.getInitiatorCallbackURI());
