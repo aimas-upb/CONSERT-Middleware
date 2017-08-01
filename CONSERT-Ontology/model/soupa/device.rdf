@@ -1,126 +1,130 @@
 <?xml version="1.0"?>
 <rdf:RDF
-    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2014/05/consert/core#"
-    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns:spin="http://spinrdf.org/spin#"
-    xmlns:owl="http://www.w3.org/2002/07/owl#"
-    xmlns:per="http://pervasive.semanticweb.org/ont/2004/06/person#"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
     xmlns="http://pervasive.semanticweb.org/ont/2004/06/device#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:per="http://pervasive.semanticweb.org/ont/2004/06/person#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:contextassertion="http://pervasive.semanticweb.org/ont/2017/07/consert/core#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
   xml:base="http://pervasive.semanticweb.org/ont/2004/06/device">
   <owl:Ontology rdf:about="">
-    <owl:versionInfo>$Revision: 1.1 $, $Date: 2004/05/15 18:55:08 $</owl:versionInfo>
-    <rdfs:label>SOUPA Device Ontology</rdfs:label>
-    <rdfs:comment></rdfs:comment>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core"/>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person"/>
-    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
+    <rdfs:comment></rdfs:comment>
+    <rdfs:label>SOUPA Device Ontology</rdfs:label>
+    <owl:versionInfo>$Revision: 1.1 $, $Date: 2004/05/15 18:55:08 $</owl:versionInfo>
   </owl:Ontology>
-  <owl:Class rdf:ID="Device">
-    <rdfs:label>Device</rdfs:label>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:onProperty>
-          <owl:DatatypeProperty rdf:ID="modelNumber"/>
-        </owl:onProperty>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:onProperty>
-          <owl:DatatypeProperty rdf:ID="serialNumber"/>
-        </owl:onProperty>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:onProperty>
-          <owl:ObjectProperty rdf:ID="manufacturerHomepage"/>
-        </owl:onProperty>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#ContextEntity"/>
-  </owl:Class>
-  <owl:Class rdf:ID="Cellphone">
-    <rdfs:label>Cellphone</rdfs:label>
-    <rdfs:subClassOf rdf:resource="#Device"/>
-  </owl:Class>
-  <owl:Class rdf:ID="NokiaCellphone">
-    <rdfs:label>NokiaCellphone</rdfs:label>
-    <rdfs:subClassOf rdf:resource="#Cellphone"/>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:onProperty>
-          <owl:ObjectProperty rdf:about="#manufacturerHomepage"/>
-        </owl:onProperty>
-        <owl:hasValue>
-          <per:Homepage rdf:about="http://www.nokia.com"/>
-        </owl:hasValue>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-  </owl:Class>
   <owl:Class rdf:ID="BluetoothEnabledCellphone">
-    <rdfs:label>BluetoothEnabledCellphone</rdfs:label>
-    <rdfs:subClassOf rdf:resource="#Cellphone"/>
     <rdfs:subClassOf>
       <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
         <owl:onProperty>
           <owl:DatatypeProperty rdf:ID="bluetoothMAC"/>
         </owl:onProperty>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
       </owl:Restriction>
     </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Cellphone"/>
+    </rdfs:subClassOf>
+    <rdfs:label>BluetoothEnabledCellphone</rdfs:label>
   </owl:Class>
-  <owl:Class rdf:ID="SonyEricssonCellphone">
-    <rdfs:label>SonyEricssonCellphone</rdfs:label>
-    <rdfs:subClassOf rdf:resource="#Cellphone"/>
+  <owl:Class rdf:ID="NokiaCellphone">
     <rdfs:subClassOf>
       <owl:Restriction>
+        <owl:hasValue>
+          <per:Homepage rdf:about="http://www.nokia.com"/>
+        </owl:hasValue>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="manufacturerHomepage"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Cellphone"/>
+    </rdfs:subClassOf>
+    <rdfs:label>NokiaCellphone</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="Device">
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#ContextEntity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
         <owl:onProperty>
           <owl:ObjectProperty rdf:about="#manufacturerHomepage"/>
         </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="serialNumber"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+        <owl:onProperty>
+          <owl:DatatypeProperty rdf:ID="modelNumber"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label>Device</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#Cellphone">
+    <rdfs:subClassOf rdf:resource="#Device"/>
+    <rdfs:label>Cellphone</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="SonyEricssonCellphone">
+    <rdfs:subClassOf>
+      <owl:Restriction>
         <owl:hasValue>
           <per:Homepage rdf:about="http://www.sonyericsson.com"/>
         </owl:hasValue>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#manufacturerHomepage"/>
+        </owl:onProperty>
       </owl:Restriction>
     </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Cellphone"/>
+    <rdfs:label>SonyEricssonCellphone</rdfs:label>
   </owl:Class>
-  <owl:ObjectProperty rdf:ID="hasUser">
-    <rdfs:label>userOf</rdfs:label>
-    <rdfs:domain rdf:resource="#Device"/>
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
-  </owl:ObjectProperty>
   <owl:ObjectProperty rdf:about="#manufacturerHomepage">
-    <rdfs:label>manufacturerHomepage</rdfs:label>
-    <rdfs:domain rdf:resource="#Device"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#staticRelationAssertion"/>
     <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Homepage"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#staticRelationAssertion"/>
+    <rdfs:domain rdf:resource="#Device"/>
+    <rdfs:label>manufacturerHomepage</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="hasUser">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#profiledRelationAssertion"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+    <rdfs:domain rdf:resource="#Device"/>
+    <rdfs:label>userOf</rdfs:label>
   </owl:ObjectProperty>
   <owl:DatatypeProperty rdf:about="#bluetoothMAC">
-    <rdfs:label>bluetoothMAC</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#entityDataDescription"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     <rdfs:domain rdf:resource="#BluetoothEnabledCellphone"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
-  </owl:DatatypeProperty>
-  <owl:DatatypeProperty rdf:about="#modelNumber">
-    <rdfs:label>modelNumber</rdfs:label>
-    <rdfs:domain rdf:resource="#Device"/>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+    <rdfs:label>bluetoothMAC</rdfs:label>
   </owl:DatatypeProperty>
   <owl:DatatypeProperty rdf:about="#serialNumber">
-    <rdfs:label>serialNumber</rdfs:label>
-    <rdfs:domain rdf:resource="#Device"/>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#entityDataDescription"/>
     <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
+    <rdfs:domain rdf:resource="#Device"/>
+    <rdfs:label>serialNumber</rdfs:label>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:about="#modelNumber">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#entityDataDescription"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#Device"/>
+    <rdfs:label>modelNumber</rdfs:label>
   </owl:DatatypeProperty>
 </rdf:RDF>
 

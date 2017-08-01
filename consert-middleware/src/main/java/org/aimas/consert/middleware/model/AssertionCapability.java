@@ -1,45 +1,43 @@
 package org.aimas.consert.middleware.model;
 
+import java.net.URI;
 import java.util.List;
 
+import org.aimas.consert.model.Constants;
+import org.aimas.consert.model.annotations.ContextAnnotation;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFContainer;
 import org.cyberborean.rdfbeans.annotations.RDFContainer.ContainerType;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
-import org.cyberborean.rdfbeans.annotations.RDFSubject;
 
-@RDFNamespaces({
-	"annotation=http://pervasive.semanticweb.org/ont/2014/05/consert/annotation#",
-	"protocol=http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#"
-})
+/**
+ * AssertionCapability from CONSERT protocol ontology
+ */
+@RDFNamespaces({ "annotation=" + Constants.ANNOTATION_NS,
+		"protocol=http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#" })
 @RDFBean("protocol:AssertionCapability")
-public class AssertionCapability {
+public class AssertionCapability extends RDFObject {
 
-	private ContextAssertion content;
+	private URI content;
 	private List<ContextAnnotation> annotations;
 	private AgentSpec provider;
-	private String id;
-	
 
 	@RDF("protocol:hasContent")
-	public ContextAssertion getContent() {
+	public URI getContent() {
 		return content;
 	}
 
-	@RDF("protocol:hasContent")
-	public void setContent(ContextAssertion content) {
+	public void setContent(URI content) {
 		this.content = content;
 	}
 
 	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.LIST)
+	@RDFContainer(ContainerType.NONE)
 	public List<ContextAnnotation> getAnnotations() {
 		return annotations;
 	}
 
-	@RDF("annotation:hasAnnotation")
-	@RDFContainer(ContainerType.LIST)
 	public void setAnnotations(List<ContextAnnotation> annotations) {
 		this.annotations = annotations;
 	}
@@ -49,17 +47,7 @@ public class AssertionCapability {
 		return provider;
 	}
 
-	@RDF("protocol:hasProvider")
 	public void setProvider(AgentSpec provider) {
 		this.provider = provider;
-	}
-	
-	@RDFSubject
-	public String getId() {
-		return this.id;
-	}
-	
-	public void setId(String id) {
-		this.id = id;
 	}
 }

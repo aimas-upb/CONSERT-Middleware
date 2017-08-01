@@ -1,93 +1,93 @@
 <?xml version="1.0"?>
 <rdf:RDF
-    xmlns:spc="http://pervasive.semanticweb.org/ont/2004/06/space#"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns:spin="http://spinrdf.org/spin#"
     xmlns:owl="http://www.w3.org/2002/07/owl#"
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:spc="http://pervasive.semanticweb.org/ont/2004/06/space#"
     xmlns="http://pervasive.semanticweb.org/ont/2004/06/schedule#"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:spin="http://spinrdf.org/spin#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
   xml:base="http://pervasive.semanticweb.org/ont/2004/06/schedule">
   <owl:Ontology rdf:about="">
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/meeting"/>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space"/>
     <owl:versionInfo>cvs:$Revision: 1.3 $, $Date: 2004/03/07 18:26:58 $</owl:versionInfo>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time"/>
+    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core"/>
     <rdfs:label>SOUPA Meeting Schedule Ontology</rdfs:label>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/action"/>
     <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person"/>
-    <owl:imports rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core"/>
     <rdfs:comment></rdfs:comment>
   </owl:Ontology>
   <owl:Class rdf:ID="MeetingSchedule">
+    <rdfs:label>MeetingSchedule</rdfs:label>
+    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#IntervalThing"/>
     <rdfs:subClassOf>
       <owl:Restriction>
-        <owl:maxCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:maxCardinality>
-        <owl:onProperty>
-          <owl:ObjectProperty rdf:ID="createdBy"/>
-        </owl:onProperty>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
-        <owl:onProperty>
-          <owl:FunctionalProperty rdf:ID="location"/>
-        </owl:onProperty>
-      </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-      <owl:Restriction>
-        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
-        >1</owl:cardinality>
         <owl:onProperty>
           <owl:DatatypeProperty rdf:ID="name"/>
         </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
       </owl:Restriction>
     </rdfs:subClassOf>
-    <rdfs:subClassOf rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/time#IntervalThing"/>
-    <rdfs:label>MeetingSchedule</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="location"/>
+        </owl:onProperty>
+        <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:cardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="createdBy"/>
+        </owl:onProperty>
+        <owl:maxCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:maxCardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
   </owl:Class>
-  <owl:ObjectProperty rdf:ID="invitedParticipant">
-    <rdfs:label>invitedParticipant</rdfs:label>
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
-    <rdfs:domain rdf:resource="#MeetingSchedule"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
-  </owl:ObjectProperty>
   <owl:ObjectProperty rdf:about="#createdBy">
-    <rdfs:label>createdBy</rdfs:label>
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#profiledRelationAssertion"/>
+    <rdfs:domain rdf:resource="#MeetingSchedule"/>
     <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
-    <rdfs:domain rdf:resource="#MeetingSchedule"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
+    <rdfs:label>createdBy</rdfs:label>
   </owl:ObjectProperty>
-  <owl:DatatypeProperty rdf:ID="description">
-    <rdfs:label>description</rdfs:label>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+  <owl:ObjectProperty rdf:ID="invitedParticipant">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#profiledRelationAssertion"/>
     <rdfs:domain rdf:resource="#MeetingSchedule"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
-  </owl:DatatypeProperty>
-  <owl:DatatypeProperty rdf:about="#name">
-    <rdfs:label>name</rdfs:label>
-    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-    <rdfs:domain rdf:resource="#MeetingSchedule"/>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#entityDataDescription"/>
-  </owl:DatatypeProperty>
-  <owl:FunctionalProperty rdf:ID="scheduleOf">
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/meeting#Meeting"/>
-    <rdfs:domain rdf:resource="#MeetingSchedule"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/person#Person"/>
+    <rdfs:label>invitedParticipant</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="scheduleOf">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#profiledRelationAssertion"/>
     <rdfs:label>scheduleOf</rdfs:label>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-  </owl:FunctionalProperty>
-  <owl:FunctionalProperty rdf:about="#location">
-    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
     <rdfs:domain rdf:resource="#MeetingSchedule"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/meeting#Meeting"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#location">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#profiledRelationAssertion"/>
     <rdfs:label>location</rdfs:label>
-    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2014/05/consert/core#profiledRelationAssertion"/>
-    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-  </owl:FunctionalProperty>
+    <rdfs:domain rdf:resource="#MeetingSchedule"/>
+    <rdfs:range rdf:resource="http://pervasive.semanticweb.org/ont/2004/06/space#SpaceInAFixedStructure"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </owl:ObjectProperty>
+  <owl:DatatypeProperty rdf:about="#name">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#entityDataDescription"/>
+    <rdfs:domain rdf:resource="#MeetingSchedule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label>name</rdfs:label>
+  </owl:DatatypeProperty>
+  <owl:DatatypeProperty rdf:ID="description">
+    <rdfs:subPropertyOf rdf:resource="http://pervasive.semanticweb.org/ont/2017/07/consert/core#entityDataDescription"/>
+    <rdfs:domain rdf:resource="#MeetingSchedule"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:label>description</rdfs:label>
+  </owl:DatatypeProperty>
 </rdf:RDF>
 
 <!-- Created with TopBraid -->
