@@ -10,7 +10,7 @@ public class Test {
 		
 		Vertx vertx = Vertx.vertx();
 		
-		vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res -> {
+		vertx.deployVerticle(CtxCoordImplTest.class.getName(), new DeploymentOptions().setWorker(true), res -> {
 			
 			JsonObject config0 = new JsonObject().put("id", 0);
 			JsonObject config1 = new JsonObject().put("id", 1);

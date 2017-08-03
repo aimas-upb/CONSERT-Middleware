@@ -11,8 +11,7 @@ import org.apache.commons.configuration.Configuration;
  */
 public class AgentConfig {
 
-	private String address; // IP address to use for communications with the
-							// agent
+	private String address; // IP address to use for communications with the agent
 	private int port; // port to use for communications with the agent
 
 	public AgentConfig() {
@@ -119,5 +118,24 @@ public class AgentConfig {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AgentConfig other = (AgentConfig) obj;
+		if (address == null) {
+			if (other.address != null)
+				return false;
+		} else if (!address.equals(other.address))
+			return false;
+		if (port != other.port)
+			return false;
+		return true;
 	}
 }

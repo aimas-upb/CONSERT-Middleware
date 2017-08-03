@@ -10,7 +10,7 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
  * AlterUpdateModeCommand from CONSERT protocol ontology
  */
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#")
-@RDFBean("protocol:AlterUpdateModesCommand")
+@RDFBean("protocol:AlterUpdateModeCommand")
 public class AlterUpdateModeCommand extends TaskingCommand {
 
 	private URI targetAssertion;
