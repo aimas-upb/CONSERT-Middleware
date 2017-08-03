@@ -24,7 +24,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
  * Unit test for TaskingCommand routes
  */
 @RunWith(VertxUnitRunner.class)
-public class TaskingCommandRoutesTest {
+public class TaskingCommandRoutesTestSensing {
 
 	private final String CONFIG_FILE = "agents.properties";
 	private final String startQuery = "@prefix hlatest: <http://example.org/hlatest/> .\n"
@@ -116,14 +116,8 @@ public class TaskingCommandRoutesTest {
 
 		this.vertx.close(context.asyncAssertSuccess());
 	}
-	
-	@Test
-	public void testStartCtxSensor(TestContext context) {
-		
-		startCtxSensor(context, context.async());
-	}
 
-	public void startCtxSensor(TestContext context, Async async) {
+	public void start(TestContext context, Async async) {
 
 		// Send tasking command
 		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
@@ -140,12 +134,18 @@ public class TaskingCommandRoutesTest {
 					}
 				}).putHeader("content-type", "text/turtle").end(this.startQuery);
 	}
+	
+	@Test
+	public void testStart(TestContext context) {
+		
+		start(context, context.async());
+	}
 
 	@Test
-	public void stopCtxSensor(TestContext context) {
+	public void testStop(TestContext context) {
 		
 		Async startAsync = context.async();
-		startCtxSensor(context, startAsync);
+		start(context, startAsync);
 		startAsync.await();
 		
 		Async async = context.async();
@@ -167,10 +167,10 @@ public class TaskingCommandRoutesTest {
 	}
 
 	@Test
-	public void alterCtxSensor(TestContext context) {
+	public void testAlter(TestContext context) {
 		
 		Async startAsync = context.async();
-		startCtxSensor(context, startAsync);
+		start(context, startAsync);
 		startAsync.await();
 		
 		Async async = context.async();

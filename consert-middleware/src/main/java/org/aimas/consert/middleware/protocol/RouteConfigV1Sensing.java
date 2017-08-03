@@ -99,9 +99,11 @@ public class RouteConfigV1Sensing extends RouteConfigV1 {
 							((AlterUpdateModeCommand) taskingCommand).getUpdateMode());
 				} else {
 					rtCtx.response().setStatusCode(400).setStatusMessage("Error").end();
+					return;
 				}
 			} else {
 				rtCtx.response().setStatusCode(400).setStatusMessage("Error").end();
+				return;
 			}
 
 			// Answer with code 200
