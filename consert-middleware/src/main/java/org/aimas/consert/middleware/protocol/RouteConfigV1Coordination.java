@@ -63,8 +63,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handlePostCtxAsserts(RoutingContext rtCtx) {
-		
-		//System.out.println("got assertion capability: " + rtCtx.getBodyAsString());
 
 		Entry<UUID, Object> entry = this.post(rtCtx,
 				"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability",

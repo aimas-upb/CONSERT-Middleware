@@ -40,7 +40,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 															// file for this
 															// agent
 
-	private Vertx vertx; // Vertx instance
+	protected Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
 
 	private AgentConfig agentConfig; // configuration values for this agent
@@ -48,30 +48,26 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 
 	private Repository repo; // repository containing the RDF data
 
-	public Map<UUID, AssertionCapability> assertionCapabilities; // list of
+	protected Map<UUID, AssertionCapability> assertionCapabilities; // list of
 																	// assertion
 																	// capabilities
-	public Map<UUID, AssertionCapabilitySubscription> assertionCapabilitySubscriptions; // list
+	private Map<UUID, AssertionCapabilitySubscription> assertionCapabilitySubscriptions; // list
 																						// of
 																						// subscriptions
 																						// for
 																						// assertion
 																						// capabilities
 
-	private List<AgentConfig> ctxSensors;  // configuration to communicate with the CtxSensor agents
-	private AgentConfig ctxUser;           // configuration to communicate with the CtxUser agent
-	private AgentConfig orgMgr;            // configuration to communicate with the OrgMgr agent
+	private List<AgentConfig> ctxSensors;    // configuration to communicate with the CtxSensor agents
+	private AgentConfig ctxUser;             // configuration to communicate with the CtxUser agent
+	private AgentConfig orgMgr;              // configuration to communicate with the OrgMgr agent
 	
 	private Thread engineRunner;        // thread to run the CONSERT Engine
 	private EventTracker eventTracker;  // service that allows to add events in the engine
 	private KieSession kSession;        // rules for the engine
 	private ExecutorService insertionService;
 
-	public static void main(String[] args) {
-
-		// CtxCoord.vertx.deployVerticle(CtxCoord.class.getName());
-	}
-
+	
 	@Override
 	public void start(Future<Void> future) {
 
@@ -115,19 +111,18 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 					} else {
 						System.out.println("Failed to start CtxCoord on port " + this.agentConfig.getPort() + " host "
 								+ this.host);
-					}
-
+					}					
+					
+					// Start CONSERT Engine
+					this.kSession = TestSetup.getKieSessionFromResources("rules/HLA.drl");
+			    	this.engineRunner = new Thread(new EngineRunner(kSession));
+			    	this.eventTracker = new EventTracker(kSession);
+			    	this.insertionService = Executors.newSingleThreadExecutor();
+			    	
+			    	this.engineRunner.start();
+		
 					future.complete();
 				});
-		
-		
-		// Start CONSERT Engine
-		this.kSession = TestSetup.getKieSessionFromResources("rules/HLA.drl");
-    	this.engineRunner = new Thread(new EngineRunner(kSession));
-    	this.eventTracker = new EventTracker(kSession);
-    	this.insertionService = Executors.newSingleThreadExecutor();
-    	
-    	this.engineRunner.start();
 	}
 	
 	public void stopVertx() {

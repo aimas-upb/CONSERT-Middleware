@@ -1,11 +1,15 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.model.AssertionCapability;
+import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.Constants;
@@ -54,6 +58,8 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	protected AgentConfig agentConfig; // configuration values for this agent
 	private String host; // where this agent is hosted
 	protected int id; // identifier to distinguish CtxSensor instances
+	
+	private boolean isFinished = false;     // allows to know when the CtxSensor has finished sending all the eventss
 
 	private Repository repo; // repository containing the RDF data
 
@@ -64,18 +70,15 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	
 	private List<UUID> assertionCapabilitiesIds;  // identifiers of the sent assertion capabilities
 	
-	private boolean isFinished = false;     // allows to know when the CtxSensor has finished sending all the events
+	protected Map<URI, AssertionUpdateMode> updateModes;  // the update mode for all the enabled assertion types
 
-	public static void main(String[] args) {
-
-		// CtxSensor.vertx.deployVerticle(CtxSensor.class.getName());
-	}
 
 	@Override
 	public void start(Future<Void> future) {
 
 		this.vertx = this.context.owner();
 		this.client = this.vertx.createHttpClient();
+		this.updateModes = new HashMap<URI, AssertionUpdateMode>();
 
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
@@ -106,21 +109,17 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		HttpServer server = this.vertx.createHttpServer();
 		server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host, res -> {
 			if (res.succeeded()) {
-				System.out.println(
-						"Started CtxSensor on port " + server.actualPort() + " host " + this.host);
+				System.out.println("Started CtxSensor on port " + server.actualPort() + " host " + this.host);
 			} else {
-				System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host "
-						+ this.host);
+				System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host " + this.host);
 			}
 
 			// Send the assertion capabilities before doing anything
 			this.assertionCapabilitiesIds = new LinkedList<UUID>();
-			this.sendAssertionCapability();
+			this.sendAssertionCapabilities(future);
 			
 			// Read events from the adaptor and send them to the CtxCoord agent
 			this.readEvents();
-			
-			future.complete();
 		});
 	}
 
@@ -141,14 +140,16 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
 	/**
 	 * send default assertion capability
+	 * @param future allows the execution in async mode
 	 */
-	protected abstract void sendAssertionCapability();
+	protected abstract void sendAssertionCapabilities(Future<Void> future);
 	
 	/**
 	 * send the assertion capability to the CtxCoord
-	 * @param acs the assertion capability to send
+	 * @param acs the assertion capabilities to send
+	 * @param future allows the execution in async mode
 	 */
-	protected void sendAssertionCapability(AssertionCapability ac) {
+	protected void sendAssertionCapabilities(List<AssertionCapability> acs, Future<Void> future) {
 		
 		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
 				"/context_assertions/";
@@ -164,42 +165,49 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		
 		try {
 			
-			// Convert the AssertionCapability
+			// Convert each AssertionCapability one by one
 			
-			baos.reset();
-			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
-			writer.startRDF();
+			for(AssertionCapability ac : acs) {
 			
-			conn.clear();
-			manager.add(ac);
-			
-			RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
-			
-			while(iter.hasNext()) {
-				writer.handleStatement(iter.next());
-			}
-			
-			writer.endRDF();
-			
-			// send to the CtxCoord
-			this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
-
-				@Override
-				public void handle(HttpClientResponse resp) {
-					
-					if(resp.statusCode() == 201) {
-						resp.bodyHandler(new Handler<Buffer>() {
-
-							@Override
-							public void handle(Buffer buffer) {
-								assertionCapabilitiesIds.add(UUID.fromString(buffer.toString()));
-							}
-
-						});
-					}
+				baos.reset();
+				RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+				writer.startRDF();
+				
+				conn.clear();
+				manager.add(ac);
+				
+				RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+				
+				while(iter.hasNext()) {
+					writer.handleStatement(iter.next());
 				}
 				
-			}).putHeader("content-type", "text/turtle").end(baos.toString());
+				writer.endRDF();
+				
+				// send to the CtxCoord
+				this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+	
+					@Override
+					public void handle(HttpClientResponse resp) {
+						
+						if(resp.statusCode() == 201) {
+							resp.bodyHandler(new Handler<Buffer>() {
+	
+								@Override
+								public void handle(Buffer buffer) {
+									assertionCapabilitiesIds.add(UUID.fromString(buffer.toString()));
+									
+									if(assertionCapabilitiesIds.size() == acs.size()) {
+										future.complete();
+									}
+								}
+	
+							});
+						}
+					}
+					
+				}).putHeader("content-type", "text/turtle").end(baos.toString());
+			}
 			
 		} catch (RepositoryException | RDFBeanException e) {
 			e.printStackTrace();
@@ -319,5 +327,21 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	
 	protected void setFinished(boolean finished) {
 		isFinished = finished;
+	}
+	
+	public void startUpdates(URI assertionType, AssertionUpdateMode updateMode) {
+		this.updateModes.put(assertionType, updateMode);
+	}
+	
+	public void stopUpdates(URI assertionType) {
+		this.updateModes.remove(assertionType);
+	}
+	
+	public void alterUpdates(URI assertionType, AssertionUpdateMode newUpdateMode) {
+		this.updateModes.replace(assertionType, newUpdateMode);
+	}
+	
+	public AgentConfig getAgentConfig() {
+		return this.agentConfig;
 	}
 }

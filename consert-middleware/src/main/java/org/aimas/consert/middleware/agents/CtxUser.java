@@ -1,5 +1,10 @@
 package org.aimas.consert.middleware.agents;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
@@ -19,10 +24,7 @@ import io.vertx.ext.web.Router;
  */
 public class CtxUser extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties"; // path to the
-															// configuration
-															// file for this
-															// agent
+	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -32,12 +34,11 @@ public class CtxUser extends AbstractVerticle implements Agent {
 
 	private Repository repo; // repository containing the RDF data
 
-	private AgentConfig ctxCoord; // configuration to communicate with the
-									// CtxCoord agent
-	private AgentConfig ctxQueryHandler; // configuration to communicate with
-											// the CtxQueryHandler agent
-	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr
-								// agent
+	private AgentConfig ctxCoord; // configuration to communicate with the CtxCoord agent
+	private AgentConfig ctxQueryHandler; // configuration to communicate with the CtxQueryHandler agent
+	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr agent
+	
+	protected Map<URI, AssertionUpdateMode> updateModes;  // the update mode for all the enabled assertion types
 
 	public static void main(String[] args) {
 
@@ -48,6 +49,7 @@ public class CtxUser extends AbstractVerticle implements Agent {
 	public void start(Future<Void> future) {
 
 		this.vertx = this.context.owner();
+		this.updateModes = new HashMap<URI, AssertionUpdateMode>();
 
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
@@ -97,5 +99,21 @@ public class CtxUser extends AbstractVerticle implements Agent {
 	@Override
 	public Repository getRepository() {
 		return this.repo;
+	}
+	
+	public void startUpdates(URI assertionType, AssertionUpdateMode updateMode) {
+		this.updateModes.put(assertionType, updateMode);
+	}
+	
+	public void stopUpdates(URI assertionType) {
+		this.updateModes.remove(assertionType);
+	}
+	
+	public void alterUpdates(URI assertionType, AssertionUpdateMode newUpdateMode) {
+		this.updateModes.replace(assertionType, newUpdateMode);
+	}
+	
+	public AgentConfig getAgentConfig() {
+		return this.agentConfig;
 	}
 }
