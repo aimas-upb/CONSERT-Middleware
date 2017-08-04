@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionUpdateMode;
+import org.aimas.consert.middleware.model.tasking.UpdateModeState;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.Constants;
@@ -70,7 +71,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	
 	private List<UUID> assertionCapabilitiesIds;  // identifiers of the sent assertion capabilities
 	
-	protected Map<URI, AssertionUpdateMode> updateModes;  // the update mode for all the enabled assertion types
+	protected Map<URI, UpdateModeState> updateModes;  // the update mode for all the assertion types and their state
 
 
 	@Override
@@ -78,7 +79,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
 		this.vertx = this.context.owner();
 		this.client = this.vertx.createHttpClient();
-		this.updateModes = new HashMap<URI, AssertionUpdateMode>();
+		this.updateModes = new HashMap<URI, UpdateModeState>();
 
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
@@ -330,15 +331,25 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	}
 	
 	public void startUpdates(URI assertionType, AssertionUpdateMode updateMode) {
-		this.updateModes.put(assertionType, updateMode);
+		
+		UpdateModeState modeState = this.updateModes.get(assertionType);
+		
+		if(modeState == null) {
+			this.updateModes.put(assertionType, new UpdateModeState(updateMode, true));
+		} else {
+			modeState.setEnabled(true);
+		}
 	}
 	
 	public void stopUpdates(URI assertionType) {
-		this.updateModes.remove(assertionType);
+		UpdateModeState modeState = this.updateModes.get(assertionType);
+		modeState.setEnabled(false);
 	}
 	
 	public void alterUpdates(URI assertionType, AssertionUpdateMode newUpdateMode) {
-		this.updateModes.replace(assertionType, newUpdateMode);
+		
+		UpdateModeState modeState = this.updateModes.get(assertionType);
+		modeState.setUpdateMode(newUpdateMode);
 	}
 	
 	public AgentConfig getAgentConfig() {

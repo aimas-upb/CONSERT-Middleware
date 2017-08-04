@@ -1,7 +1,8 @@
-package org.aimas.consert.middleware.model;
+package org.aimas.consert.middleware.model.tasking;
 
 import java.net.URI;
 
+import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;

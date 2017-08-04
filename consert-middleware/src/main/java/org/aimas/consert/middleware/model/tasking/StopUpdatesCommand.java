@@ -1,4 +1,4 @@
-package org.aimas.consert.middleware.model;
+package org.aimas.consert.middleware.model.tasking;
 
 import java.net.URI;
 
@@ -7,15 +7,15 @@ import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
 /**
- * StartUpdatesCommand from CONSERT protocol ontology
+ * StopUpdatesCommand from CONSERT protocol ontology
  */
 @RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#")
-@RDFBean("protocol:StartUpdatesCommand")
-public class StartUpdatesCommand extends TaskingCommand {
+@RDFBean("protocol:StopUpdatesCommand")
+public class StopUpdatesCommand extends TaskingCommand {
 
 	private URI targetAssertion;
 	
-	public StartUpdatesCommand() {}
+	public StopUpdatesCommand() {}
 
 	@RDF("protocol:hasTargetAssertion")
 	public URI getTargetAssertion() {

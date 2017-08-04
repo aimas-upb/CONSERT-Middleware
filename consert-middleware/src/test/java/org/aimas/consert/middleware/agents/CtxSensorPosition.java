@@ -97,7 +97,7 @@ public class CtxSensorPosition extends CtxSensor {
 					
 					if (nextEvent != null) {
 						
-						AssertionUpdateMode updateMode = updateModes.get(uri);
+						AssertionUpdateMode updateMode = updateModes.get(uri).getUpdateMode();
 						long delay = 1;
 						
 						// if the updates are time-based, skip all the events until the closest after the update rate

@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AssertionCapability;
-import org.aimas.consert.middleware.model.StartUpdatesCommand;
+import org.aimas.consert.middleware.model.tasking.StartUpdatesCommand;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.cyberborean.rdfbeans.RDFBeanManager;
