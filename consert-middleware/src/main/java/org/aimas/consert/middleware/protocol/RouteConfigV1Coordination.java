@@ -1,7 +1,13 @@
 package org.aimas.consert.middleware.protocol;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,12 +31,14 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.GraphQuery;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
@@ -335,6 +343,11 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 					.createIRI("http://viceversatech.com/rdfbeans/2.0/bindingClass");
 			IRI rdfType = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 			
+			// Insert all the statements in the engine repository
+			RepositoryConnection engineConn = this.ctxCoord.getEngineRepository().getConnection();
+			RepositoryResult<Statement> allStatements = this.convRepoConn.getStatements(null, null, null);
+			engineConn.add(allStatements);
+			
 			// Parsing the binding classes from default graph
 			Map<Resource, Class<?>> bindingClasses = new HashMap<Resource, Class<?>>();
 			
@@ -553,6 +566,29 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostUnregQueryHandler(RoutingContext rtCtx) {
 		// TODO
+	}
+	
+	/**
+	 * GET answer query
+	 * 
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetAnswerQuery(RoutingContext rtCtx) {
+		
+		// Prepare the query
+		RepositoryConnection conn = this.ctxCoord.getEngineRepository().getConnection();
+		GraphQuery query = conn.prepareGraphQuery(rtCtx.getBodyAsString());
+		
+		// Execute the query and write the result in Turtle syntax
+		StringWriter sw = new StringWriter();
+		RDFHandler writer = Rio.createWriter(RDFFormat.TURTLE, sw);
+		query.evaluate(writer);
+		sw.flush();		
+		
+		// Send the result
+		rtCtx.response().setStatusCode(200).putHeader("content-type", "text/turtle").end(sw.toString());
+		
+		conn.close();
 	}
 
 	private Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {

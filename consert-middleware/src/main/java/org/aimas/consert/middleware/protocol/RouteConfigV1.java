@@ -81,6 +81,9 @@ public class RouteConfigV1 extends RouteConfig {
 		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE
 				+ "/unregister_query_handler/").handler(coordination::handlePostUnregQueryHandler);
 
+		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE
+				+ "/answer_query/").handler(coordination::handleGetAnswerQuery);
+
 		return router;
 	}
 

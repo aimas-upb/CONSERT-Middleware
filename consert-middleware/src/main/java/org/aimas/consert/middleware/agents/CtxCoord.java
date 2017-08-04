@@ -35,10 +35,7 @@ import io.vertx.ext.web.Router;
  */
 public class CtxCoord extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties"; // path to the
-															// configuration
-															// file for this
-															// agent
+	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
 
 	protected Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -47,35 +44,33 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	private String host; // where this agent is hosted
 
 	private Repository repo; // repository containing the RDF data
-
-	protected Map<UUID, AssertionCapability> assertionCapabilities; // list of
-																	// assertion
-																	// capabilities
-	private Map<UUID, AssertionCapabilitySubscription> assertionCapabilitySubscriptions; // list
-																						// of
-																						// subscriptions
-																						// for
-																						// assertion
-																						// capabilities
-
-	private List<AgentConfig> ctxSensors;    // configuration to communicate with the CtxSensor agents
-	private AgentConfig ctxUser;             // configuration to communicate with the CtxUser agent
-	private AgentConfig orgMgr;              // configuration to communicate with the OrgMgr agent
 	
-	private Thread engineRunner;        // thread to run the CONSERT Engine
-	private EventTracker eventTracker;  // service that allows to add events in the engine
-	private KieSession kSession;        // rules for the engine
-	private ExecutorService insertionService;
+	private Repository engineRepo;  // repository containing all the data in CONSERT Engine
 
+	protected Map<UUID, AssertionCapability> assertionCapabilities; // list of assertion capabilities
+	private Map<UUID, AssertionCapabilitySubscription> assertionCapabilitySubscriptions; // list of subscriptions
+																						 // for assertion capabilities
+
+	private List<AgentConfig> ctxSensors;  // configuration to communicate with the CtxSensor agents
+	private AgentConfig ctxUser;           // configuration to communicate with the CtxUser agent
+	private AgentConfig orgMgr;            // configuration to communicate with the OrgMgr agent
+	
+	private Thread engineRunner;               // thread to run the CONSERT Engine
+	private EventTracker eventTracker;         // service that allows to add events in the engine
+	private KieSession kSession;               // rules for the engine
+	private ExecutorService insertionService;  // service allowing to insert context assertions in the CONSERT Engine
+	
 	
 	@Override
 	public void start(Future<Void> future) {
 
 		this.vertx = this.context.owner();
 
-		// Initialization of the repository
+		// Initialization of the repositories
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
+		this.engineRepo = new SailRepository(new MemoryStore());
+		this.engineRepo.initialize();
 
 		// Initialization of the lists
 		this.assertionCapabilities = new HashMap<UUID, AssertionCapability>();
@@ -112,7 +107,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 						System.out.println("Failed to start CtxCoord on port " + this.agentConfig.getPort() + " host "
 								+ this.host);
 					}					
-					
+
 					// Start CONSERT Engine
 					this.kSession = TestSetup.getKieSessionFromResources("rules/HLA.drl");
 			    	this.engineRunner = new Thread(new EngineRunner(kSession));
@@ -120,7 +115,6 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 			    	this.insertionService = Executors.newSingleThreadExecutor();
 			    	
 			    	this.engineRunner.start();
-		
 					future.complete();
 				});
 	}
@@ -132,6 +126,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	@Override
 	public void stop() {
 		this.repo.shutDown();
+		this.engineRepo.shutDown();
 
     	PlotlyExporter.exportToHTML(null, this.kSession);
     	this.insertionService.shutdownNow();
@@ -142,6 +137,10 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	@Override
 	public Repository getRepository() {
 		return this.repo;
+	}
+	
+	public Repository getEngineRepository() {
+		return this.engineRepo;
 	}
 	
 	public void insertEvent(ContextAssertion ca) {
