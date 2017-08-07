@@ -7,7 +7,10 @@ import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
 import org.aimas.consert.middleware.model.ContextSubscription;
 
+import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
 
@@ -16,11 +19,19 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class RouteConfigV1Dissemination extends RouteConfigV1 {
 
-	private CtxQueryHandler ctxQueryHandler; // the agent that can be accessed
-												// with the defined routes
+	private final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
+	
+	private CtxQueryHandler ctxQueryHandler; // the agent that can be accessed with the defined routes
+	
+	private HttpClient client;  // the client to use for communications with other agents
+	
+	private AgentConfig engineConfig;
+	
 
 	public RouteConfigV1Dissemination(CtxQueryHandler ctxQueryHandler) {
 		this.ctxQueryHandler = ctxQueryHandler;
+		this.engineConfig = this.ctxQueryHandler.getEngineConfig();
 	}
 
 	/**
@@ -38,7 +49,27 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleGetCtxQuery(RoutingContext rtCtx) {
-		// TODO
+		
+		HttpClient client = this.ctxQueryHandler.getVertx().createHttpClient();
+		
+		// Send the query to the engine
+		client.get(this.engineConfig.getPort(), this.engineConfig.getAddress(), this.ANSWER_QUERY_ROUTE,
+				new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						rtCtx.response().setStatusCode(resp.statusCode()).putHeader("content-type", "text/turtle")
+							.end(buffer.toString());
+					}
+				});
+			}
+		}).putHeader("content-type", "text/turtle").end(rtCtx.getBodyAsString());
 	}
 
 	/**

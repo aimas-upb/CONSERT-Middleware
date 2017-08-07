@@ -48,10 +48,10 @@ import io.vertx.ext.web.Router;
  */
 public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties"; // path to the
-															// configuration
-															// file for this
-															// agent
+	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
+	
+	private final String INSERT_CONTEXT_ASSERTION_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.COORDINATION_ROUTE + "/insert_context_assertion/";
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -251,6 +251,8 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	 * @param event the context assertion to send
 	 */
 	protected void sendEvent(ContextAssertion event) {
+
+		System.out.println("CtxSensor " + id + " sends event " + event);
 		
 		// First, we need to convert the objects to RDF statements
 		// We use the repository for this
@@ -308,13 +310,12 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		conn.close();
 
 		// submit insertion task
-		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
-				"/insert_context_assertion/";
-		
-		this.client.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+		this.client.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(), this.INSERT_CONTEXT_ASSERTION_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
+				
 				if(resp.statusCode() != 201) {
 					System.err.println("CtxCoord returned error while inserting context assertion");
 				}

@@ -36,10 +36,7 @@ import io.vertx.ext.web.Router;
  */
 public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties"; // path to the
-															// configuration
-															// file for this
-															// agent
+	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -47,38 +44,29 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private AgentConfig agentConfig; // configuration values for this agent
 	private String host; // where the agent is hosted
 
-	private Repository repo; // repository containing the RDF data
+	private Repository dataRepo;  // repository containing the RDF data for queries
+	private Repository subscriptionsRepo;  // repository containing the RDF data for context subscriptions
 
-	public Map<UUID, ContextSubscriptionResource> contextSubscriptions; // list
-																		// of
-																		// context
-																		// subscriptions
+	public Map<UUID, ContextSubscriptionResource> contextSubscriptions; // list of context subscriptions
 
-	private AgentConfig ctxCoord; // configuration to communicate with the
-									// CtxCoord agent
-	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr
-								// agent
-
-	public static void main(String[] args) {
-
-		// CtxQueryHandler.vertx.deployVerticle(CtxQueryHandler.class.getName());
-	}
+	private AgentConfig ctxCoord;       // configuration to communicate with the CtxCoord agent
+	private AgentConfig orgMgr;         // configuration to communicate with the OrgMgr agent
+	private AgentConfig consertEngine;  // configuration to communicate with the CONSERT Engine
+	
 
 	@Override
 	public void start(Future<Void> future) {
 
 		this.vertx = this.context.owner();
 
-		// Initialization of the repository
-		this.repo = new SailRepository(new MemoryStore());
-		this.repo.initialize();
+		// Initialization of the repositories
+		this.dataRepo = new SailRepository(new MemoryStore());
+		this.dataRepo.initialize();
+		this.subscriptionsRepo = new SailRepository(new MemoryStore());
+		this.subscriptionsRepo.initialize();
 
 		// Initialization of the lists
 		this.contextSubscriptions = new HashMap<UUID, ContextSubscriptionResource>();
-
-		// Create router
-		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterDissemination(this.vertx, this);
 
 		// Read configuration
 		try {
@@ -90,11 +78,16 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 			this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
 			this.orgMgr = AgentConfig.readOrgMgrConfig(config);
+			this.consertEngine = AgentConfig.readConsertEngineConfig(config);
 
 		} catch (ConfigurationException e) {
 			System.err.println("Error while reading configuration file '" + CONFIG_FILE + "': " + e.getMessage());
 			e.printStackTrace();
 		}
+
+		// Create router
+		RouteConfig routeConfig = new RouteConfigV1();
+		this.router = routeConfig.createRouterDissemination(this.vertx, this);
 
 		// Start server
 		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
@@ -113,12 +106,17 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	@Override
 	public void stop() {
-		this.repo.shutDown();
+		this.dataRepo.shutDown();
+		this.subscriptionsRepo.shutDown();
 	}
 
 	@Override
 	public Repository getRepository() {
-		return this.repo;
+		return this.subscriptionsRepo;
+	}
+	
+	public Repository getDataRepository() {
+		return this.dataRepo;
 	}
 
 	public void addContextSubscription(UUID key, ContextSubscriptionResource cs) {
@@ -134,7 +132,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid).getContextSubscription();
 
 		// Connection to repository to get all the statements
-		RepositoryConnection conn = this.repo.getConnection();
+		RepositoryConnection conn = this.subscriptionsRepo.getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 
 		// Prepare to write RDF statements
@@ -176,5 +174,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	public AgentConfig getAgentConfig() {
 		return agentConfig;
+	}
+
+	public AgentConfig getEngineConfig() {
+		return this.consertEngine;
 	}
 }

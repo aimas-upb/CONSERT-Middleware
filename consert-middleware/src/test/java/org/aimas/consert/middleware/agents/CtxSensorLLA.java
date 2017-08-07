@@ -90,7 +90,6 @@ public class CtxSensorLLA extends CtxSensor {
 				if (event != null) {
 					
 					// send the event
-					System.out.println("CtxSensor " + id + " sends event " + event);
 					sendEvent(event);		
 					
 					// look at the next event if there is one
