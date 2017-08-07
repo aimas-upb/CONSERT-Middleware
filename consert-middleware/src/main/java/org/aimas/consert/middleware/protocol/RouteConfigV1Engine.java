@@ -1,7 +1,14 @@
 package org.aimas.consert.middleware.protocol;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.StringWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,13 +22,14 @@ import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.query.GraphQuery;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
@@ -135,16 +143,34 @@ public class RouteConfigV1Engine {
 		
 		// Prepare the query
 		RepositoryConnection conn = this.engine.getRepository().getConnection();
-		GraphQuery query = conn.prepareGraphQuery(rtCtx.getBodyAsString());
+		TupleQuery query = conn.prepareTupleQuery(rtCtx.getBodyAsString());
 		
 		// Execute the query and write the result in Turtle syntax
-		StringWriter sw = new StringWriter();
-		RDFHandler writer = Rio.createWriter(RDFFormat.TURTLE, sw);
+		//StringWriter sw = new StringWriter();
+		//RDFHandler writer = Rio.createWriter(RDFFormat.TURTLE, sw);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TupleQueryResultHandler writer = new SPARQLResultsXMLWriter(baos);
 		query.evaluate(writer);
-		sw.flush();		
+		//sw.flush();
 		
 		// Send the result
-		rtCtx.response().setStatusCode(200).putHeader("content-type", "text/turtle").end(sw.toString());
+		rtCtx.response().setStatusCode(200).putHeader("content-type", "text/turtle").end(baos.toString());
+		
+		try(Writer w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("statements.txt"), "utf-8"))) {
+			RepositoryResult<Statement> statements = conn.getStatements(null, null, null);
+			while(statements.hasNext()) {
+				w.write(statements.next().toString() + "\n");
+			}
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		conn.close();
 	}

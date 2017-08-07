@@ -31,12 +31,13 @@ public class ContextQueryRouteTest {
 	private final String sparqlQuery =
 			  "PREFIX hlatest: <http://example.org/hlatest/>\n"
 			+ "PREFIX annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#>\n"
-			+ "CONSTRUCT {\n"
-			+ "    ?pers hlatest:Position ?pos .\n"
-			+ "}\n"
+			+ "SELECT ?assert \n"
 			+ "WHERE {\n"
-			+ "    ?assert hlatest:hasPersonRole ?pers .\n"
-			+ "    ?assert hlatest:hasAreaRole ?pos .\n"
+			+ "    ?assert hlatest:hasPersonRole <person:mihai> .\n"
+			+ "    ?assert hlatest:hasAreaRole <area:WORK_AREA> .\n"
+			+ "    ?assert <annotation:hasAnnotation> ?ann .\n"
+			+ "    ?ann annotation:duration ?duration .\n"
+			+ "    FILTER (?duration >= 0) .\n"
 			+ "}\n";
 	
 	private final String startQueryPosition = "@prefix hlatest: <http://example.org/hlatest/> .\n"
