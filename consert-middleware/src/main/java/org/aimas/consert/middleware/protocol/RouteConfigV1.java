@@ -1,5 +1,6 @@
 package org.aimas.consert.middleware.protocol;
 
+import org.aimas.consert.middleware.agents.ConsertEngine;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
 import org.aimas.consert.middleware.agents.CtxSensor;
@@ -81,9 +82,6 @@ public class RouteConfigV1 extends RouteConfig {
 		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE
 				+ "/unregister_query_handler/").handler(coordination::handlePostUnregQueryHandler);
 
-		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE
-				+ "/answer_query/").handler(coordination::handleGetAnswerQuery);
-
 		return router;
 	}
 
@@ -123,6 +121,21 @@ public class RouteConfigV1 extends RouteConfig {
 		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
 				+ "/find_query_handler/").handler(management::handleGetFindQueryHandler);
 
+		return router;
+	}
+
+	@Override
+	public Router createRouterEngine(Vertx vertx, ConsertEngine consertEngine) {
+		
+		Router router = this.createRouter(vertx);
+		RouteConfigV1Engine engine = new RouteConfigV1Engine(consertEngine);
+		
+		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.ENGINE_ROUTE + "/insert_event/")
+			.handler(engine::handleInsertEvent);
+		
+		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.ENGINE_ROUTE + "/answer_query/")
+			.handler(engine::handleGetAnswerQuery);
+		
 		return router;
 	}
 }

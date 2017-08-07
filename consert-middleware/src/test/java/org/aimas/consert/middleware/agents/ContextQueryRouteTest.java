@@ -115,15 +115,7 @@ public class ContextQueryRouteTest {
 	}
 
 	@After
-	public void tearDown(TestContext context) {
-
-		// wait for all the events to be sent so that all the agents can stop without any error
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
+	public void tearDown(TestContext context) {		
 		this.vertx.close(context.asyncAssertSuccess());
 	}
 

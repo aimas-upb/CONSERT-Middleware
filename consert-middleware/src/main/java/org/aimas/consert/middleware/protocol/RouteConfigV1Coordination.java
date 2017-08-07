@@ -1,13 +1,7 @@
 package org.aimas.consert.middleware.protocol;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -16,12 +10,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
 import org.aimas.consert.middleware.model.RDFObject;
-import org.aimas.consert.model.content.ContextAssertion;
 import org.aimas.consert.model.content.ContextEntity;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
@@ -31,19 +25,19 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.query.GraphQuery;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
-import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -51,18 +45,19 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class RouteConfigV1Coordination extends RouteConfigV1 {
 
-	private CtxCoord ctxCoord; // the agent that can be accessed with the
-								// defined routes
+	private CtxCoord ctxCoord; // the agent that can be accessed with the defined routes
+	private AgentConfig engineConfig;  // the configuration of the CONSERT Engine to communicate with it
+
+	private final String INSERT_EVENT_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.ENGINE_ROUTE + "/insert_event/";
 	
-	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
-	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
+	private HttpClient client; // the client to use for communications with CONSERT Engine
 
 	public RouteConfigV1Coordination(CtxCoord ctxCoord) {
 		this.ctxCoord = ctxCoord;
+		this.engineConfig = this.ctxCoord.getConsertEngineConfig();
 		
-		this.convRepo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
-		this.convRepo.initialize();
-		this.convRepoConn = this.convRepo.getConnection();
+		this.client = this.ctxCoord.getVertx().createHttpClient();
 	}
 
 	/**
@@ -329,74 +324,20 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostInsCtxAssert(RoutingContext rtCtx) {
 		
-		String rdf = rtCtx.getBodyAsString();
-		
-		// Insert the two graphs in the conversion repository
-		try {
+		this.client.post(engineConfig.getPort(), engineConfig.getAddress(), this.INSERT_EVENT_ROUTE,
+				new Handler<HttpClientResponse>() {
 
-			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TRIG);
-			this.convRepoConn.add(model);
+			@Override
+			public void handle(HttpClientResponse event) {
 
-			Resource assertG = SimpleValueFactory.getInstance()
-					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#assertionGraph");
-			IRI bindingClass = SimpleValueFactory.getInstance()
-					.createIRI("http://viceversatech.com/rdfbeans/2.0/bindingClass");
-			IRI rdfType = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-			
-			// Insert all the statements in the engine repository
-			RepositoryConnection engineConn = this.ctxCoord.getEngineRepository().getConnection();
-			RepositoryResult<Statement> allStatements = this.convRepoConn.getStatements(null, null, null);
-			engineConn.add(allStatements);
-			
-			// Parsing the binding classes from default graph
-			Map<Resource, Class<?>> bindingClasses = new HashMap<Resource, Class<?>>();
-			
-			RepositoryResult<Statement> bindingStatements = this.convRepoConn.getStatements(null, bindingClass, null);
-			
-			while(bindingStatements.hasNext()) {
-				Statement s = bindingStatements.next();
-				bindingClasses.put(s.getSubject(), Class.forName(s.getObject().stringValue()));
-			}
-			
-			// Parsing the assertions graph
-			RDFBeanManager manager = new RDFBeanManager(this.convRepoConn);
-			List<ContextAssertion> contextAssertions = new LinkedList<ContextAssertion>();
-			
-			RepositoryResult<Statement> assertionsStatements = this.convRepoConn.getStatements(null, rdfType, null,
-					assertG);
-			
-			while(assertionsStatements.hasNext()) {
-				
-				Statement s = assertionsStatements.next();
-				
-				try {
-					
-					ContextAssertion ca = (ContextAssertion) manager.get(s.getSubject(), bindingClasses.get(s.getObject()));
-					ca.setProcessingTimeStamp(System.currentTimeMillis());
-					ca.setAssertionIdentifier(s.getSubject().stringValue());
-					contextAssertions.add(ca);
-					
-				} catch(ClassCastException e) {
-					continue;
+				if(event.statusCode() != 201) {
+					System.err.println("Error while asking CONSERT Engine to insert event: " + event.statusCode()
+						+ " " + event.statusMessage());
 				}
+				
+				rtCtx.response().setStatusCode(event.statusCode()).end();
 			}
-			
-			// Insertion in CONSERT Engine
-			for(ContextAssertion ca : contextAssertions) {
-				this.ctxCoord.insertEvent(ca);
-			}
-			
-			this.convRepoConn.clear();
-			
-			rtCtx.response().setStatusCode(201).end();
-			
-		} catch (Exception e) {
-
-			this.convRepoConn.clear();
-			System.err.println("Error while creating new ContextAssertion: " + e.getMessage());
-			e.printStackTrace();
-			rtCtx.response().setStatusCode(500).end();
-		}
+		}).end(rtCtx.getBodyAsString());
 	}
 
 	/**
@@ -566,29 +507,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostUnregQueryHandler(RoutingContext rtCtx) {
 		// TODO
-	}
-	
-	/**
-	 * GET answer query
-	 * 
-	 * @param rtCtx the routing context
-	 */
-	public void handleGetAnswerQuery(RoutingContext rtCtx) {
-		
-		// Prepare the query
-		RepositoryConnection conn = this.ctxCoord.getEngineRepository().getConnection();
-		GraphQuery query = conn.prepareGraphQuery(rtCtx.getBodyAsString());
-		
-		// Execute the query and write the result in Turtle syntax
-		StringWriter sw = new StringWriter();
-		RDFHandler writer = Rio.createWriter(RDFFormat.TURTLE, sw);
-		query.evaluate(writer);
-		sw.flush();		
-		
-		// Send the result
-		rtCtx.response().setStatusCode(200).putHeader("content-type", "text/turtle").end(sw.toString());
-		
-		conn.close();
 	}
 
 	private Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {

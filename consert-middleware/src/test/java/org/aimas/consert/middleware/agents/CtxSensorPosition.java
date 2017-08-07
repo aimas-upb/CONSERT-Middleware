@@ -92,7 +92,6 @@ public class CtxSensorPosition extends CtxSensor {
 					ContextAssertion nextEvent = (ContextAssertion)events.peek();
 					
 					// send the event
-					System.out.println("CtxSensor " + id + " sends event " + event);
 					sendEvent(event);
 					
 					if (nextEvent != null) {

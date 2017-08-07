@@ -25,8 +25,7 @@ public class AgentConfig {
 	}
 
 	/**
-	 * Creates a new AgentConfig for a CtxSensor with values from the given
-	 * configuration file
+	 * Creates a new AgentConfig for a CtxSensor with values from the given configuration file
 	 * 
 	 * @param file the configuration file containing the values for the CtxSensor agent
 	 * @return a new AgentConfig with the values from the file
@@ -53,11 +52,9 @@ public class AgentConfig {
 	}
 
 	/**
-	 * Creates a new AgentConfig for a CtxUser with values from the given
-	 * configuration file
+	 * Creates a new AgentConfig for a CtxUser with values from the given configuration file
 	 * 
-	 * @param file the configuration file containing the values for the CtxUser
-	 *            agent
+	 * @param file the configuration file containing the values for the CtxUser agent
 	 * @return a new AgentConfig with the values from the file
 	 */
 	public static AgentConfig readCtxUserConfig(Configuration file) {
@@ -66,11 +63,9 @@ public class AgentConfig {
 	}
 
 	/**
-	 * Creates a new AgentConfig for a CtxCoord with values from the given
-	 * configuration file
+	 * Creates a new AgentConfig for a CtxCoord with values from the given configuration file
 	 * 
-	 * @param file the configuration file containing the values for the CtxCoord
-	 *            agent
+	 * @param file the configuration file containing the values for the CtxCoord agent
 	 * @return a new AgentConfig with the values from the file
 	 */
 	public static AgentConfig readCtxCoordConfig(Configuration file) {
@@ -79,11 +74,9 @@ public class AgentConfig {
 	}
 
 	/**
-	 * Creates a new AgentConfig for a CtxQueryHandler with values from the
-	 * given configuration file
+	 * Creates a new AgentConfig for a CtxQueryHandler with values from the given configuration file
 	 * 
-	 * @param file the configuration file containing the values for the
-	 *            CtxQueryHandler agent
+	 * @param file the configuration file containing the values for the CtxQueryHandler agent
 	 * @return a new AgentConfig with the values from the file
 	 */
 	public static AgentConfig readCtxQueryHandlerConfig(Configuration file) {
@@ -92,17 +85,27 @@ public class AgentConfig {
 	}
 
 	/**
-	 * Creates a new AgentConfig for a OrgMgr with values from the given
-	 * configuration file
+	 * Creates a new AgentConfig for a OrgMgr with values from the given configuration file
 	 * 
-	 * @param file the configuration file containing the values for the OrgMgr
-	 *            agent
+	 * @param file the configuration file containing the values for the OrgMgr agent
 	 * @return a new AgentConfig with the values from the file
 	 */
 	public static AgentConfig readOrgMgrConfig(Configuration file) {
 
 		return new AgentConfig(file.getString("OrgMgr.address"), file.getInt("OrgMgr.port"));
 	}
+
+	/**
+	 * Creates a new AgentConfig for a CONSERT Engine with values from the given configuration file
+	 * 
+	 * @param file the configuration file containing the values for the OrgMgr agent
+	 * @return a new AgentConfig with the values from the file
+	 */
+	public static AgentConfig readConsertEngineConfig(Configuration file) {
+		
+		return new AgentConfig(file.getString("ConsertEngine.address"), file.getInt("ConsertEngine.port"));
+	}
+	
 
 	public String getAddress() {
 		return address;

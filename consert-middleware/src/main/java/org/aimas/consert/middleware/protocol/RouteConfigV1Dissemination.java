@@ -19,10 +19,19 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class RouteConfigV1Dissemination extends RouteConfigV1 {
 
+	private final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
+	
 	private CtxQueryHandler ctxQueryHandler; // the agent that can be accessed with the defined routes
+	
+	private HttpClient client;  // the client to use for communications with other agents
+	
+	private AgentConfig engineConfig;
+	
 
 	public RouteConfigV1Dissemination(CtxQueryHandler ctxQueryHandler) {
 		this.ctxQueryHandler = ctxQueryHandler;
+		this.engineConfig = this.ctxQueryHandler.getEngineConfig();
 	}
 
 	/**
@@ -43,10 +52,9 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		
 		HttpClient client = this.ctxQueryHandler.getVertx().createHttpClient();
 		
-		AgentConfig ctxCoordConfig = this.ctxQueryHandler.getCtxCoordConfig();
-		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE + "/answer_query/";
-		
-		client.get(ctxCoordConfig.getPort(), ctxCoordConfig.getAddress(), route, new Handler<HttpClientResponse>() {
+		// Send the query to the engine
+		client.get(this.engineConfig.getPort(), this.engineConfig.getAddress(), this.ANSWER_QUERY_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -55,6 +63,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 
 					@Override
 					public void handle(Buffer buffer) {
+						
 						rtCtx.response().setStatusCode(resp.statusCode()).putHeader("content-type", "text/turtle")
 							.end(buffer.toString());
 					}

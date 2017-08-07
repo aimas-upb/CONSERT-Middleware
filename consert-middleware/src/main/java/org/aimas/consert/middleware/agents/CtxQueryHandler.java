@@ -49,8 +49,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	public Map<UUID, ContextSubscriptionResource> contextSubscriptions; // list of context subscriptions
 
-	private AgentConfig ctxCoord;  // configuration to communicate with the CtxCoord agent
-	private AgentConfig orgMgr;    // configuration to communicate with the OrgMgr agent
+	private AgentConfig ctxCoord;       // configuration to communicate with the CtxCoord agent
+	private AgentConfig orgMgr;         // configuration to communicate with the OrgMgr agent
+	private AgentConfig consertEngine;  // configuration to communicate with the CONSERT Engine
 	
 
 	@Override
@@ -67,10 +68,6 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		// Initialization of the lists
 		this.contextSubscriptions = new HashMap<UUID, ContextSubscriptionResource>();
 
-		// Create router
-		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterDissemination(this.vertx, this);
-
 		// Read configuration
 		try {
 
@@ -81,11 +78,16 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 			this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
 			this.orgMgr = AgentConfig.readOrgMgrConfig(config);
+			this.consertEngine = AgentConfig.readConsertEngineConfig(config);
 
 		} catch (ConfigurationException e) {
 			System.err.println("Error while reading configuration file '" + CONFIG_FILE + "': " + e.getMessage());
 			e.printStackTrace();
 		}
+
+		// Create router
+		RouteConfig routeConfig = new RouteConfigV1();
+		this.router = routeConfig.createRouterDissemination(this.vertx, this);
 
 		// Start server
 		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
@@ -173,8 +175,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	public AgentConfig getAgentConfig() {
 		return agentConfig;
 	}
-	
-	public AgentConfig getCtxCoordConfig() {
-		return this.ctxCoord;
+
+	public AgentConfig getEngineConfig() {
+		return this.consertEngine;
 	}
 }

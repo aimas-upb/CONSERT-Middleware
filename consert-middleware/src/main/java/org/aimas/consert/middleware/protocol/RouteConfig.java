@@ -1,5 +1,6 @@
 package org.aimas.consert.middleware.protocol;
 
+import org.aimas.consert.middleware.agents.ConsertEngine;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
 import org.aimas.consert.middleware.agents.CtxSensor;
@@ -21,6 +22,7 @@ public abstract class RouteConfig {
 	public static final String COORDINATION_ROUTE = "/coordination";
 	public static final String DISSEMINATION_ROUTE = "/dissemination";
 	public static final String MANAGEMENT_ROUTE = "/management";
+	public static final String ENGINE_ROUTE = "/engine";
 
 	/**
 	 * Creates a router configured to be used on a CtxSensor agent
@@ -66,6 +68,8 @@ public abstract class RouteConfig {
 	 * @return the created router
 	 */
 	public abstract Router createRouterManagement(Vertx vertx, OrgMgr orgMgr);
+
+	public abstract Router createRouterEngine(Vertx vertx, ConsertEngine consertEngine);
 
 	/**
 	 * Creates a new router with no route
