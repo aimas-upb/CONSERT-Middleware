@@ -103,6 +103,8 @@ public class RouteConfigV1 extends RouteConfig {
 				+ "/context_subscriptions/:id/").handler(dissemination::handlePutCtxSub);
 		router.delete(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
 				+ "/context_subscriptions/:id/").handler(dissemination::handleDeleteCtxSub);
+		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+				+ "/resources/:id/").handler(dissemination::handleResources);
 
 		return router;
 	}

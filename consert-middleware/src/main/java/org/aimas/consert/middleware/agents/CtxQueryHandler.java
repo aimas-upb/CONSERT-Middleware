@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.model.ContextSubscription;
-import org.aimas.consert.middleware.protocol.ContextSubscriptionResource;
+import org.aimas.consert.middleware.protocol.RequestResource;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
@@ -47,7 +47,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private Repository dataRepo;  // repository containing the RDF data for queries
 	private Repository subscriptionsRepo;  // repository containing the RDF data for context subscriptions
 
-	public Map<UUID, ContextSubscriptionResource> contextSubscriptions; // list of context subscriptions
+	public Map<UUID, ContextSubscription> contextSubscriptions; // list of context subscriptions
+	public Map<UUID, RequestResource> ctxSubsResources; // list of resources for context subscriptions
 
 	private AgentConfig ctxCoord;       // configuration to communicate with the CtxCoord agent
 	private AgentConfig orgMgr;         // configuration to communicate with the OrgMgr agent
@@ -66,7 +67,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		this.subscriptionsRepo.initialize();
 
 		// Initialization of the lists
-		this.contextSubscriptions = new HashMap<UUID, ContextSubscriptionResource>();
+		this.contextSubscriptions = new HashMap<UUID, ContextSubscription>();
+		this.ctxSubsResources = new HashMap<UUID, RequestResource>();
 
 		// Read configuration
 		try {
@@ -119,17 +121,18 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		return this.dataRepo;
 	}
 
-	public void addContextSubscription(UUID key, ContextSubscriptionResource cs) {
-		this.contextSubscriptions.put(key, cs);
+	public void addContextSubscription(UUID uuid, ContextSubscription cs, RequestResource res) {
+		this.contextSubscriptions.put(uuid, cs);
+		this.ctxSubsResources.put(uuid, res);
 	}
 
-	public ContextSubscriptionResource getContextSubscription(UUID uuid) {
+	public ContextSubscription getContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.get(uuid);
 	}
 
 	public String getContextSubscriptionRDF(UUID uuid) {
 
-		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid).getContextSubscription();
+		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid);
 
 		// Connection to repository to get all the statements
 		RepositoryConnection conn = this.subscriptionsRepo.getConnection();
@@ -142,8 +145,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		try {
 
-			// Get all the statements corresponding to the given object (as the
-			// subject)
+			// Get all the statements corresponding to the given object (as the subject)
 			Resource objRes = manager.getResource(ctxSubs.getId(), ContextSubscription.class);
 
 			RepositoryResult<Statement> iter = conn.getStatements(objRes, null, null);
@@ -167,9 +169,17 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		return writer.toString();
 	}
+	
+	public ContextSubscription setContextSubscription(UUID uuid, ContextSubscription ctxSubs) {
+		return this.contextSubscriptions.replace(uuid, ctxSubs);
+	}
 
-	public ContextSubscriptionResource removeContextSubscription(UUID uuid) {
+	public ContextSubscription removeContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.remove(uuid);
+	}
+	
+	public RequestResource getResource(UUID uuid) {
+		return this.ctxSubsResources.get(uuid);
 	}
 
 	public AgentConfig getAgentConfig() {
