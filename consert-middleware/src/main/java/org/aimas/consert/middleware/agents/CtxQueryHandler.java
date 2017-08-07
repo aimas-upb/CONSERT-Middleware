@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.aimas.consert.middleware.model.ContextSubscription;
-import org.aimas.consert.middleware.protocol.ContextSubscriptionResource;
+import org.aimas.consert.middleware.protocol.RequestResource;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
@@ -36,10 +36,7 @@ import io.vertx.ext.web.Router;
  */
 public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties"; // path to the
-															// configuration
-															// file for this
-															// agent
+	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -49,20 +46,12 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	private Repository repo; // repository containing the RDF data
 
-	public Map<UUID, ContextSubscriptionResource> contextSubscriptions; // list
-																		// of
-																		// context
-																		// subscriptions
+	public Map<UUID, ContextSubscription> contextSubscriptions; // list of context subscriptions
+	public Map<UUID, RequestResource> ctxSubsResources; // list of resources for context subscriptions
 
-	private AgentConfig ctxCoord; // configuration to communicate with the
-									// CtxCoord agent
-	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr
-								// agent
+	private AgentConfig ctxCoord; // configuration to communicate with the CtxCoord agent
+	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr agent
 
-	public static void main(String[] args) {
-
-		// CtxQueryHandler.vertx.deployVerticle(CtxQueryHandler.class.getName());
-	}
 
 	@Override
 	public void start(Future<Void> future) {
@@ -74,7 +63,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		this.repo.initialize();
 
 		// Initialization of the lists
-		this.contextSubscriptions = new HashMap<UUID, ContextSubscriptionResource>();
+		this.contextSubscriptions = new HashMap<UUID, ContextSubscription>();
+		this.ctxSubsResources = new HashMap<UUID, RequestResource>();
 
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
@@ -121,17 +111,18 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		return this.repo;
 	}
 
-	public void addContextSubscription(UUID key, ContextSubscriptionResource cs) {
-		this.contextSubscriptions.put(key, cs);
+	public void addContextSubscription(UUID uuid, ContextSubscription cs, RequestResource res) {
+		this.contextSubscriptions.put(uuid, cs);
+		this.ctxSubsResources.put(uuid, res);
 	}
 
-	public ContextSubscriptionResource getContextSubscription(UUID uuid) {
+	public ContextSubscription getContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.get(uuid);
 	}
 
 	public String getContextSubscriptionRDF(UUID uuid) {
 
-		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid).getContextSubscription();
+		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid);
 
 		// Connection to repository to get all the statements
 		RepositoryConnection conn = this.repo.getConnection();
@@ -144,8 +135,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		try {
 
-			// Get all the statements corresponding to the given object (as the
-			// subject)
+			// Get all the statements corresponding to the given object (as the subject)
 			Resource objRes = manager.getResource(ctxSubs.getId(), ContextSubscription.class);
 
 			RepositoryResult<Statement> iter = conn.getStatements(objRes, null, null);
@@ -169,9 +159,17 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		return writer.toString();
 	}
+	
+	public ContextSubscription setContextSubscription(UUID uuid, ContextSubscription ctxSubs) {
+		return this.contextSubscriptions.replace(uuid, ctxSubs);
+	}
 
-	public ContextSubscriptionResource removeContextSubscription(UUID uuid) {
+	public ContextSubscription removeContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.remove(uuid);
+	}
+	
+	public RequestResource getResource(UUID uuid) {
+		return this.ctxSubsResources.get(uuid);
 	}
 
 	public AgentConfig getAgentConfig() {

@@ -1,25 +1,12 @@
 package org.aimas.consert.middleware.agents;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import org.aimas.consert.middleware.protocol.ContextSubscriptionResource;
-import org.aimas.consert.middleware.protocol.RequestBean;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.cyberborean.rdfbeans.RDFBeanManager;
-import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFWriter;
-import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +18,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.Json;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -43,13 +29,22 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class ContextSubscriptionRoutesTest {
 	private final String CONFIG_FILE = "agents.properties";
 	private final String postQuery = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
+			+ "@prefix request: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscriptionRequest/> .\n"
 			+ "@prefix context-subscription: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/> .\n"
 			+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/> .\n"
 			+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/> .\n"
 			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n\n"
+
+			+ "protocol:ContextSubscriptionRequest rdfbeans:bindingClass \"org.aimas.consert.middleware.protocol.ContextSubscriptionRequest\"^^xsd:string .\n"
 			+ "protocol:ContextSubscription rdfbeans:bindingClass \"org.aimas.consert.middleware.model.ContextSubscription\"^^xsd:string .\n"
 			+ "protocol:AgentSpec rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentSpec\"^^xsd:string .\n"
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n\n"
+			
+			+ "request:CtxSubsRequest a protocol:ContextSubscriptionRequest ;\n"
+			+ "    protocol:hasInitiatorURI \"http://initiator-uri.org\"^^xsd:anyURI ;\n"
+			+ "    protocol:hasInitiatorCallbackURI \"http://initiator-callback-uri.org\"^^xsd:anyURI ;\n"
+			+ "    protocol:hasContextSubscription context-subscription:foo .\n"
+			
 			+ "context-subscription:foo a protocol:ContextSubscription ;\n"
 			+ "    protocol:hasSubscriptionQuery \"the subscription query\"^^xsd:string ;\n"
 			+ "    protocol:hasSubscriber agent-spec:CtxUser .\n"
@@ -104,8 +99,6 @@ public class ContextSubscriptionRoutesTest {
 
 		// POST: insert data that we will try to fetch in the test methods
 
-		RequestBean reqBean = new RequestBean("initiatorURI", "initiatorCallbackURI", this.postQuery);
-
 		this.httpClient.post(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getAddress(),
 				"/api/v1/dissemination/context_subscriptions/", new Handler<HttpClientResponse>() {
 
@@ -130,7 +123,7 @@ public class ContextSubscriptionRoutesTest {
 							});
 						}
 					}
-				}).putHeader("content-type", "text/turtle").end(Json.encodePrettily(reqBean));
+				}).putHeader("content-type", "text/turtle").end(this.postQuery);
 	}
 
 	@Test
@@ -161,23 +154,10 @@ public class ContextSubscriptionRoutesTest {
 							@Override
 							public void handle(Buffer buffer2) {
 
-								ContextSubscriptionResource res = Json.decodeValue(buffer2.toString(),
-										ContextSubscriptionResource.class);
-
-								String rdf = null;
-								try {
-									rdf = contextSubscriptionResourceToRDF(res);
-								} catch (RepositoryException | RDFBeanException e) {
-									e.printStackTrace();
-									context.fail("Failed to convert ContextSubscriptionResource to RDF");
-									async.complete();
-								}
-
-								context.assertEquals(
+								context.assertTrue(buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 										"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxUser> ;"
 												+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasSubscriptionQuery> \"the subscription query\" ;"
-												+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription> .",
-										rdf.trim().replace("\r", "").replace("\n", "").replace("\t", ""));
+												+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription> ."));
 								async.complete();
 							}
 						});
@@ -195,8 +175,6 @@ public class ContextSubscriptionRoutesTest {
 		Async async = context.async();
 
 		String updated = this.postQuery.replace("CtxUser", "CtxQueryHandler");
-
-		RequestBean reqBean = new RequestBean("initiatorURI", "initiatorCallbackURI", updated);
 
 		// PUT
 
@@ -231,32 +209,17 @@ public class ContextSubscriptionRoutesTest {
 											@Override
 											public void handle(Buffer buffer2) {
 
-												ContextSubscriptionResource res = Json.decodeValue(buffer2.toString(),
-														ContextSubscriptionResource.class);
-
-												String rdf = null;
-												try {
-													rdf = contextSubscriptionResourceToRDF(res);
-												} catch (RepositoryException | RDFBeanException e) {
-													e.printStackTrace();
-													context.fail(
-															"Failed to convert ContextSubscriptionResource to RDF");
-													async.complete();
-												}
-
-												context.assertEquals(
+												context.assertTrue(buffer2.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 														"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/foo> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasSubscriber> <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxQueryHandler> ;"
 																+ "<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#hasSubscriptionQuery> \"the subscription query\" ;"
-																+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription> .",
-														rdf.trim().replace("\r", "").replace("\n", "").replace("\t",
-																""));
+																+ "a <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription> ."));
 												async.complete();
 											}
 										});
 									}
 								}).end();
 					}
-				}).putHeader("content-type", "text/turtle").end(Json.encodePrettily(reqBean));
+				}).putHeader("content-type", "text/turtle").end(updated);
 	}
 
 	@Test
@@ -297,33 +260,5 @@ public class ContextSubscriptionRoutesTest {
 								}).end();
 					}
 				}).end();
-	}
-
-	private String contextSubscriptionResourceToRDF(ContextSubscriptionResource res)
-			throws RepositoryException, RDFBeanException {
-
-		RepositoryConnection conn = repo.getConnection();
-		RDFBeanManager manager = new RDFBeanManager(conn);
-
-		Resource r = manager.add(res.getContextSubscription());
-
-		// Prepare to write RDF statements
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
-		writer.startRDF();
-
-		RepositoryResult<Statement> iter = conn.getStatements(r, null, null);
-
-		// Write all the statements
-		while (iter.hasNext()) {
-
-			writer.handleStatement(iter.next());
-		}
-
-		writer.endRDF();
-
-		conn.close();
-
-		return baos.toString();
 	}
 }

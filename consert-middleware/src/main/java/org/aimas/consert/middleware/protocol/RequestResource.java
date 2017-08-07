@@ -1,48 +1,58 @@
 package org.aimas.consert.middleware.protocol;
 
-/**
- * Bean class for resource containing required information to make stateless
- * REST calls
- */
-public class RequestResource {
+import java.net.URI;
 
-	private String resourceURI; // URI to use to access the resource
-	private String initiatorURI; // URI to use for communications with the
-									// initiator agent
-	private String participantURI; // URI to use for communications with the
-									// participant agent
+import org.aimas.consert.middleware.model.RDFObject;
+import org.cyberborean.rdfbeans.annotations.RDF;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
+
+/**
+ * Bean class for resource containing required information to make stateless REST calls
+ */
+@RDFNamespaces("protocol=http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#")
+@RDFBean("protocol:RequestResource")
+public class RequestResource extends RDFObject {
+
+	private URI resourceURI; // URI to use to access the resource
+	private URI initiatorURI; // URI to use for communications with the initiator agent
+	private URI participantURI; // URI to use for communications with the participant agent
 
 	private String request; // content of the request
 	private String result; // content of the result of the request
 
-	private String initiatorCallbackURI; // URI to use for the callback on the
-											// initiator
+	private URI initiatorCallbackURI; // URI to use for the callback on the initiator
 	private RequestState state; // current state in the protocol
 
-	public String getResourceURI() {
+	
+	@RDF("protocol:hasResourceURI")
+	public URI getResourceURI() {
 		return resourceURI;
 	}
 
-	public void setResourceURI(String resourceURI) {
+	public void setResourceURI(URI resourceURI) {
 		this.resourceURI = resourceURI;
 	}
 
-	public String getInitiatorURI() {
+	@RDF("protocol:hasInitiatorURI")
+	public URI getInitiatorURI() {
 		return initiatorURI;
 	}
 
-	public void setInitiatorURI(String initiatorURI) {
+	public void setInitiatorURI(URI initiatorURI) {
 		this.initiatorURI = initiatorURI;
 	}
 
-	public String getParticipantURI() {
+	@RDF("protocol:hasParticipantURI")
+	public URI getParticipantURI() {
 		return participantURI;
 	}
 
-	public void setParticipantURI(String participantURI) {
+	public void setParticipantURI(URI participantURI) {
 		this.participantURI = participantURI;
 	}
 
+	@RDF("protocol:hasRequest")
 	public String getRequest() {
 		return request;
 	}
@@ -51,6 +61,7 @@ public class RequestResource {
 		this.request = request;
 	}
 
+	@RDF("protocol:hasResult")
 	public String getResult() {
 		return result;
 	}
@@ -59,14 +70,16 @@ public class RequestResource {
 		this.result = result;
 	}
 
-	public String getInitiatorCallbackURI() {
+	@RDF("protocol:hasInitiatorCallbackURI")
+	public URI getInitiatorCallbackURI() {
 		return initiatorCallbackURI;
 	}
 
-	public void setInitiatorCallbackURI(String initiatorCallbackURI) {
+	public void setInitiatorCallbackURI(URI initiatorCallbackURI) {
 		this.initiatorCallbackURI = initiatorCallbackURI;
 	}
 
+	@RDF("protocol:hasState")
 	public RequestState getState() {
 		return state;
 	}
