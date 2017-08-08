@@ -65,6 +65,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private HttpClient client;  // client to use for the communications with the other agents
 
 	private ScheduledExecutorService subscriptionsService;  // service that sends the queries for context subscriptions
+	
 
 	@Override
 	public void start(Future<Void> future) {
