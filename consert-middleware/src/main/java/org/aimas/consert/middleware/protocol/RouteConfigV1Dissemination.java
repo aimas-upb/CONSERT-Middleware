@@ -135,7 +135,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 				}
 			}
 	
-			// Insertion in CtxQueryhandler
+			// Insertion in CtxQueryHandler
 			ContextSubscription cs = csr.getContextSubscription();
 			RDFBeanManager queryHandlerManager = new RDFBeanManager(queryHandlerConn); 
 			queryHandlerManager.add(cs);
@@ -258,9 +258,19 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 			rtCtx.response().setStatusCode(404).end();
 		}
 	}
-
-	private Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {
-		return RouteUtils.post(rtCtx, rdfClassName, javaClass, this.ctxQueryHandler);
+	
+	/**
+	 * PUT notify subscription update
+	 * 
+	 * @param rtCtx the routing context
+	 */
+	public void handleSubsUpdate(RoutingContext rtCtx) {
+		
+		// Initialization
+		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
+		RequestResource resource = this.ctxQueryHandler.getResource(resourceUUID);
+		
+		System.out.println("received update nofitification for resource " + resource);
 	}
 
 	private void get(RoutingContext rtCtx, Class<?> javaClass, RDFObject obj) {

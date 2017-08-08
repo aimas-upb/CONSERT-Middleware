@@ -1,9 +1,13 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.aimas.consert.middleware.model.ContextSubscription;
 import org.aimas.consert.middleware.protocol.RequestResource;
@@ -28,7 +32,11 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.Router;
 
 /**
@@ -54,6 +62,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private AgentConfig orgMgr;         // configuration to communicate with the OrgMgr agent
 	private AgentConfig consertEngine;  // configuration to communicate with the CONSERT Engine
 	
+	private HttpClient client;  // client to use for the communications with the other agents
+
+	private ScheduledExecutorService subscriptionsService;  // service that sends the queries for context subscriptions
 
 	@Override
 	public void start(Future<Void> future) {
@@ -104,6 +115,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 					future.complete();
 				});
+		
+		this.subscriptionsService = Executors.newScheduledThreadPool(1);
+		this.subscriptionsService.execute(new ContextSubscriptionTask());
 	}
 
 	@Override
@@ -188,5 +202,52 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	public AgentConfig getEngineConfig() {
 		return this.consertEngine;
+	}
+	
+	
+	// Sends the queries of context subscriptions every 5 seconds
+	private class ContextSubscriptionTask implements Runnable {
+		
+		private final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
+		
+		public void run() {
+			
+			for(Entry<UUID, ContextSubscription> entry : contextSubscriptions.entrySet()) {
+				
+				// Send the query to the engine
+				client.get(consertEngine.getPort(), consertEngine.getAddress(), this.ANSWER_QUERY_ROUTE,
+						new Handler<HttpClientResponse>() {
+
+					@Override
+					public void handle(HttpClientResponse resp) {
+						
+						resp.bodyHandler(new Handler<Buffer>() {
+
+							@Override
+							public void handle(Buffer buffer) {
+								
+								// Update the resource and notify the subscriber only if the result has changed
+								RequestResource resource = ctxSubsResources.get(entry.getKey());
+								if(!buffer.toString().equals(resource.getResult())) {
+									
+									resource.setResult(buffer.toString());
+									
+									// Send notification to subscriber
+									URI callbackURI = resource.getInitiatorCallbackURI();
+									client.put(callbackURI.getPort(), callbackURI.getHost(), callbackURI.getPath(),
+											new Handler<HttpClientResponse>() {
+
+										@Override
+										public void handle(HttpClientResponse response) {
+										}
+									});
+								}
+							}
+						});
+					}
+				}).putHeader("content-type", "text/turtle").end(entry.getValue().getSubscriptionQuery());
+			}
+		}
 	}
 }

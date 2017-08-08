@@ -38,6 +38,9 @@ public class RouteConfigV1 extends RouteConfig {
 
 		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.USAGE_ROUTE + "/tasking_command/")
 				.handler(usage::handlePutTaskingCommand);
+		
+		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+				+ "/subscription_update/:id/").handler(usage::handleSubsUpdate);
 
 		return router;
 	}
@@ -105,6 +108,9 @@ public class RouteConfigV1 extends RouteConfig {
 				+ "/context_subscriptions/:id/").handler(dissemination::handleDeleteCtxSub);
 		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
 				+ "/resources/:id/").handler(dissemination::handleResources);
+		
+		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+				+ "/subscription_update/:id/").handler(dissemination::handleSubsUpdate);
 
 		return router;
 	}

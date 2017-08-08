@@ -116,4 +116,8 @@ public class CtxUser extends AbstractVerticle implements Agent {
 	public AgentConfig getAgentConfig() {
 		return this.agentConfig;
 	}
+	
+	public AgentConfig getCtxQueryHandlerConfig() {
+		return this.ctxQueryHandler;
+	}
 }

@@ -20,6 +20,10 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 
+import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -33,9 +37,14 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 			"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#StopUpdatesCommand";
 	private static final String ALTER_UPDATE_MODE_COMMAND_URI =
 			"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AlterUpdateModeCommand";
+	
+	private static final String SUBSCRIPTIONS_RESOURCES_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.DISSEMINATION_ROUTE + "/resources/";
 
 	private CtxUser ctxUser; // the agent that can be accessed with the defined routes
 	private AssertionUpdateMode defaultUpdateMode; // the default update mode used when starting updates
+	
+	private HttpClient client;  // client to use for the communications with other agents
 
 	public RouteConfigV1Usage(CtxUser ctxUser) {
 		this.ctxUser = ctxUser;
@@ -44,6 +53,8 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 		this.defaultUpdateMode.setUpdateRate(500);
 		//this.defaultUpdateMode.setUpdateMode(AssertionUpdateMode.CHANGE_BASED);
 		//this.defaultUpdateMode.setUpdateRate(0);
+		
+		this.client = this.ctxUser.getVertx().createHttpClient();
 	}
 
 	/**
@@ -114,5 +125,33 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 			e.printStackTrace();
 			rtCtx.response().setStatusCode(400).setStatusMessage("Error").end();
 		}
+	}
+	
+	/**
+	 * PUT notify subscription update
+	 * 
+	 * @param rtCtx the routing context
+	 */
+	public void handleSubsUpdate(RoutingContext rtCtx) {
+		
+		// Initialization
+		String resourceUUID = rtCtx.request().getParam("id");
+		
+		AgentConfig queryHandler = this.ctxUser.getCtxQueryHandlerConfig();
+		this.client.get(queryHandler.getPort(), queryHandler.getAddress(),
+				RouteConfigV1Usage.SUBSCRIPTIONS_RESOURCES_ROUTE + resourceUUID, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						System.out.println("received update nofitification for resource " + buffer.toString());
+					}
+				});
+			}
+		});
 	}
 }
