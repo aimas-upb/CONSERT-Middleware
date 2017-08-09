@@ -1,7 +1,6 @@
 package org.aimas.consert.middleware.api;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
-import org.aimas.consert.middleware.protocol.RequestResource;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
@@ -32,7 +31,6 @@ public class MiddlewareAPI {
 	public static String queryContext(String query) {
 
 		String result = "";
-		RequestResource resource = new RequestResource();
 		Future<Void> future = Future.future();
 		AgentConfig engineConfig = null;
 		
@@ -78,6 +76,6 @@ public class MiddlewareAPI {
 			}
 		}
 		
-		return resource.getStringResult();
+		return result;
 	}
 }
