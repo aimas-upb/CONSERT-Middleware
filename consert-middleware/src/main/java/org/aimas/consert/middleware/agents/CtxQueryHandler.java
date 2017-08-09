@@ -1,7 +1,11 @@
 package org.aimas.consert.middleware.agents;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +27,12 @@ import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryResultHandler;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.resultio.QueryResultParseException;
+import org.eclipse.rdf4j.query.resultio.QueryResultParser;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONParser;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -40,7 +50,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 
 /**
@@ -232,14 +241,49 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 							@Override
 							public void handle(Buffer buffer) {
 								
+								// Parse the received JSON
+								List<BindingSet> results = new ArrayList<BindingSet>();
+								
+								QueryResultParser parser = new SPARQLResultsJSONParser();
+								parser.setQueryResultHandler(new QueryResultHandler() {
+
+									@Override
+									public void handleBoolean(boolean value) throws QueryResultHandlerException {}
+
+									@Override
+									public void handleLinks(List<String> linkUrls) throws QueryResultHandlerException {}
+
+									@Override
+									public void startQueryResult(List<String> bindingNames)
+											throws TupleQueryResultHandlerException {}
+
+									@Override
+									public void endQueryResult() throws TupleQueryResultHandlerException {}
+
+									@Override
+									public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
+										results.add(bindingSet);
+									}
+									
+								});
+								InputStream is = new ByteArrayInputStream(buffer.getBytes());
+								
+								try {
+									parser.parseQueryResult(is);
+									
+								} catch (QueryResultParseException | QueryResultHandlerException | IOException e) {
+									
+									System.err.println("Error while parsing JSON query result: " + e.getMessage());
+									e.printStackTrace();
+								}
+								
+
 								// Update the resource and notify the subscriber only if the result has changed
 								RequestResource resource = ctxSubsResources.get(entry.getKey());
-								List<BindingSet> result = (List<BindingSet>) Json.decodeValue(buffer.toString(),
-										List.class);
 								
-								if(resource.hasResultChanged(result)) {
+								if(resource.hasResultChanged(results)) {
 									
-									resource.setResult(result);
+									resource.setResult(results);
 									
 									// Send notification to subscriber
 									URI callbackURI = resource.getInitiatorCallbackURI();
