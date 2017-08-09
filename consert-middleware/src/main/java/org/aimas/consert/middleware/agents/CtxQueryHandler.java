@@ -1,12 +1,18 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.aimas.consert.middleware.model.ContextSubscription;
-import org.aimas.consert.middleware.protocol.ContextSubscriptionResource;
+import org.aimas.consert.middleware.protocol.RequestResource;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
@@ -16,6 +22,7 @@ import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -28,7 +35,12 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 
 /**
@@ -47,11 +59,16 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private Repository dataRepo;  // repository containing the RDF data for queries
 	private Repository subscriptionsRepo;  // repository containing the RDF data for context subscriptions
 
-	public Map<UUID, ContextSubscriptionResource> contextSubscriptions; // list of context subscriptions
+	public Map<UUID, ContextSubscription> contextSubscriptions; // list of context subscriptions
+	public Map<UUID, RequestResource> ctxSubsResources; // list of resources for context subscriptions
 
 	private AgentConfig ctxCoord;       // configuration to communicate with the CtxCoord agent
 	private AgentConfig orgMgr;         // configuration to communicate with the OrgMgr agent
 	private AgentConfig consertEngine;  // configuration to communicate with the CONSERT Engine
+	
+	private HttpClient client;  // client to use for the communications with the other agents
+
+	private ScheduledExecutorService subscriptionsService;  // service that sends the queries for context subscriptions
 	
 
 	@Override
@@ -66,7 +83,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		this.subscriptionsRepo.initialize();
 
 		// Initialization of the lists
-		this.contextSubscriptions = new HashMap<UUID, ContextSubscriptionResource>();
+		this.contextSubscriptions = new HashMap<UUID, ContextSubscription>();
+		this.ctxSubsResources = new HashMap<UUID, RequestResource>();
 
 		// Read configuration
 		try {
@@ -102,10 +120,13 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 					future.complete();
 				});
+		
+		this.subscriptionsService = Executors.newScheduledThreadPool(1);
+		this.subscriptionsService.execute(new ContextSubscriptionTask());
 	}
 
 	@Override
-	public void stop() {
+	public void stop() {		
 		this.dataRepo.shutDown();
 		this.subscriptionsRepo.shutDown();
 	}
@@ -119,17 +140,18 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		return this.dataRepo;
 	}
 
-	public void addContextSubscription(UUID key, ContextSubscriptionResource cs) {
-		this.contextSubscriptions.put(key, cs);
+	public void addContextSubscription(UUID uuid, ContextSubscription cs, RequestResource res) {
+		this.contextSubscriptions.put(uuid, cs);
+		this.ctxSubsResources.put(uuid, res);
 	}
 
-	public ContextSubscriptionResource getContextSubscription(UUID uuid) {
+	public ContextSubscription getContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.get(uuid);
 	}
 
 	public String getContextSubscriptionRDF(UUID uuid) {
 
-		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid).getContextSubscription();
+		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid);
 
 		// Connection to repository to get all the statements
 		RepositoryConnection conn = this.subscriptionsRepo.getConnection();
@@ -142,8 +164,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		try {
 
-			// Get all the statements corresponding to the given object (as the
-			// subject)
+			// Get all the statements corresponding to the given object (as the subject)
 			Resource objRes = manager.getResource(ctxSubs.getId(), ContextSubscription.class);
 
 			RepositoryResult<Statement> iter = conn.getStatements(objRes, null, null);
@@ -167,9 +188,17 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		return writer.toString();
 	}
+	
+	public ContextSubscription setContextSubscription(UUID uuid, ContextSubscription ctxSubs) {
+		return this.contextSubscriptions.replace(uuid, ctxSubs);
+	}
 
-	public ContextSubscriptionResource removeContextSubscription(UUID uuid) {
+	public ContextSubscription removeContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.remove(uuid);
+	}
+	
+	public RequestResource getResource(UUID uuid) {
+		return this.ctxSubsResources.get(uuid);
 	}
 
 	public AgentConfig getAgentConfig() {
@@ -178,5 +207,57 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	public AgentConfig getEngineConfig() {
 		return this.consertEngine;
+	}
+	
+	
+	// Sends the queries of context subscriptions every 5 seconds
+	private class ContextSubscriptionTask implements Runnable {
+		
+		private static final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
+		
+		public void run() {
+			
+			for(Entry<UUID, ContextSubscription> entry : contextSubscriptions.entrySet()) {
+				
+				// Send the query to the engine
+				client.get(consertEngine.getPort(), consertEngine.getAddress(),
+						ContextSubscriptionTask.ANSWER_QUERY_ROUTE, new Handler<HttpClientResponse>() {
+
+					@Override
+					public void handle(HttpClientResponse resp) {
+						
+						resp.bodyHandler(new Handler<Buffer>() {
+
+							@Override
+							public void handle(Buffer buffer) {
+								
+								// Update the resource and notify the subscriber only if the result has changed
+								RequestResource resource = ctxSubsResources.get(entry.getKey());
+								List<BindingSet> result = (List<BindingSet>) Json.decodeValue(buffer.toString(),
+										List.class);
+								
+								if(resource.hasResultChanged(result)) {
+									
+									resource.setResult(result);
+									
+									// Send notification to subscriber
+									URI callbackURI = resource.getInitiatorCallbackURI();
+									client.post(callbackURI.getPort(), callbackURI.getHost(), callbackURI.getPath(),
+											new Handler<HttpClientResponse>() {
+
+										@Override
+										public void handle(HttpClientResponse response) {
+										}
+									}).end();
+								}
+							}
+						});
+					}
+				}).putHeader("content-type", "text/turtle").end(entry.getValue().getSubscriptionQuery());
+			}
+			
+			subscriptionsService.schedule(new ContextSubscriptionTask(), 5, TimeUnit.SECONDS);
+		}
 	}
 }

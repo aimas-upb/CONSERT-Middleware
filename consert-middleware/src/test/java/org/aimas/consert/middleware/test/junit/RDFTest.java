@@ -1,4 +1,4 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test.junit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

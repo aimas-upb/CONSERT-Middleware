@@ -1,7 +1,9 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.IOException;
 
+import org.aimas.consert.middleware.agents.AgentConfig;
+import org.aimas.consert.middleware.agents.CtxCoord;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;

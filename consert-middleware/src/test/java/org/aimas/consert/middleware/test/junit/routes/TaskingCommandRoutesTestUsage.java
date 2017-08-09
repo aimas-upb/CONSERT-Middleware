@@ -1,7 +1,10 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.IOException;
 
+import org.aimas.consert.middleware.agents.AgentConfig;
+import org.aimas.consert.middleware.agents.CtxCoord;
+import org.aimas.consert.middleware.agents.CtxUser;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -15,7 +18,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -24,7 +26,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
  * Unit test for TaskingCommand routes
  */
 @RunWith(VertxUnitRunner.class)
-public class TaskingCommandRoutesTestSensing {
+public class TaskingCommandRoutesTestUsage {
 
 	private final String CONFIG_FILE = "agents.properties";
 	private final String startQuery = "@prefix hlatest: <http://example.org/hlatest/> .\n"
@@ -34,21 +36,21 @@ public class TaskingCommandRoutesTestSensing {
 			+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/> .\n"
 			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n\n"
 			
-			+ "protocol:StartUpdatesCommand rdfbeans:bindingClass \"org.aimas.consert.middleware.model.StartUpdatesCommand\"^^xsd:string .\n"
+			+ "protocol:StartUpdatesCommand rdfbeans:bindingClass \"org.aimas.consert.middleware.model.tasking.StartUpdatesCommand\"^^xsd:string .\n"
 			+ "protocol:AgentSpec rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentSpec\"^^xsd:string .\n"
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n"
 			+ "hlatest:Position rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.Position\"^^xsd:string .\n"
 			+ "\n"
 			+ "start-updates-command:start-command a protocol:StartUpdatesCommand ;\n"
 			+ "    protocol:hasTargetAssertion hlatest:Position ;\n"
-			+ "    protocol:hasTargetAgent agent-spec:CtxSensorPosition .\n"
+			+ "    protocol:hasTargetAgent agent-spec:CtxUser .\n"
 			
-			+ "agent-spec:CtxSensorPosition a protocol:AgentSpec ;\n"
-			+ "    protocol:hasAddress agent-address:CtxSensorAddress ;\n"
-			+ "    protocol:hasIdentifier \"CtxSensorPosition\" .\n"
-			+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
+			+ "agent-spec:CtxUser a protocol:AgentSpec ;\n"
+			+ "    protocol:hasAddress agent-address:CtxUserAddress ;\n"
+			+ "    protocol:hasIdentifier \"CtxUser\" .\n"
+			+ "agent-address:CtxUserAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8085\"^^xsd:int .\n";
+			+ "    protocol:port \"8081\"^^xsd:int .\n";
 
 	private final String stopQuery = startQuery.replace("start-", "stop").replace("StartUpdatesCommand", "StopUpdatesCommand");
 
@@ -61,7 +63,7 @@ public class TaskingCommandRoutesTestSensing {
 			+ "@prefix update-mode: <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/coordconf#AssertionUpdateMode/> .\n"
 			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n\n"
 			
-			+ "protocol:StartUpdatesCommand rdfbeans:bindingClass \"org.aimas.consert.middleware.model.StartUpdatesCommand\"^^xsd:string .\n"
+			+ "protocol:StartUpdatesCommand rdfbeans:bindingClass \"org.aimas.consert.middleware.model.tasking.StartUpdatesCommand\"^^xsd:string .\n"
 			+ "protocol:AgentSpec rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentSpec\"^^xsd:string .\n"
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n"
 			+ "provisioning:AssertionUpdateMode rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AssertionUpdateMode\"^^xsd:string .\n"
@@ -69,24 +71,22 @@ public class TaskingCommandRoutesTestSensing {
 			+ "\n"
 			+ "alter-update-mode-command:alter-update-mode-command a protocol:AlterUpdateModeCommand ;\n"
 			+ "    protocol:hasTargetAssertion hlatest:Position ;\n"
-			+ "    protocol:hasTargetAgent agent-spec:CtxSensorPosition ;\n"
+			+ "    protocol:hasTargetAgent agent-spec:CtxUser ;\n"
 			+ "    protocol:hasUpdateMode update-mode:NewUpdateMode .\n"
 			
-			+ "agent-spec:CtxSensorPosition a protocol:AgentSpec ;\n"
-			+ "    protocol:hasAddress agent-address:CtxSensorAddress ;\n"
-			+ "    protocol:hasIdentifier \"CtxSensorPosition\" .\n"
-			+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
+			+ "agent-spec:CtxUser a protocol:AgentSpec ;\n"
+			+ "    protocol:hasAddress agent-address:CtxUserAddress ;\n"
+			+ "    protocol:hasIdentifier \"CtxUser\" .\n"
+			+ "agent-address:CtxUserAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8085\"^^xsd:int .\n"
+			+ "    protocol:port \"8081\"^^xsd:int .\n"
 			
 			+ "update-mode:NewUpdateMode a provisioning:AssertionUpdateMode ;\n"
 			+ "    provisioning:hasMode \"change-based\"^^xsd:string ;\n"
 			+ "    provisioning:hasUpdateRate \"0\"^^xsd:int .\n";
-	
-	private final int CTX_SENSOR_ID = 1;
             
 	private Vertx vertx;
-	private AgentConfig ctxSensor;
+	private AgentConfig ctxUser;
 	private HttpClient httpClient;
 
 	@Before
@@ -96,15 +96,14 @@ public class TaskingCommandRoutesTestSensing {
 		Configuration config;
 
 		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxSensor = AgentConfig.readCtxSensorConfig(config).get(this.CTX_SENSOR_ID);
+		this.ctxUser = AgentConfig.readCtxUserConfig(config);
 
-		// Start Vert.x server for CtxSensor
+		// Start Vert.x server for CtxUser
 		Async async = context.async();
-		JsonObject ctxSensorConfig = new JsonObject().put("id", this.CTX_SENSOR_ID);
 		
 		this.vertx = Vertx.vertx();
 		this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res -> {
-			this.vertx.deployVerticle(CtxSensorPosition.class.getName(), new DeploymentOptions().setConfig(ctxSensorConfig).setWorker(true), context.asyncAssertSuccess());
+			this.vertx.deployVerticle(CtxUser.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
 			async.complete();
 		});
 
@@ -120,8 +119,8 @@ public class TaskingCommandRoutesTestSensing {
 	public void start(TestContext context, Async async) {
 
 		// Send tasking command
-		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
-				"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
+		this.httpClient.put(this.ctxUser.getPort(), this.ctxUser.getAddress(),
+				"/api/v1/usage/tasking_command/", new Handler<HttpClientResponse>() {
 
 					@Override
 					public void handle(HttpClientResponse resp) {
@@ -151,8 +150,8 @@ public class TaskingCommandRoutesTestSensing {
 		Async async = context.async();
 
 		// Send tasking command
-		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
-				"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
+		this.httpClient.put(this.ctxUser.getPort(), this.ctxUser.getAddress(),
+				"/api/v1/usage/tasking_command/", new Handler<HttpClientResponse>() {
 
 					@Override
 					public void handle(HttpClientResponse resp) {
@@ -176,8 +175,8 @@ public class TaskingCommandRoutesTestSensing {
 		Async async = context.async();
 
 		// Send tasking command
-		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
-				"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
+		this.httpClient.put(this.ctxUser.getPort(), this.ctxUser.getAddress(),
+				"/api/v1/usage/tasking_command/", new Handler<HttpClientResponse>() {
 
 					@Override
 					public void handle(HttpClientResponse resp) {

@@ -1,4 +1,4 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
