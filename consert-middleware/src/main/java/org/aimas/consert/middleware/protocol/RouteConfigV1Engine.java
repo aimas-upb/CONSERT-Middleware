@@ -1,6 +1,8 @@
 package org.aimas.consert.middleware.protocol;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +19,9 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryResults;
 import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONParser;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONWriter;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
@@ -26,7 +31,6 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
-import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -138,11 +142,32 @@ public class RouteConfigV1Engine {
 		RepositoryConnection conn = this.engine.getRepository().getConnection();
 		TupleQuery query = conn.prepareTupleQuery(rtCtx.getBodyAsString());
 		
+		
 		// Execute the query and get the result
-		List<BindingSet> result = QueryResults.asList(query.evaluate());
+		//List<BindingSet> result = QueryResults.asList(query.evaluate());
+		
+		// Convert the result to JSON to send it in the HTTP response
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TupleQueryResultHandler writer = new SPARQLResultsJSONWriter(baos);
+		query.evaluate(writer);
+		/*
+		List<String> bindingNames = new ArrayList<String>();
+		
+		for(BindingSet bs : result) {
+			bindingNames.addAll(bs.getBindingNames());
+		}
+		
+		writer.startQueryResult(bindingNames);
+		
+		for(BindingSet bs : result) {
+			writer.handleSolution(bs);
+		}
+		
+		writer.endQueryResult();
+		*/
 		
 		// Send the result
-		rtCtx.response().setStatusCode(200).putHeader("content-type", "text/turtle").end(Json.encode(result));
+		rtCtx.response().setStatusCode(200).putHeader("content-type", "application/json").end(baos.toString());
 		
 		conn.close();
 	}
