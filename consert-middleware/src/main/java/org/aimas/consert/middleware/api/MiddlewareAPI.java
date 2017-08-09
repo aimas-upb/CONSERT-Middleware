@@ -1,7 +1,5 @@
 package org.aimas.consert.middleware.api;
 
-import java.util.List;
-
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.protocol.RequestResource;
 import org.aimas.consert.middleware.protocol.RouteConfig;
@@ -9,7 +7,6 @@ import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.eclipse.rdf4j.query.BindingSet;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -17,7 +14,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.Json;
 
 /**
  * This class provides an interface that allows to easily access different features from CONSERT middleware
@@ -35,6 +31,7 @@ public class MiddlewareAPI {
 	 */
 	public static String queryContext(String query) {
 
+		String result = "";
 		RequestResource resource = new RequestResource();
 		Future<Void> future = Future.future();
 		AgentConfig engineConfig = null;
@@ -64,10 +61,7 @@ public class MiddlewareAPI {
 							@Override
 							public void handle(Buffer buffer) {
 
-								List<BindingSet> result = (List<BindingSet>) Json.decodeValue(buffer.toString(),
-										List.class);
-								
-								resource.setResult(result);
+								result.concat(buffer.toString());
 								future.complete();
 							}
 						});
