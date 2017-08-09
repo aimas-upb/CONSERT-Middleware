@@ -40,7 +40,7 @@ public class RouteConfigV1 extends RouteConfig {
 				.handler(usage::handlePutTaskingCommand);
 		
 		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
-				+ "/subscription_update/:id/").handler(usage::handleSubsUpdate);
+				+ "/result_ready/:id/").handler(usage::handleResultReady);
 
 		return router;
 	}
@@ -110,7 +110,7 @@ public class RouteConfigV1 extends RouteConfig {
 				+ "/resources/:id/").handler(dissemination::handleResources);
 		
 		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
-				+ "/subscription_update/:id/").handler(dissemination::handleSubsUpdate);
+				+ "/result_ready/:id/").handler(dissemination::handleResultReady);
 
 		return router;
 	}

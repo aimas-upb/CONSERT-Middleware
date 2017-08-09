@@ -1,4 +1,4 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test;
 
 import java.io.File;
 import java.net.URI;
@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.aimas.consert.middleware.agents.CtxSensor;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;

@@ -1,8 +1,10 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import org.aimas.consert.middleware.agents.AgentConfig;
+import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.model.annotations.ContextAnnotation;
 import org.aimas.consert.model.annotations.DatetimeInterval;

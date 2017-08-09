@@ -261,17 +261,17 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	}
 	
 	/**
-	 * PUT notify subscription update
+	 * POST query result ready
 	 * 
 	 * @param rtCtx the routing context
 	 */
-	public void handleSubsUpdate(RoutingContext rtCtx) {
+	public void handleResultReady(RoutingContext rtCtx) {
 		
 		// Initialization
 		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
 		RequestResource resource = this.ctxQueryHandler.getResource(resourceUUID);
 		
-		System.out.println("received update nofitification for resource " + resource);
+		System.out.println("received result notification for resource " + resource);
 	}
 
 	private void get(RoutingContext rtCtx, Class<?> javaClass, RDFObject obj) {

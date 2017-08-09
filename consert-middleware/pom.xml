@@ -77,6 +77,11 @@
 			<artifactId>rdf4j-sail-inferencer</artifactId>
 			<version>${rdf4j.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryresultio-sparqljson</artifactId>
+            <version>${rdf4j.version}</version>
+        </dependency>
 		
 		<!-- CONSERT Engine dependency -->
 		<dependency>

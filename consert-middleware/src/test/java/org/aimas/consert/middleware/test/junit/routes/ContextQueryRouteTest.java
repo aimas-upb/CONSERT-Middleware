@@ -1,7 +1,11 @@
-package org.aimas.consert.middleware.agents;
+package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.IOException;
 
+import org.aimas.consert.middleware.agents.AgentConfig;
+import org.aimas.consert.middleware.agents.CtxCoord;
+import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.test.CtxSensorPosition;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -22,7 +26,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 /**
- * Unit test for AssertionCapability routes
+ * Unit test for context query routes
  */
 @RunWith(VertxUnitRunner.class)
 public class ContextQueryRouteTest {
@@ -33,11 +37,12 @@ public class ContextQueryRouteTest {
 			+ "PREFIX annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#>\n"
 			+ "SELECT ?assert \n"
 			+ "WHERE {\n"
-			+ "    ?assert hlatest:hasPersonRole <person:mihai> .\n"
+			+ "    ?assert a hlatest:Position .\n"
+			+ "	   ?assert hlatest:hasPersonRole <person:mihai> .\n"
 			+ "    ?assert hlatest:hasAreaRole <area:WORK_AREA> .\n"
 			+ "    ?assert <annotation:hasAnnotation> ?ann .\n"
-			+ "    ?ann annotation:duration ?duration .\n"
-			+ "    FILTER (?duration >= 0) .\n"
+			+ "    ?ann annotation:timestamp ?timestamp .\n"
+			+ "    FILTER (?timestamp >= 1494589332000) .\n"
 			+ "}\n";
 	
 	private final String startQueryPosition = "@prefix hlatest: <http://example.org/hlatest/> .\n"
@@ -47,7 +52,7 @@ public class ContextQueryRouteTest {
 			+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/> .\n"
 			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n\n"
 			
-			+ "protocol:StartUpdatesCommand rdfbeans:bindingClass \"org.aimas.consert.middleware.model.StartUpdatesCommand\"^^xsd:string .\n"
+			+ "protocol:StartUpdatesCommand rdfbeans:bindingClass \"org.aimas.consert.middleware.model.tasking.StartUpdatesCommand\"^^xsd:string .\n"
 			+ "protocol:AgentSpec rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentSpec\"^^xsd:string .\n"
 			+ "protocol:AgentAddress rdfbeans:bindingClass \"org.aimas.consert.middleware.model.AgentAddress\"^^xsd:string .\n"
 			+ "hlatest:Position rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.Position\"^^xsd:string .\n"

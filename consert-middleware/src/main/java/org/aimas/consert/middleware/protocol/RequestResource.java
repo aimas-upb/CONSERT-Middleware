@@ -1,11 +1,14 @@
 package org.aimas.consert.middleware.protocol;
 
 import java.net.URI;
+import java.util.List;
 
 import org.aimas.consert.middleware.model.RDFObject;
 import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Bean class for resource containing required information to make stateless REST calls
@@ -19,7 +22,7 @@ public class RequestResource extends RDFObject {
 	private URI participantURI; // URI to use for communications with the participant agent
 
 	private String request; // content of the request
-	private String result; // content of the result of the request
+	private List<BindingSet> result; // content of the result of the request
 
 	private URI initiatorCallbackURI; // URI to use for the callback on the initiator
 	private RequestState state; // current state in the protocol
@@ -62,12 +65,43 @@ public class RequestResource extends RDFObject {
 	}
 
 	@RDF("protocol:hasResult")
-	public String getResult() {
-		return result;
+	public String getStringResult() {
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for(BindingSet res : this.result) {
+			for(Binding b : res) {
+				sb.append(b.getName() + " = " + b.getValue().stringValue() + "\n");
+			}
+		}
+		
+		return sb.toString();
 	}
-
-	public void setResult(String result) {
+	
+	public List<BindingSet> getResult() {
+		return this.result;
+	}
+	
+	public void setResult(List<BindingSet> result) {
 		this.result = result;
+	}
+	
+	public boolean hasResultChanged(List<BindingSet> other) {
+		
+		// First we compare the size of the two sets of results
+		if(this.result.size() != other.size()) {
+			return true;
+		}
+		
+		// If the two sets have the same size, we compare the elements
+		for(BindingSet bsThis : this.result) {
+			
+			if(!other.contains(bsThis)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	@RDF("protocol:hasInitiatorCallbackURI")

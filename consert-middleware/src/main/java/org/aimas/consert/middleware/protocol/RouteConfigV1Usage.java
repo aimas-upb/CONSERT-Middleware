@@ -128,11 +128,11 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 	}
 	
 	/**
-	 * PUT notify subscription update
+	 * POST query result ready
 	 * 
 	 * @param rtCtx the routing context
 	 */
-	public void handleSubsUpdate(RoutingContext rtCtx) {
+	public void handleResultReady(RoutingContext rtCtx) {
 		
 		// Initialization
 		String resourceUUID = rtCtx.request().getParam("id");
@@ -148,10 +148,10 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 
 					@Override
 					public void handle(Buffer buffer) {
-						System.out.println("received update nofitification for resource " + buffer.toString());
+						System.out.println("received result notification for resource " + buffer.toString());
 					}
 				});
 			}
-		});
+		}).end();
 	}
 }
