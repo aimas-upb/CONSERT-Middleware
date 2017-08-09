@@ -32,6 +32,37 @@ public class MiddlewareAPI {
 
 		String result = "";
 		Future<Void> future = Future.future();
+		
+		// Send the query
+		MiddlewareAPI.queryContext(query, new Handler<Buffer>() {
+
+			@Override
+			public void handle(Buffer buffer) {
+		
+				result.concat(buffer.toString());
+				future.complete();
+			}
+		});
+		
+		// Wait for the result before returning it
+		while(!future.isComplete()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Sends a query to the CONSERT Engine in asynchronous mode
+	 * @param query the query to be executed by the engine
+	 * @param handler the handler to execute when the result of the query is received
+	 */
+	public static void queryContext(String query, Handler<Buffer> handler) {
+		
 		AgentConfig engineConfig = null;
 		
 		// Read the configuration to get the address of the engine
@@ -48,34 +79,15 @@ public class MiddlewareAPI {
 		
 		// Send the query
 		HttpClient client = Vertx.vertx().createHttpClient();
+		
 		client.get(engineConfig.getPort(), engineConfig.getAddress(), MiddlewareAPI.ANSWER_QUERY_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 					@Override
-					public void handle(HttpClientResponse event) {
-						
-						event.bodyHandler(new Handler<Buffer>() {
-
-							@Override
-							public void handle(Buffer buffer) {
-
-								result.concat(buffer.toString());
-								future.complete();
-							}
-						});
+					public void handle(HttpClientResponse resp) {
+						resp.bodyHandler(handler);
 					}
 			
 		}).end(query);
-		
-		// Wait for the result before returning it
-		while(!future.isComplete()) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return result;
 	}
 }
