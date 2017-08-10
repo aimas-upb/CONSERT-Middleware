@@ -9,8 +9,7 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class RouteConfigV1Management extends RouteConfigV1 {
 
-	private OrgMgr orgMgr; // the agent that can be accessed with the defined
-							// routes
+	private OrgMgr orgMgr; // the agent that can be accessed with the defined routes
 
 	public RouteConfigV1Management(OrgMgr orgMgr) {
 		this.orgMgr = orgMgr;

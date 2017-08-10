@@ -10,7 +10,6 @@ import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
-import org.aimas.consert.model.content.ContextAssertion;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -21,10 +20,7 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.Router;
 
 /**

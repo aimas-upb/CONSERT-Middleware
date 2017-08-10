@@ -45,8 +45,6 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
 	private CtxQueryHandler ctxQueryHandler; // the agent that can be accessed with the defined routes
 	
-	private HttpClient client;  // the client to use for communications with other agents
-	
 	private AgentConfig engineConfig;
 	
 	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
