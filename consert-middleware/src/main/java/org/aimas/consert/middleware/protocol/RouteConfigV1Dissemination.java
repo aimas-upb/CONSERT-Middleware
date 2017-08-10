@@ -57,6 +57,8 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		this.convRepo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
+		
+		this.client = this.ctxQueryHandler.getVertx().createHttpClient();
 	}
 
 	/**
@@ -75,10 +77,8 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxQuery(RoutingContext rtCtx) {
 		
-		HttpClient client = this.ctxQueryHandler.getVertx().createHttpClient();
-		
 		// Send the query to the engine
-		client.get(this.engineConfig.getPort(), this.engineConfig.getAddress(), this.ANSWER_QUERY_ROUTE,
+		this.client.get(this.engineConfig.getPort(), this.engineConfig.getAddress(), this.ANSWER_QUERY_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 			@Override
@@ -89,7 +89,10 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 					@Override
 					public void handle(Buffer buffer) {
 						
-						rtCtx.response().setStatusCode(resp.statusCode()).putHeader("content-type", "text/turtle")
+						// Short-lasting queries
+						
+						// Send the results
+						rtCtx.response().setStatusCode(resp.statusCode()).putHeader("content-type", "text/plain")
 							.end(buffer.toString());
 					}
 				});
@@ -124,13 +127,16 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 				
 				Statement s = assertionsStatements.next();
 				
-				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscriptionRequest"))
-				try {
+				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#"
+						+ "ContextSubscriptionRequest")) {
 					
-					csr = (ContextSubscriptionRequest) manager.get(s.getSubject(), ContextSubscriptionRequest.class);
-					
-				} catch(ClassCastException e) {
-					continue;
+					try {
+						
+						csr = (ContextSubscriptionRequest) manager.get(s.getSubject(), ContextSubscriptionRequest.class);
+						
+					} catch(ClassCastException e) {
+						continue;
+					}
 				}
 			}
 	
