@@ -129,13 +129,16 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 				
 				Statement s = assertionsStatements.next();
 				
-				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscriptionRequest"))
-				try {
+				if(s.getObject().stringValue().equals("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#"
+						+ "ContextSubscriptionRequest")) {
 					
-					csr = (ContextSubscriptionRequest) manager.get(s.getSubject(), ContextSubscriptionRequest.class);
-					
-				} catch(ClassCastException e) {
-					continue;
+					try {
+						
+						csr = (ContextSubscriptionRequest) manager.get(s.getSubject(), ContextSubscriptionRequest.class);
+						
+					} catch(ClassCastException e) {
+						continue;
+					}
 				}
 			}
 	

@@ -2,9 +2,15 @@ package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
+import org.aimas.consert.middleware.api.MiddlewareAPI;
+import org.aimas.consert.middleware.model.AgentAddress;
+import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.model.annotations.ContextAnnotation;
 import org.aimas.consert.model.annotations.DatetimeInterval;
@@ -375,5 +381,32 @@ public class AssertionCapabilityRoutesTest {
 								}).end();
 					}
 				}).end();
+	}
+
+	@Test
+	public void testAPI(TestContext context) {
+
+		Async asyncPost = context.async();
+		this.post(context, asyncPost, this.postQuery);
+		asyncPost.await();
+		
+		List<String> agents = new ArrayList<String>();
+		agents.add("CtxSensor1");
+		
+		List<AgentSpec> expected = new ArrayList<AgentSpec>();
+		AgentSpec ctxSensor = new AgentSpec();
+		ctxSensor.setIdentifier("CtxSensor1");
+		ctxSensor.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxSensor");
+		
+		AgentAddress address = new AgentAddress();
+		address.setPort(8080);
+		address.setIpAddress("127.0.0.1");
+		
+		ctxSensor.setAddress(address);
+		expected.add(ctxSensor);
+
+		List<AgentSpec> res = MiddlewareAPI.listProviders(URI.create("http://example.org/hlatest/LLA"), agents);
+		
+		context.assertEquals(expected, res);
 	}
 }
