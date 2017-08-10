@@ -52,12 +52,19 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			+ RouteConfig.ENGINE_ROUTE + "/insert_event/";
 	
 	private HttpClient client; // the client to use for communications with CONSERT Engine
+	
+	private Repository convRepo;  // repository used to convert RDF statements and Java objects
+	private RepositoryConnection convRepoConn;  // connection to the conversion repository
 
 	public RouteConfigV1Coordination(CtxCoord ctxCoord) {
 		this.ctxCoord = ctxCoord;
 		this.engineConfig = this.ctxCoord.getConsertEngineConfig();
 		
 		this.client = this.ctxCoord.getVertx().createHttpClient();
+		
+		this.convRepo = new SailRepository(new MemoryStore());
+		this.convRepo.initialize();
+		this.convRepoConn = this.convRepo.getConnection();
 	}
 
 	/**
@@ -98,6 +105,8 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
 		writer.startRDF();
+		
+		RDFBeanManager convManager = new RDFBeanManager(this.convRepoConn); 
 
 		// For each AssertionCapability from CtxCoord, fetch the AgentSpec
 		// provider.
@@ -112,16 +121,17 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 
 				try {
 
-					// Get all the statements corresponding to the
-					// AssertionCapability (as the subject)
-					Resource acRes = manager.getResource(ac.getId(), AssertionCapability.class);
-
-					RepositoryResult<Statement> iter = conn.getStatements(acRes, null, null);
+					// Get all the statements corresponding to the AssertionCapability (as the subject)					
+					convManager.add(ac);
+					RepositoryResult<Statement> iter = this.convRepoConn.getStatements(null, null, null);
+					
 
 					// Write all the statements
 					while (iter.hasNext()) {
 						writer.handleStatement(iter.next());
 					}
+					
+					this.convRepoConn.clear();
 
 				} catch (RepositoryException | RDFBeanException e) {
 
