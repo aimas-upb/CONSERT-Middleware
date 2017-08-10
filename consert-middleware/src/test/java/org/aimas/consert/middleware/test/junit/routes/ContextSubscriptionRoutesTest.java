@@ -1,9 +1,15 @@
 package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.api.MiddlewareAPI;
+import org.aimas.consert.middleware.model.AgentAddress;
+import org.aimas.consert.middleware.model.AgentSpec;
+import org.aimas.consert.middleware.model.ContextSubscription;
+import org.aimas.consert.middleware.protocol.ContextSubscriptionRequest;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -260,6 +266,62 @@ public class ContextSubscriptionRoutesTest {
 										async.complete();
 									}
 								}).end();
+					}
+				}).end();
+	}
+
+	@Test
+	public void testAPI(TestContext context) {
+
+		ContextSubscriptionRequest request = new ContextSubscriptionRequest();
+		request.setInitiatorURI(URI.create("http://initiator-uri.org"));
+		request.setInitiatorCallbackURI(URI.create("http://initiator-callback-uri.org"));
+		
+		ContextSubscription subscription = new ContextSubscription();
+		subscription.setSubscriptionQuery("the subscription query");
+		subscription.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/foo");
+		
+		AgentSpec ctxUser = new AgentSpec();
+		ctxUser.setIdentifier("CtxUser1");
+		
+		AgentAddress ctxUserAddr = new AgentAddress();
+		ctxUserAddr.setIpAddress("127.0.0.1");
+		ctxUserAddr.setPort(8081);
+		
+		ctxUser.setAddress(ctxUserAddr);
+		subscription.setSubscriber(ctxUser);
+		request.setContextSubscription(subscription);
+		
+		this.resourceUUID = MiddlewareAPI.subscribeContextUpdates(request).toString();
+
+		Async async = context.async();
+
+		// GET one
+
+		this.httpClient.get(ctxQueryHandler.getPort(), ctxQueryHandler.getAddress(),
+				"/api/v1/dissemination/context_subscriptions/" + this.resourceUUID + "/",
+				new Handler<HttpClientResponse>() {
+
+					@Override
+					public void handle(HttpClientResponse resp) {
+
+						if (resp.statusCode() != 200) {
+							context.fail("Failed to get ContextSubscription");
+							async.complete();
+						}
+
+						resp.bodyHandler(new Handler<Buffer>() {
+
+							@Override
+							public void handle(Buffer buffer) {
+
+								System.out.println("result: " + buffer);
+								
+								context.assertTrue(buffer.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
+										"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/foo>"));
+								async.complete();
+							}
+						});
 					}
 				}).end();
 	}

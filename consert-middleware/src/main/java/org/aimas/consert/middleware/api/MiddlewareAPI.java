@@ -17,9 +17,11 @@ import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -62,7 +64,7 @@ public class MiddlewareAPI {
 				
 				Configuration config = new PropertiesConfiguration(MiddlewareAPI.CONFIG_FILE);
 				MiddlewareAPI.engineConfig = AgentConfig.readConsertEngineConfig(config);
-				MiddlewareAPI.ctxQueryHandlerConfig = AgentConfig.readConsertEngineConfig(config);
+				MiddlewareAPI.ctxQueryHandlerConfig = AgentConfig.readCtxQueryHandlerConfig(config);
 				
 			} catch (ConfigurationException e) {
 				
@@ -70,6 +72,7 @@ public class MiddlewareAPI {
 				e.printStackTrace();
 			}
 
+			MiddlewareAPI.convRepo = new SailRepository(new MemoryStore());
 			MiddlewareAPI.convRepo.initialize();
 			MiddlewareAPI.convRepoConn = MiddlewareAPI.convRepo.getConnection();
 			MiddlewareAPI.convManager = new RDFBeanManager(MiddlewareAPI.convRepoConn);
@@ -86,7 +89,7 @@ public class MiddlewareAPI {
 	 */
 	public static String queryContext(String query) {
 
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		Future<Void> future = Future.future();
 		
 		MiddlewareAPI.init();
@@ -97,7 +100,7 @@ public class MiddlewareAPI {
 			@Override
 			public void handle(Buffer buffer) {
 		
-				result.concat(buffer.toString());
+				result.append(buffer.toString());
 				future.complete();
 			}
 		});
@@ -111,7 +114,7 @@ public class MiddlewareAPI {
 			}
 		}
 		
-		return result;
+		return result.toString();
 	}
 	
 	/**
@@ -144,7 +147,7 @@ public class MiddlewareAPI {
 	public static UUID subscribeContextUpdates(ContextSubscriptionRequest request) {
 		
 		MiddlewareAPI.init();
-		String uuid = "";
+		StringBuilder uuid = new StringBuilder();
 		Future<Void> future = Future.future();
 		
 		// Convert the ContextSubscriptionRequest Java object to RDF statements
@@ -183,9 +186,10 @@ public class MiddlewareAPI {
 							public void handle(Buffer buffer) {
 								
 								if(resp.statusCode() == 201) {
-									uuid.concat(buffer.toString());
-									future.complete();
+									uuid.append(buffer.toString());
 								}
+								
+								future.complete();
 							}
 						});
 					}
@@ -201,6 +205,6 @@ public class MiddlewareAPI {
 			}
 		}
 		
-		return UUID.fromString(uuid);
+		return UUID.fromString(uuid.toString());
 	}
 }
