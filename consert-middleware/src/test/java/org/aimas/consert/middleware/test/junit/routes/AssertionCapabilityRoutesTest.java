@@ -9,6 +9,7 @@ import java.util.List;
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.api.MiddlewareAPI;
+import org.aimas.consert.middleware.api.MiddlewareAPIImpl;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
@@ -405,7 +406,8 @@ public class AssertionCapabilityRoutesTest {
 		ctxSensor.setAddress(address);
 		expected.add(ctxSensor);
 
-		List<AgentSpec> res = MiddlewareAPI.listProviders(URI.create("http://example.org/hlatest/LLA"), agents);
+		MiddlewareAPI api = new MiddlewareAPIImpl();
+		List<AgentSpec> res = api.listProviders(URI.create("http://example.org/hlatest/LLA"), agents);
 		
 		context.assertEquals(expected, res);
 	}
