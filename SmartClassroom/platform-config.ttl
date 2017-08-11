@@ -1,0 +1,33 @@
+# baseURI: http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/platform-config
+# imports: http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf
+
+@prefix : <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/platform-config#> .
+@prefix orgconf: <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix person: <http://pervasive.semanticweb.org/ont/2004/06/person#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix smartclassroom: <http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/core#> .
+@prefix space: <http://pervasive.semanticweb.org/ont/2004/06/space#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/platform-config>
+  rdf:type owl:Ontology ;
+  owl:imports <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf> ;
+  owl:versionInfo "Created with TopBraid Composer"^^xsd:string ;
+.
+:Container_EF210
+  rdf:type orgconf:AgentContainer ;
+  orgconf:containerHost "localhost"^^xsd:string ;
+  orgconf:containerPort 1099 ;
+  orgconf:hasMTPHost "localhost"^^xsd:string ;
+  orgconf:hasMTPPort 7778 ;
+  orgconf:isMainContainer "true"^^xsd:boolean ;
+  orgconf:platformName "EF210"^^xsd:string ;
+  rdfs:label "Container_EF210"^^xsd:string ;
+.
+:SmartClassroomPlatformSpec
+  rdf:type orgconf:PlatformSpec ;
+  orgconf:hasAgentContainer :Container_EF210 ;
+  rdfs:label "SmartClassroomPlatformSpec"^^xsd:string ;
+.
