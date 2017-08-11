@@ -6,6 +6,7 @@ import java.net.URI;
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
 import org.aimas.consert.middleware.api.MiddlewareAPI;
+import org.aimas.consert.middleware.api.MiddlewareAPIImpl;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.ContextSubscription;
@@ -292,7 +293,8 @@ public class ContextSubscriptionRoutesTest {
 		subscription.setSubscriber(ctxUser);
 		request.setContextSubscription(subscription);
 		
-		this.resourceUUID = MiddlewareAPI.subscribeContextUpdates(request).toString();
+		MiddlewareAPI api = new MiddlewareAPIImpl();
+		this.resourceUUID = api.subscribeContextUpdates(request).toString();
 
 		Async async = context.async();
 
