@@ -1,40 +1,47 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.agent.AgentType;
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import org.cyberborean.rdfbeans.annotations.RDF;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Resource;
-
-
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:AgentSpec")
 public class AgentSpecification {
+	
 	protected AgentAddress agentAddress;
 	protected AgentAddress assignedManagerAddress;
 	protected AgentPolicy controlPolicy;
-	protected AgentType agentType;
 	
-	public AgentSpecification(AgentAddress agentAddress, AgentType agentType, AgentPolicy controlPolicy, 
+	
+	public AgentSpecification() {}
+	
+	public AgentSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
 			AgentAddress assignedManagerAddress) {
 	    this.agentAddress = agentAddress;
-	    this.agentType = agentType;
 	    this.controlPolicy = controlPolicy;
 	    this.assignedManagerAddress = assignedManagerAddress;
     }
 	
+	@RDF("orgconf:hasAgentAddress")
 	public AgentAddress getAgentAddress() {
 		return agentAddress;
+	}
+	
+	public void setAgentAddress(AgentAddress agentAddress) {
+		this.agentAddress = agentAddress;
 	}
 	
 	public String getAgentLocalName() {
 		return agentAddress.getLocalName();
 	}
 	
-	public String getAgentName() {
-		return agentAddress.getAID().getName();
-	}
-	
+	@RDF("orgconf:hasControlPolicy")
 	public AgentPolicy getControlPolicy() {
 		return controlPolicy;
+	}
+	
+	public void setControlPolicy(AgentPolicy controlPolicy) {
+		this.controlPolicy = controlPolicy;
 	}
 	
 	public boolean hasControlPolicy() {
@@ -49,28 +56,9 @@ public class AgentSpecification {
 		return assignedManagerAddress != null;
 	}
 	
-	public static AgentAddress getAddressFromConfig(OntModel cmmConfigModel, Resource agentSpec) {
-		AgentAddress agentAddress = AgentAddress.fromConfigurationModel(cmmConfigModel, 
-				agentSpec.getPropertyResourceValue(OrgConf.hasAgentAddress));
-		
-		return agentAddress;
-	}
-	
-	
-	public static AgentPolicy getPolicyFromConfig(OntModel cmmConfigModel, Resource agentSpec) {
-		AgentPolicy controlPolicy = AgentPolicy.fromConfigurationModel(cmmConfigModel, 
-				agentSpec.getPropertyResourceValue(OrgConf.hasControlPolicy));
-		
-		return controlPolicy;
-	}
-	
-	public AgentType getType() {
-		return agentType;
-	}
-	
 	@Override
     public int hashCode() {
-	    return agentAddress.getAID().hashCode();
+	    return agentAddress.hashCode();
     }
 	
 	@Override

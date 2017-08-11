@@ -1,29 +1,28 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import org.cyberborean.rdfbeans.annotations.RDF;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.RDF;
-
-
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:PlatformSpec")
 public class PlatformSpecification {
+	
 	private CMMAgentContainer platformAgentContainer;
+	
+	
+	public PlatformSpecification() {}
 	
 	public PlatformSpecification(CMMAgentContainer platformAgentContainer) {
 	    this.platformAgentContainer = platformAgentContainer;
     }
 	
+	@RDF("orgconf:hasAgentContainer")
 	public CMMAgentContainer getPlatformAgentContainer() {
 		return platformAgentContainer;
 	}
 	
-	public static PlatformSpecification fromConfigurationModel(OntModel platformConfigModel) {
-		Resource platformSpec = platformConfigModel.listResourcesWithProperty(RDF.type, OrgConf.PlatformSpec).next();
-		
-		CMMAgentContainer platformAgentContainer = CMMAgentContainer.fromConfigurationModel(platformConfigModel, 
-				platformSpec.getPropertyResourceValue(OrgConf.hasAgentContainer));
-		
-		return new PlatformSpecification(platformAgentContainer);
+	public void setPlatformAgentContainer(CMMAgentContainer platformAgentContainer) {
+		this.platformAgentContainer = platformAgentContainer;
 	}
 }

@@ -1,25 +1,31 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import java.net.URI;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
+import org.aimas.consert.model.content.ContextEntity;
+import org.cyberborean.rdfbeans.annotations.RDF;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:ContextDomain")
 public class ContextDomainSpecification {
-	private Resource domainDimension;
-	private Resource domainRangeEntity;
-	private Resource domainRangeValue;
 	
-	private Property domainHierarchyProperty;
+	private URI contextDimension;
+	private URI domainRangeEntity;
+	private ContextEntity domainRangeValue;
+	
+	private URI domainHierarchyProperty;
 	private String domainHierarchyDocument;
 	
 	private ContextModelDefinition domainModelDefinition;
+	
+	
+	public ContextDomainSpecification() {}
 
-	public ContextDomainSpecification(Resource domainDimension, Resource domainEntity,
-            Resource domainValue, ContextModelDefinition domainModelDefinition) {
-	    this.domainDimension = domainDimension;
+	public ContextDomainSpecification(URI contextDimension, URI domainEntity,
+            ContextEntity domainValue, ContextModelDefinition domainModelDefinition) {
+	    this.contextDimension = contextDimension;
 	    this.domainRangeEntity = domainEntity;
 	    this.domainRangeValue = domainValue;
 	    this.domainModelDefinition = domainModelDefinition;
@@ -29,35 +35,51 @@ public class ContextDomainSpecification {
 	    this(null, null, null, domainModelDefinition);
     }
 
-	public Resource getDomainDimension() {
-		return domainDimension;
+	@RDF("orgconf:hasContextDimension")
+	public URI getContextDimension() {
+		return contextDimension;
+	}
+	
+	public void setContextDimension(URI contextDimension) {
+		this.contextDimension = contextDimension;
 	}
 	
 	public boolean hasDomainDimension() {
-		return domainDimension != null;
+		return contextDimension != null;
 	}
 
-	public Resource getDomainEntity() {
+	@RDF("orgconf:hasDomainRangeEntity")
+	public URI getDomainEntity() {
 		return domainRangeEntity;
+	}
+	
+	public void setDomainEntity(URI domainRangeEntity) {
+		this.domainRangeEntity = domainRangeEntity;
 	}
 	
 	public boolean hasDomainEntity() {
 		return domainRangeEntity != null;
 	}
 
-	public Resource getDomainValue() {
+	@RDF("orgconf:hasDomainRangeValue")
+	public ContextEntity getDomainValue() {
 		return domainRangeValue;
+	}
+	
+	public void setDomainValue(ContextEntity domainRangeValue) {
+		this.domainRangeValue = domainRangeValue;
 	}
 	
 	public boolean hasDomainValue() {
 		return domainRangeValue != null;
 	}
 	
-	public Property getDomainHierarchyProperty() {
+	@RDF("orgconf:hasDomainhierarchyProperty")
+	public URI getDomainHierarchyProperty() {
 		return domainHierarchyProperty;
 	}
 	
-	public void setDomainHierarchyProperty(Property domainHierarchyProperty) {
+	public void setDomainHierarchyProperty(URI domainHierarchyProperty) {
 		this.domainHierarchyProperty = domainHierarchyProperty;
 	}
 	
@@ -65,6 +87,7 @@ public class ContextDomainSpecification {
 		return domainHierarchyProperty != null && domainHierarchyDocument != null;
 	}
 	
+	@RDF("orgconf:hasDomainHierarchyDocument")
 	public String getDomainHierarchyDocument() {
 		return domainHierarchyDocument;
 	}
@@ -77,49 +100,8 @@ public class ContextDomainSpecification {
 		return domainModelDefinition != null;
 	}
 	
+	@RDF("orgconf:hasContextModel")
 	public ContextModelDefinition getDomainContextModelDefinition() {
 		return domainModelDefinition;
-	}
-	
-	
-	public static ContextDomainSpecification fromConfigurationModel(OntModel cmmConfigModel, Resource contextDomainResource) {
-		Statement domainDimensionStmt = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasDomainDimension);
-		Statement domainRangeEntityStmt = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasDomainRangeEntity);
-		Statement domainRangeValueStmt = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasDomainRangeValue);
-		
-		Resource domainDimension = domainDimensionStmt != null ? domainDimensionStmt.getResource() : null;
-		Resource domainRangeEntity = domainRangeEntityStmt != null ? domainRangeEntityStmt.getResource() : null;
-		Resource domainRangeValue = domainRangeValueStmt != null ? domainRangeValueStmt.getResource() : null;
-		
-		Statement domainHierarchyPropertyStmt = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasDomainHierarchyProperty);
-		Property domainHierarchyProperty = domainHierarchyPropertyStmt != null ? domainHierarchyPropertyStmt.getResource().as(Property.class) : null;
-		
-		Statement domainHierarchyDocumentStmt = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasDomainHierarchyDocument);
-		String domainHierarchyDocument = domainHierarchyDocumentStmt != null ? getFileOrURI(domainHierarchyDocumentStmt.getResource()) : null;
-		
-		Statement domainModelStmt = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasContextModel);
-		ContextModelDefinition contextModelDefinition = null;
-		if (domainModelStmt != null) {
-			Resource domainModelRes = cmmConfigModel.getProperty(contextDomainResource, OrgConf.hasContextModel).getResource();
-			contextModelDefinition = ContextModelDefinition.fromConfigurationModel(cmmConfigModel, domainModelRes);
-		}
-		
-		ContextDomainSpecification contextDomainSpecification = new ContextDomainSpecification(domainDimension, domainRangeEntity, domainRangeValue, 
-				contextModelDefinition);
-		contextDomainSpecification.setDomainHierarchyProperty(domainHierarchyProperty);
-		contextDomainSpecification.setDomainHierarchyDocument(domainHierarchyDocument);
-		
-		return contextDomainSpecification;
-	}
-	
-	private static String getFileOrURI(Resource documentRes) {
-		Statement docFileStmt = documentRes.getProperty(OrgConf.documentPath);
-		if (docFileStmt != null) {
-			return docFileStmt.getString();
-		}
-		else {
-			docFileStmt = documentRes.getProperty(OrgConf.documentURI);
-			return docFileStmt.getString();
-		}
 	}
 }

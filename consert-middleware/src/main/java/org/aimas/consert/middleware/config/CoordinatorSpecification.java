@@ -1,27 +1,17 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.agent.AgentType;
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Resource;
-
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:CtxCoordSpec")
 public class CoordinatorSpecification extends AgentSpecification {
+	
+	public CoordinatorSpecification() {}
 	
 	public CoordinatorSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
 			AgentAddress assignedManagerAddress) {
 	    
-		super(agentAddress, AgentType.CTX_COORD, controlPolicy, assignedManagerAddress);
+		super(agentAddress, controlPolicy, assignedManagerAddress);
     }
-	
-	
-	public static CoordinatorSpecification fromConfigurationModel(OntModel cmmConfigModel, Resource coordSpec) {
-		AgentAddress agentAddress = AgentSpecification.getAddressFromConfig(cmmConfigModel, coordSpec);
-		AgentPolicy controlPolicy = AgentSpecification.getPolicyFromConfig(cmmConfigModel, coordSpec);
-		
-		AgentAddress managerAddress = AgentAddress.fromConfigurationModel(cmmConfigModel, 
-			coordSpec.getPropertyResourceValue(OrgConf.assignedOrgManager));	
-		
-		return new CoordinatorSpecification(agentAddress, controlPolicy, managerAddress);
-	}
 }

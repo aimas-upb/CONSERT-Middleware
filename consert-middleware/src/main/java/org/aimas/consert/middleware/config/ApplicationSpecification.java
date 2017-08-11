@@ -1,27 +1,19 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import org.cyberborean.rdfbeans.annotations.RDF;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.RDF;
-
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:ApplicationSpec")
 public class ApplicationSpecification {
-	public static enum DeploymentType {
-		CentralizedLocal, DecentralizedHierarchical;
-		
-		public static DeploymentType getFromResource(Resource typeResource) {
-			if (typeResource.equals(OrgConf.DecentralizedHierarchical)) {
-				return DecentralizedHierarchical;
-			}
-			
-			return CentralizedLocal;
-		}
-	}
 	
 	private String appIdentifier;
 	private DeploymentType appDeploymentType;
 	private ContextDomainSpecification localContextDomain;
+	
+	
+	public ApplicationSpecification() {}
 	
 	public ApplicationSpecification(String appIdentifier, DeploymentType appDeploymentType, ContextDomainSpecification localContextDomain) {
 	    this.appIdentifier = appIdentifier;
@@ -29,27 +21,30 @@ public class ApplicationSpecification {
 	    this.localContextDomain = localContextDomain;
     }
 
+	@RDF("orgconf:appIdentificationName")
 	public String getAppIdentifier() {
 		return appIdentifier;
 	}
+	
+	public void setAppIdentifier(String appIdentifier) {
+		this.appIdentifier = appIdentifier;
+	}
 
+	@RDF("orgconf:appDeploymentType")
 	public DeploymentType getAppDeploymentType() {
 		return appDeploymentType;
 	}
+	
+	public void setAppDeploymentType(DeploymentType appDeploymentType) {
+		this.appDeploymentType = appDeploymentType;
+	}
 
+	@RDF("orgconf:hasContextDomain")
 	public ContextDomainSpecification getLocalContextDomain() {
 		return localContextDomain;
 	}
 	
-	
-	public static ApplicationSpecification fromConfigurationModel(OntModel cmmConfigModel) {
-		Resource appSpec = cmmConfigModel.listResourcesWithProperty(RDF.type, OrgConf.ApplicationSpec).next();
-		
-		String appIdentifier = appSpec.getProperty(OrgConf.appIdentificationName).getString();
-		DeploymentType appDeploymentType = DeploymentType.getFromResource(appSpec.getPropertyResourceValue(OrgConf.appDeploymentType));
-		ContextDomainSpecification localContextDomain = ContextDomainSpecification.fromConfigurationModel(cmmConfigModel, 
-				appSpec.getPropertyResourceValue(OrgConf.hasContextDomain));
-		
-		return new ApplicationSpecification(appIdentifier, appDeploymentType, localContextDomain);
+	public void setLocalContextDomain(ContextDomainSpecification localContextDomain) {
+		this.localContextDomain = localContextDomain;
 	}
 }
