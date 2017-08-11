@@ -39,8 +39,7 @@ public interface MiddlewareAPI {
 	/**
 	 * Gives a list of providers for a specific context assertion type
 	 * @param ctxAssert the URI of the context assertion type
-	 * @param providersIdentifiers the identifiers of all the providers
 	 * @return a list of the agents that are able to provide the given context assertions
 	 */
-	public List<AgentSpec> listProviders(URI ctxAssert, List<String> providersIdentifiers);
+	public List<AgentSpec> listProviders(URI ctxAssert);
 }

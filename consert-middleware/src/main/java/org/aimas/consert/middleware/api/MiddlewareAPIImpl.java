@@ -224,79 +224,80 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 	}
 	
 	@Override
-	public List<AgentSpec> listProviders(URI ctxAssert, List<String> providersIdentifiers) {
+	public List<AgentSpec> listProviders(URI ctxAssert) {
 		
 		List<AgentSpec> providers = new ArrayList<AgentSpec>();
+		Future<Void> future = Future.future();
 		
-		// Get all the assertion capabilities from each provider
-		for(String id : providersIdentifiers) {
-			
-			Future<Void> future = Future.future();
-			
-			this.client.get(this.ctxCoordConfig.getPort(), this.ctxCoordConfig.getAddress(),
-					MiddlewareAPIImpl.ASSERTION_CAPABILITIES_ROUTE + "?agentIdentifier=" + id,
-					new Handler<HttpClientResponse>() {
-	
-				@Override
-				public void handle(HttpClientResponse resp) {
-	
-					resp.bodyHandler(new Handler<Buffer>() {
-	
-						@Override
-						public void handle(Buffer buffer) {
-	
-							try {
+		// Get all the assertion capabilities
+		
+		this.client.get(this.ctxCoordConfig.getPort(), this.ctxCoordConfig.getAddress(),
+				MiddlewareAPIImpl.ASSERTION_CAPABILITIES_ROUTE, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+
+						try {
+							
+							// Convert the received RDF statements to Java objects
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+									RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							RepositoryResult<Statement> statements = convRepoConn
+									.getStatements(null, MiddlewareAPIImpl.RDF_TYPE,
+											MiddlewareAPIImpl.ASSERTION_CAPABILITY_IRI);
+							
+							while(statements.hasNext()) {
 								
-								// Convert the received RDF statements to Java objects
-								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
-										RDFFormat.TURTLE);
-								convRepoConn.add(model);
-								
-								RepositoryResult<Statement> statements = convRepoConn
-										.getStatements(null, MiddlewareAPIImpl.RDF_TYPE,
-												MiddlewareAPIImpl.ASSERTION_CAPABILITY_IRI);
-								
-								while(statements.hasNext()) {
+								Statement s = statements.next();
 									
-									Statement s = statements.next();
-										
-									AssertionCapability ac = convManager.get(s.getSubject(),
-											AssertionCapability.class);
+								AssertionCapability ac = convManager.get(s.getSubject(),
+										AssertionCapability.class);
+								
+								// If the assertion capability is for the requested context assertion,
+								// store its provider to return it at the end of the method
+								if(ac.getContent().equals(ctxAssert)) {
 									
-									// If the assertion capability is for the requested context assertion,
-									// store its provider to return it at the end of the method
-									if(ac.getContent().equals(ctxAssert)) {
-										
-										providers.add(ac.getProvider());
-									}
+									providers.add(ac.getProvider());
 								}
-								
-							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
-								System.err.println("Error while converting RDF statements to Java objects: "
-										+ e.getMessage());
-								e.printStackTrace();
 							}
 							
-							synchronized(future) {
-								future.complete();
-								future.notify();
-							}
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while converting RDF statements to Java objects: "
+									+ e.getMessage());
+							e.printStackTrace();
 						}
-					});
-				}
-			}).end();
-			
-			// Wait for the result before continuing
-			try {
-				synchronized(future) {
-					future.wait(10000);
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				return null;
+						
+						synchronized(future) {
+							future.complete();
+							future.notify();
+						}
+					}
+				});
 			}
+		}).end();
+		
+		// Wait for the result before returning it
+		try {
+			synchronized(future) {
+				future.wait(10000);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
 		}
 		
-		return providers;
+		if (future.isComplete()) {
+			return providers;
+		}
+		else {
+			return null;
+		}
 	}
 }

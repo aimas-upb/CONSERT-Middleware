@@ -391,9 +391,6 @@ public class AssertionCapabilityRoutesTest {
 		this.post(context, asyncPost, this.postQuery);
 		asyncPost.await();
 		
-		List<String> agents = new ArrayList<String>();
-		agents.add("CtxSensor1");
-		
 		List<AgentSpec> expected = new ArrayList<AgentSpec>();
 		AgentSpec ctxSensor = new AgentSpec();
 		ctxSensor.setIdentifier("CtxSensor1");
@@ -407,7 +404,7 @@ public class AssertionCapabilityRoutesTest {
 		expected.add(ctxSensor);
 
 		MiddlewareAPI api = new MiddlewareAPIImpl();
-		List<AgentSpec> res = api.listProviders(URI.create("http://example.org/hlatest/LLA"), agents);
+		List<AgentSpec> res = api.listProviders(URI.create("http://example.org/hlatest/LLA"));
 		
 		context.assertEquals(expected, res);
 	}
