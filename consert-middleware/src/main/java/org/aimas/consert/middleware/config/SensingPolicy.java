@@ -1,16 +1,22 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import java.net.URI;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Resource;
+import org.cyberborean.rdfbeans.annotations.RDF;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:CtxSensorPolicy")
 public class SensingPolicy extends AgentPolicy {
 	
-	private Resource contextAssertionRes;
+	private URI contextAssertionRes;
 	private String assertionAdaptorClass;
 	
-	public SensingPolicy(String fileNameOrURI, Resource contextAssertion, String assertionAdaptorClass) {
+	
+	public SensingPolicy() {}
+	
+	public SensingPolicy(String fileNameOrURI, URI contextAssertion, String assertionAdaptorClass) {
 		super(fileNameOrURI);
 		
 		this.contextAssertionRes = contextAssertion;
@@ -18,36 +24,27 @@ public class SensingPolicy extends AgentPolicy {
 	}
 
 	/**
-	 * @return The {@link Resource} defining the ContextAssertion for which this SensorPolicy is set
+	 * @return The {@link URI} defining the ContextAssertion for which this SensorPolicy is set
 	 */
-    public Resource getContextAssertionRes() {
+	@RDF("orgconf:forContextAssertion")
+    public URI getContextAssertionRes() {
 	    return contextAssertionRes;
     }
+	
+	public void setContextAssertionRes(URI contextAssertionRes) {
+		this.contextAssertionRes = contextAssertionRes;
+	}
 
 	/**
 	 * @return The implementation class for the SensorAdaptor service which interfaces with the underlying
 	 * sensor management middleware in order to generate ContextAssertion data and handle TASKING commands.
 	 */
+	@RDF("orgconf:usesAssertionAdaptor")
     public String getAssertionAdaptorClass() {
 	    return assertionAdaptorClass;
     }
-    
-    
-    public static SensingPolicy fromConfigurationModel(OntModel cmmConfigModel, Resource policyResource) {
-    	if (policyResource == null)
-    		return null;
-    	
-    	String documentSource = AgentPolicy.getDocumentSource(cmmConfigModel, policyResource);
-    	
-    	Resource contextAssertionRes = policyResource.getPropertyResourceValue(OrgConf.forContextAssertion);
-    	String assertionAdaptorClass = getAdaptorClass(cmmConfigModel, 
-    			policyResource.getPropertyResourceValue(OrgConf.usesAssertionAdaptor));
-    	
-    	return new SensingPolicy(documentSource, contextAssertionRes, assertionAdaptorClass);
-    }
-    
-    
-    private static String getAdaptorClass(OntModel cmmConfigModel, Resource assertionAdaptorRes) {
-    	return assertionAdaptorRes.getProperty(OrgConf.hasQualifiedName).getString();
-    }
+	
+	public void setAssertionAdaptorClass(String assertionAdaptorClass) {
+		this.assertionAdaptorClass = assertionAdaptorClass;
+	}
 }

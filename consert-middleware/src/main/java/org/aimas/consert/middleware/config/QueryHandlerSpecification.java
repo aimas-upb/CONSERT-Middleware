@@ -1,34 +1,24 @@
 package org.aimas.consert.middleware.config;
 
-import org.aimas.ami.cmm.agent.AgentType;
-import org.aimas.ami.cmm.vocabulary.OrgConf;
+import org.cyberborean.rdfbeans.annotations.RDFBean;
+import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
-import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.rdf.model.Resource;
-
+@RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
+@RDFBean("orgconf:CtxQueryHandlerSpec")
 public class QueryHandlerSpecification extends AgentSpecification {
 	private boolean isPrimary;
 	
+	
+	public QueryHandlerSpecification() {}
+	
 	public QueryHandlerSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
 			boolean isPrimary, AgentAddress assignedOrgMgrAddress) {
-		super(agentAddress, AgentType.CTX_QUERY_HANDLER, controlPolicy, assignedOrgMgrAddress);
+		super(agentAddress, controlPolicy, assignedOrgMgrAddress);
 		
 		this.isPrimary = isPrimary;
     }
 
 	public boolean isPrimary() {
 		return isPrimary;
-	}
-	
-	
-	public static QueryHandlerSpecification fromConfigurationModel(OntModel cmmConfigModel, Resource queryHandlerSpec) {
-		AgentAddress agentAddress = AgentSpecification.getAddressFromConfig(cmmConfigModel, queryHandlerSpec);
-		boolean isPrimary = queryHandlerSpec.getProperty(OrgConf.isPrimaryQueryHandler).getBoolean();
-		
-		AgentAddress assignedOrgMgrAddress = AgentAddress.fromConfigurationModel(cmmConfigModel, 
-			queryHandlerSpec.getPropertyResourceValue(OrgConf.assignedOrgManager));	
-		
-		// We don't have any CtxQueryHandler specific control policies yet
-		return new QueryHandlerSpecification(agentAddress, null, isPrimary, assignedOrgMgrAddress);
 	}
 }
