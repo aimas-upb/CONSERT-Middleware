@@ -124,20 +124,29 @@ public abstract class MiddlewareAPI {
 			public void handle(Buffer buffer) {
 		
 				result.append(buffer.toString());
-				future.complete();
+				synchronized(future) {
+					future.complete();
+					future.notify();
+				}
 			}
 		});
 		
 		// Wait for the result before returning it
-		while(!future.isComplete()) {
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		try {
+			synchronized(future) {
+				future.wait(10000);
 			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
 		}
 		
-		return result.toString();
+		if (future.isComplete()) {
+			return result.toString();
+		}
+		else {
+			return null;
+		}
 	}
 	
 	/**
@@ -212,7 +221,10 @@ public abstract class MiddlewareAPI {
 									uuid.append(buffer.toString());
 								}
 								
-								future.complete();
+								synchronized(future) {
+									future.complete();
+									future.notify();
+								}
 							}
 						});
 					}
@@ -220,17 +232,29 @@ public abstract class MiddlewareAPI {
 		}).putHeader("content-type", "text/turtle").end(baos.toString());
 		
 		// Wait for the result before returning it
-		while(!future.isComplete()) {
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		try {
+			synchronized(future) {
+				future.wait(10000);
 			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
 		}
 		
-		return UUID.fromString(uuid.toString());
+		if (future.isComplete()) {
+			return UUID.fromString(uuid.toString());
+		}
+		else {
+			return null;
+		}
 	}
 	
+	/**
+	 * Gives a list of providers for a specific context assertion type
+	 * @param ctxAssert the URI of the context assertion type
+	 * @param providersIdentifiers the identifiers of all the providers
+	 * @return a list of the agents that are able to provide the given context assertions
+	 */
 	public static List<AgentSpec> listProviders(URI ctxAssert, List<String> providersIdentifiers) {
 		
 		MiddlewareAPI.init();
@@ -286,19 +310,23 @@ public abstract class MiddlewareAPI {
 								e.printStackTrace();
 							}
 							
-							future.complete();
+							synchronized(future) {
+								future.complete();
+								future.notify();
+							}
 						}
 					});
 				}
 			}).end();
 			
 			// Wait for the result before continuing
-			while(!future.isComplete()) {
-				try {
-					Thread.sleep(5);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+			try {
+				synchronized(future) {
+					future.wait(10000);
 				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				return null;
 			}
 		}
 		
