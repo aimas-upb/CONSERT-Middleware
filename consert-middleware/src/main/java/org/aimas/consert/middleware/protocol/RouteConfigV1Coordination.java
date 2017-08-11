@@ -21,7 +21,6 @@ import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -117,7 +116,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			// Check the provider
 			AgentSpec as = ac.getProvider();
 
-			if (as.getIdentifier().equals(agent)) {
+			if (as.getIdentifier().equals(agent) || agent == null) {
 
 				try {
 
