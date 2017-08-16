@@ -33,7 +33,7 @@ public class CMMAgentContainer {
 		return isMainContainer;
 	}
 	
-	public void setIsMainContainer(boolean isMainContainer) {
+	public void setMainContainer(boolean isMainContainer) {
 		this.isMainContainer = isMainContainer;
 	}
 
@@ -68,7 +68,7 @@ public class CMMAgentContainer {
 	public CMMAgentContainer getMainContainer() {
 		return mainContainer;
 	}
-	
+
 	public void setMainContainer(CMMAgentContainer mainContainer) {
 		this.mainContainer = mainContainer;
 	}
