@@ -28,6 +28,10 @@ public class AgentAddress {
 		return agentLocalName + "__" + agentAppIdentifier;
 	}
 	
+	public void setLocalName(String agentLocalName) {
+		this.agentLocalName = agentLocalName;
+	}
+	
 	@RDF("orgconf:agentAppIdentifier")
 	public String getAppIdentifier() {
 		return agentAppIdentifier;
