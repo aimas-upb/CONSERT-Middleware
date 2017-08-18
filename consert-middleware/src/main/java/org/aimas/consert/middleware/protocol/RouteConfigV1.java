@@ -84,6 +84,9 @@ public class RouteConfigV1 extends RouteConfig {
 				+ "/register_query_handler/").handler(coordination::handlePostRegQueryHandler);
 		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE
 				+ "/unregister_query_handler/").handler(coordination::handlePostUnregQueryHandler);
+		
+		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE
+				+ "/find_engine/").handler(coordination::handleGetFindEngine);
 
 		return router;
 	}
@@ -121,9 +124,8 @@ public class RouteConfigV1 extends RouteConfig {
 		Router router = this.createRouter(vertx);
 		RouteConfigV1Management management = new RouteConfigV1Management(orgMgr);
 
-		router.post(
-				RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE + "/context_agents/")
-				.handler(management::handlePostCtxAgents);
+		router.post(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
+				+ "/context_agents/").handler(management::handlePostCtxAgents);
 		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
 				+ "/find_coordinator/").handler(management::handleGetFindCoord);
 		router.get(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE

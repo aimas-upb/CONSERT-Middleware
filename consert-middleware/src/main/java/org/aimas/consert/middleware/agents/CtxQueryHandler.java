@@ -15,15 +15,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.aimas.consert.middleware.config.AgentSpecification;
+import org.aimas.consert.middleware.config.CMMAgentContainer;
+import org.aimas.consert.middleware.config.MiddlewareConfig;
+import org.aimas.consert.middleware.config.QueryHandlerSpecification;
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.ContextSubscription;
 import org.aimas.consert.middleware.protocol.RequestResource;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -41,6 +45,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
@@ -57,8 +62,6 @@ import io.vertx.ext.web.Router;
  */
 public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
-	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
-
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
 
@@ -71,79 +74,244 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	public Map<UUID, ContextSubscription> contextSubscriptions; // list of context subscriptions
 	public Map<UUID, RequestResource> ctxSubsResources; // list of resources for context subscriptions
 
-	private AgentConfig ctxCoord;       // configuration to communicate with the CtxCoord agent
-	private AgentConfig orgMgr;         // configuration to communicate with the OrgMgr agent
-	private AgentConfig consertEngine;  // configuration to communicate with the CONSERT Engine
+	private AgentAddress ctxCoord;       // configuration to communicate with the CtxCoord agent
+	private AgentAddress orgMgr;         // configuration to communicate with the OrgMgr agent
+	private AgentAddress consertEngine;  // configuration to communicate with the CONSERT Engine
 	
 	private HttpClient client;  // client to use for the communications with the other agents
 
 	private ScheduledExecutorService subscriptionsService;  // service that sends the queries for context subscriptions
+	
+	private Repository convRepo;  // repository used to convert Java objects and RDF statements
+	private RepositoryConnection convRepoConn;  // connection to the conversion repository
+	private RDFBeanManager convManager;  // manager for the conversion repository
 	
 
 	@Override
 	public void start(Future<Void> future) {
 
 		this.vertx = this.context.owner();
+		
+		this.client = this.vertx.createHttpClient();
 
 		// Initialization of the repositories
 		this.dataRepo = new SailRepository(new MemoryStore());
 		this.dataRepo.initialize();
 		this.subscriptionsRepo = new SailRepository(new MemoryStore());
 		this.subscriptionsRepo.initialize();
+		
+		this.convRepo = new SailRepository(new MemoryStore());
+		this.convRepo.initialize();
+		this.convRepoConn = this.convRepo.getConnection();
+		this.convManager = new RDFBeanManager(this.convRepoConn);
 
 		// Initialization of the lists
 		this.contextSubscriptions = new HashMap<UUID, ContextSubscription>();
 		this.ctxSubsResources = new HashMap<UUID, RequestResource>();
 
-		// Read configuration
-		try {
+		// Get configuration
+		Future<Void> futureConfig = Future.future();
+		futureConfig.setHandler(handler -> {
+			
+			Future<Void> futureAgents = Future.future();
+			futureAgents.setHandler(handlerAgents -> {
 
-			Configuration config = new PropertiesConfiguration(CONFIG_FILE);
+				// Create router
+				RouteConfig routeConfig = new RouteConfigV1();
+				this.router = routeConfig.createRouterDissemination(this.vertx, this);
 
-			this.agentConfig = AgentConfig.readCtxQueryHandlerConfig(config);
-			this.host = config.getString("CtxQueryHandler.host");
+				// Start server
+				this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(),
+						this.host, res -> {
+							if (res.succeeded()) {
+								System.out.println("Started CtxQueryHandler on port " + this.agentConfig.getPort()
+									+ " host " + this.host);
+							} else {
+								System.out.println("Failed to start CtxQueryHandler server on port "
+									+ this.agentConfig.getPort() + " host " + this.host);
+							}
 
-			this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
-			this.orgMgr = AgentConfig.readOrgMgrConfig(config);
-			this.consertEngine = AgentConfig.readConsertEngineConfig(config);
-
-		} catch (ConfigurationException e) {
-			System.err.println("Error while reading configuration file '" + CONFIG_FILE + "': " + e.getMessage());
-			e.printStackTrace();
+							future.complete();
+						});
+				
+				this.subscriptionsService = Executors.newScheduledThreadPool(1);
+				this.subscriptionsService.execute(new ContextSubscriptionTask());
+			});
+			
+			this.findAgents(futureAgents);
+		});
+		
+		// Get configuration of OrgMgr
+		AgentSpecification orgMgrSpec = MiddlewareConfig.readAgentConfig(QueryHandlerSpecification.class,
+			"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#CtxQueryHandlerSpec");
+		
+		if(orgMgrSpec != null) {
+			CMMAgentContainer container = orgMgrSpec.getAgentAddress().getAgentContainer();
+			this.orgMgr = new AgentAddress(container.getContainerHost(), container.getContainerPort());
+		} else {
+			// use a default value
+			this.orgMgr = new AgentAddress("127.0.0.1", 8080);
 		}
 
-		// Create router
-		RouteConfig routeConfig = new RouteConfigV1();
-		this.router = routeConfig.createRouterDissemination(this.vertx, this);
-
-		// Start server
-		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
-				res -> {
-					if (res.succeeded()) {
-						System.out.println(
-								"Started CtxQueryHandler on port " + this.agentConfig.getPort() + " host " + this.host);
-					} else {
-						System.out.println("Failed to start CtxQueryHandler server on port "
-								+ this.agentConfig.getPort() + " host " + this.host);
-					}
-
-					future.complete();
-				});
-		
-		this.subscriptionsService = Executors.newScheduledThreadPool(1);
-		this.subscriptionsService.execute(new ContextSubscriptionTask());
+		this.host = "0.0.0.0";
+		this.getConfigFromOrgMgr(futureConfig);
 	}
 
 	@Override
 	public void stop() {		
 		this.dataRepo.shutDown();
 		this.subscriptionsRepo.shutDown();
+		this.convRepoConn.close();
+		this.convRepo.shutDown();
 	}
 
 	@Override
 	public Repository getRepository() {
 		return this.subscriptionsRepo;
 	}
+	
+	
+	private void findAgents(Future<Void> future) {
+		
+		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+		final String findEngineRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.COORDINATION_ROUTE + "/find_engine/";
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		
+		Future<Void> futureCoord = Future.future();
+		futureCoord.setHandler(handler -> {
+			
+			client.get(ctxCoord.getPort(), ctxCoord.getIpAddress(), findEngineRoute,
+					new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					resp.bodyHandler(new Handler<Buffer>() {
+
+						@Override
+						public void handle(Buffer buffer) {
+							
+							try {
+								
+								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+										RDFFormat.TURTLE);
+								convRepoConn.add(model);
+								
+								for(Statement s : model) {
+
+									if(s.getPredicate().stringValue().contains(rdfType)) {
+										consertEngine = convManager.get(s.getSubject(), AgentAddress.class);
+										break;
+									}
+								}
+								
+							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+								System.err.println("Error while getting configuration for CtxQueryHandler: "
+										+ e.getMessage());
+								e.printStackTrace();
+							}
+							
+							convRepoConn.clear();
+							future.complete();
+						}
+					});
+				}
+				
+			}).end();
+		});
+		
+		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
+							e.printStackTrace();
+						}
+
+						convRepoConn.clear();
+						futureCoord.complete();
+					}
+				});
+			}
+			
+		}).end();
+	}
+	
+	
+	private void getConfigFromOrgMgr(Future<Void> future) {
+
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		final String registerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
+				+ "/context_agents/";
+		
+		this.agentConfig = new AgentConfig();
+		
+		HttpClient client = this.vertx.createHttpClient();
+		
+		// Query the OrgMgr agent to get the configuration to use
+		client.post(orgMgr.getPort(), orgMgr.getIpAddress(), registerRoute, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							// Convert the statements to an object
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									AgentAddress addr = convManager.get(s.getSubject(), AgentAddress.class);
+									agentConfig.setAddress(addr.getIpAddress());
+									agentConfig.setPort(addr.getPort());
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxQueryHandler: "
+								+ e.getMessage());
+							e.printStackTrace();
+						}
+						
+						convRepoConn.clear();
+						future.complete();
+					}
+				});
+			}
+			
+		}).putHeader("content-type", "text/plain").end("CtxQueryHandler");
+	}
+	
 	
 	public Repository getDataRepository() {
 		return this.dataRepo;
@@ -214,7 +382,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		return agentConfig;
 	}
 
-	public AgentConfig getEngineConfig() {
+	public AgentAddress getEngineConfig() {
 		return this.consertEngine;
 	}
 	
@@ -230,7 +398,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 			for(Entry<UUID, ContextSubscription> entry : contextSubscriptions.entrySet()) {
 				
 				// Send the query to the engine
-				client.get(consertEngine.getPort(), consertEngine.getAddress(),
+				client.get(consertEngine.getPort(), consertEngine.getIpAddress(),
 						ContextSubscriptionTask.ANSWER_QUERY_ROUTE, new Handler<HttpClientResponse>() {
 
 					@Override

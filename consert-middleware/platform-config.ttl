@@ -1,0 +1,35 @@
+# baseURI: http://example.org/hlatest/platform-config
+# imports: http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf
+
+@prefix : <http://example.org/hlatest/platform-config#> .
+@prefix orgconf: <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix person: <http://pervasive.semanticweb.org/ont/2004/06/person#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix hlatest: <http://example.org/hlatest/> .
+@prefix space: <http://pervasive.semanticweb.org/ont/2004/06/space#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+orgconf:AgentContainer rdfbeans:bindingClass "org.aimas.consert.middleware.config.CMMAgentContainer"^^xsd:string .
+orgconf:PlatformSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.PlatformSpecification"^^xsd:string .
+
+
+<http://example.org/hlatest/platform-config>
+  rdf:type owl:Ontology ;
+  owl:imports <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf> ;
+.
+:Container_HLATest
+  rdf:type orgconf:AgentContainer ;
+  orgconf:containerHost "localhost"^^xsd:string ;
+  orgconf:containerPort 8080 ;
+  orgconf:isMainContainer "true"^^xsd:boolean ;
+  orgconf:platformName "HLATest"^^xsd:string ;
+  rdfs:label "Container_HLATest"^^xsd:string ;
+.
+:HLATestPlatformSpec
+  rdf:type orgconf:PlatformSpec ;
+  orgconf:hasAgentContainer :Container_HLATest ;
+  rdfs:label "HLATestPlatformSpec"^^xsd:string ;
+.

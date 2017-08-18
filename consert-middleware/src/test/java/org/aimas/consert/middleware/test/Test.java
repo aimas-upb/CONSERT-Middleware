@@ -2,7 +2,6 @@ package org.aimas.consert.middleware.test;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 
 public class Test {
 
@@ -10,15 +9,6 @@ public class Test {
 		
 		Vertx vertx = Vertx.vertx();
 		
-		vertx.deployVerticle(CtxCoordImplTest.class.getName(), new DeploymentOptions().setWorker(true), res -> {
-			
-			JsonObject config0 = new JsonObject().put("id", 0);
-			JsonObject config1 = new JsonObject().put("id", 1);
-			
-			vertx.deployVerticle(CtxSensorLLA.class.getName(),
-					new DeploymentOptions().setConfig(config0).setWorker(true));
-			vertx.deployVerticle(CtxSensorPosition.class.getName(),
-					new DeploymentOptions().setConfig(config1).setWorker(true));
-		});
+		vertx.deployVerticle(OrgMgrImplTest.class.getName(), new DeploymentOptions().setWorker(true));
 	}
 }

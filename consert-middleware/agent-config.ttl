@@ -1,0 +1,147 @@
+# baseURI: http://example.org/hlatest/agent-config
+# imports: http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf
+
+@prefix : <http://example.org/hlatest/agent-config#> .
+@prefix orgconf: <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#> .
+@prefix hlatest: <http://example.org/hlatest/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix person: <http://pervasive.semanticweb.org/ont/2004/06/person#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix space: <http://pervasive.semanticweb.org/ont/2004/06/space#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .
+
+
+orgconf:AgentContainer rdfbeans:bindingClass "org.aimas.consert.middleware.config.CMMAgentContainer"^^xsd:string .
+orgconf:CtxCoordSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.CoordinatorSpecification"^^xsd:string .
+orgconf:CtxQueryHandlerSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.DisseminationSpecification"^^xsd:string .
+orgconf:CtxSensorSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.SensorSpecification"^^xsd:string .
+orgconf:OrgMgrSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.ManagerSpecification"^^xsd:string .
+orgconf:ApplicationSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.ApplicationSpecification"^^xsd:string .
+orgconf:AgentPolicy rdfbeans:bindingClass "org.aimas.consert.middleware.config.AgentPolicy"^^xsd:string .
+orgconf:AgentAddress rdfbeans:bindingClass "org.aimas.consert.middleware.config.AgentAddressConfig"^^xsd:string .
+orgconf:ContextModelDefinition rdfbeans:bindingClass "org.aimas.consert.middleware.config.ContextModelDefinition"^^xsd:string .
+orgconf:ContextDomain rdfbeans:bindingClass "org.aimas.consert.middleware.config.ContextDomainSpecification"^^xsd:string .
+orgconf:CtxSensorPolicy rdfbeans:bindingClass "org.aimas.consert.middleware.config.SensingPolicy"^^xsd:string .
+
+
+<http://pervasive.semanticweb.org/ont/2014/07/smartclassroom/agent-config>
+  rdf:type owl:Ontology ;
+  owl:imports <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf> ;
+.
+:Container_HLATest
+  rdf:type orgconf:AgentContainer ;
+  orgconf:containerHost "localhost"^^xsd:string ;
+  orgconf:containerPort "8080"^^xsd:int ;
+  orgconf:isMainContainer "true"^^xsd:boolean ; 
+  orgconf:platformName "HLATest"^^xsd:string ;
+  rdfs:label "Container_HLATest"^^xsd:string ;
+.
+:CtxCoord_HLATest
+  rdf:type orgconf:CtxCoordSpec ;
+  orgconf:assignedOrgManager :OrgMgr_HLATest_Address ;
+  orgconf:hasAgentAddress :CtxCoord_HLATest_Address ;
+  orgconf:hasControlPolicy [
+      rdf:type orgconf:AgentPolicy ;
+      orgconf:hasPolicyDocument [
+          rdf:type orgconf:ContentDocument ;
+          orgconf:documentPath "etc/cmm/coordconfig-always-active.ttl"^^xsd:string ;
+        ] ;
+    ] ;
+  rdfs:label "CtxCoord_HLATest"^^xsd:string ;
+.
+:CtxCoord_HLATest_Address
+  rdf:type orgconf:AgentAddress ;
+  orgconf:agentAppIdentifier "HLATest"^^xsd:string ;
+  orgconf:agentContainer :Container_HLATest ;
+  orgconf:agentName "CtxCoord_HLATest"^^xsd:string ;
+  rdfs:label "CtxCoord_HLATest_Address"^^xsd:string ;
+.
+:CtxQueryHandler_HLATest
+  rdf:type orgconf:CtxQueryHandlerSpec ;
+  orgconf:assignedOrgManager :OrgMgr_HLATest_Address ;
+  orgconf:hasAgentAddress [
+      rdf:type orgconf:AgentAddress ;
+      orgconf:agentAppIdentifier "HLATest"^^xsd:string ;
+      orgconf:agentContainer :Container_HLATest ;
+      orgconf:agentName "CtxQueryHandler_HLATest"^^xsd:string ;
+    ] ;
+  orgconf:isPrimaryQueryHandler "true"^^xsd:boolean ;
+  rdfs:label "CtxQueryHandler_HLATest"^^xsd:string ;
+.
+:CtxSensor_Position
+  rdf:type orgconf:CtxSensorSpec ;
+  orgconf:assignedOrgManager :OrgMgr_HLATest_Address ;
+  orgconf:hasAgentAddress [
+      rdf:type orgconf:AgentAddress ;
+      orgconf:agentAppIdentifier "HLATest"^^xsd:string ;
+      orgconf:agentContainer :Container_HLATest ;
+      orgconf:agentName "CtxSensor_Position"^^xsd:string ;
+    ] ;
+  orgconf:hasSensingPolicy :positionSensingPolicy ;
+  rdfs:label "CtxSensor_Position"^^xsd:string ;
+.
+:CtxSensor_LLA
+  rdf:type orgconf:CtxSensorSpec ;
+  orgconf:assignedOrgManager :OrgMgr_HLATest_Address ;
+  orgconf:hasAgentAddress [
+      rdf:type orgconf:AgentAddress ;
+      orgconf:agentAppIdentifier "HLATest"^^xsd:string ;
+      orgconf:agentContainer :Container_HLATest ;
+      orgconf:agentName "CtxSensor_LLA"^^xsd:string ;
+    ] ;
+  orgconf:hasSensingPolicy :llaSensingPolicy ;
+  rdfs:label "CtxSensor_LLA"^^xsd:string ;
+.
+:HLATest_ContextModel
+  rdf:type orgconf:ContextModelDefinition ;
+  orgconf:hasModelCoreDocument "http://example.org/hlatest/"^^xsd:anyURI ;
+  orgconf:hasModelDocumentManager "etc/model/domain-ont-policy.rdf"^^xsd:string ;
+  orgconf:hasModelRulesDocument "http://example.org/hlatest/"^^xsd:anyURI ;
+  rdfs:label "HLATest_ContextModel"^^xsd:string ;
+.
+:HLATest
+  rdf:type orgconf:ContextDomain ;
+  orgconf:hasContextModel :HLATest_ContextModel ;
+  orgconf:hasDomainDimension person:locatedIn ;
+  orgconf:hasDomainHierarchyDocument "etc/cmm/domain-hierarchy-config.ttl"^^xsd:string ;
+  orgconf:hasDomainHierarchyProperty space:spatiallySubsumedBy ;
+  orgconf:hasDomainRangeEntity space:SpaceInAFixedStructure ;
+  orgconf:hasDomainRangeValue :HLATest ;
+  rdfs:label "HLATest"^^xsd:string ;
+.
+:OrgMgr_HLATest
+  rdf:type orgconf:OrgMgrSpec ;
+  orgconf:hasAgentAddress :OrgMgr_HLATest_Address ;
+  orgconf:hasManagerType orgconf:Node ;
+  rdfs:label "OrgMgr_HLATest"^^xsd:string ;
+.
+:OrgMgr_HLATest_Address
+  rdf:type orgconf:AgentAddress ;
+  orgconf:agentAppIdentifier "HLATest"^^xsd:string ;
+  orgconf:agentContainer :Container_HLATest ;
+  orgconf:agentName "OrgMgr_HLATest"^^xsd:string ;
+  rdfs:label "OrgMgr_HLATest_Address"^^xsd:string ;
+.
+:HLATestAppSpec
+  rdf:type orgconf:ApplicationSpec ;
+  orgconf:appDeploymentType orgconf:DecentralizedHierarchical ;
+  orgconf:appIdentificationName "HLATest"^^xsd:string ;
+  orgconf:hasContextDomain :HLATest ;
+  rdfs:label "HLATestAppSpec"^^xsd:string ;
+.
+:positionSensingPolicy
+  rdf:type orgconf:CtxSensorPolicy ;
+  orgconf:forContextAssertion hlatest:Position;
+  orgconf:hasPolicyDocument "etc/cmm/sensorconfig.ttl"^^xsd:string ;
+  orgconf:usesAssertionAdaptor "org.aimas.consert.tests.hla.assertions.Position"^^xsd:string ;
+  rdfs:label "positionSensingPolicy"^^xsd:string ;
+.
+:llaSensingPolicy
+  rdf:type orgconf:CtxSensorPolicy ;
+  orgconf:forContextAssertion hlatest:LLA ;
+  orgconf:hasPolicyDocument "etc/cmm/sensorconfig.ttl"^^xsd:string ;
+  orgconf:usesAssertionAdaptor "org.aimas.consert.tests.hla.assertions.LLA"^^xsd:string ;
+  rdfs:label "llaSensingPolicy"^^xsd:string ;
+.

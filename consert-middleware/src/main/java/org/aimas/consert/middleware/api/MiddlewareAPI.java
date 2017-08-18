@@ -10,6 +10,8 @@ import org.aimas.consert.middleware.protocol.ContextSubscriptionRequest;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 
+
+
 /**
  * Interface that allows to easily access different features from CONSERT middleware
  */

@@ -12,7 +12,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<vertx.version>3.4.1</vertx.version>
-		<apache.commons.version>1.10</apache.commons.version>
 		<rdf4j.version>2.2</rdf4j.version>
 	</properties>
 
@@ -48,12 +47,6 @@
 			<artifactId>vertx-unit</artifactId>
 			<version>${vertx.version}</version>
 			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>${apache.commons.version}</version>
 		</dependency>
 		
 		<!-- RDFBeans and RDF4J dependencies -->
@@ -95,8 +88,7 @@
 
 		<pluginManagement>
 			<plugins>
-				<!-- We specify the Maven compiler plugin as we need to set it to Java 
-					1.8 -->
+				<!-- We specify the Maven compiler plugin as we need to set it to Java 1.8 -->
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.1</version>
