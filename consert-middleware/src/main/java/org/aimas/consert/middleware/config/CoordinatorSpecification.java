@@ -9,8 +9,8 @@ public class CoordinatorSpecification extends AgentSpecification {
 	
 	public CoordinatorSpecification() {}
 	
-	public CoordinatorSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
-			AgentAddress assignedManagerAddress) {
+	public CoordinatorSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, 
+			AgentAddressConfig assignedManagerAddress) {
 	    
 		super(agentAddress, controlPolicy, assignedManagerAddress);
     }

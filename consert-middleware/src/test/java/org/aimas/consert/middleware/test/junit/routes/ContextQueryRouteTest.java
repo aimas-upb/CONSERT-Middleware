@@ -5,10 +5,8 @@ import java.io.IOException;
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.agents.OrgMgr;
 import org.aimas.consert.middleware.test.CtxSensorPosition;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +18,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -31,7 +28,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class ContextQueryRouteTest {
 
-	private final String CONFIG_FILE = "agents.properties";
 	private final String sparqlQuery =
 			  "PREFIX hlatest: <http://example.org/hlatest/>\n"
 			+ "PREFIX annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#>\n"
@@ -66,55 +62,48 @@ public class ContextQueryRouteTest {
 			+ "    protocol:hasIdentifier \"CtxSensorPosition\" .\n"
 			+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8085\"^^xsd:int .\n";
-	
-	private final int CTX_SENSOR_ID = 1;
+			+ "    protocol:port \"8082\"^^xsd:int .\n";
             
 	private Vertx vertx;
 	private AgentConfig ctxQueryHandler;
 	private HttpClient httpClient;
 
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException {
-
-		// Read configuration files
-		Configuration config;
-
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxQueryHandler = AgentConfig.readCtxQueryHandlerConfig(config);
-
+	public void setUp(TestContext context) throws IOException {
+		
 		// Start Vert.x server for CtxQueryHandler
 		Async async = context.async();
 		this.vertx = Vertx.vertx();
 		
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		AgentConfig ctxSensor = AgentConfig.readCtxSensorConfig(config).get(CTX_SENSOR_ID);
-		JsonObject ctxSensorConfig = new JsonObject().put("id", CTX_SENSOR_ID);
+		AgentConfig ctxSensor = new AgentConfig("127.0.0.1", 8082);
+		this.ctxQueryHandler = new AgentConfig("127.0.0.1", 8083);
 		
-		
-		this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res -> {
-			this.vertx.deployVerticle(CtxSensorPosition.class.getName(), new DeploymentOptions().setWorker(true).setConfig(ctxSensorConfig), context.asyncAssertSuccess());
-			this.vertx.deployVerticle(CtxQueryHandler.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
+		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
+			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res2 -> {
+				this.vertx.deployVerticle(CtxSensorPosition.class.getName(), new DeploymentOptions().setWorker(true), res3 -> {
+					this.vertx.deployVerticle(CtxQueryHandler.class.getName(), new DeploymentOptions().setWorker(true), res4 -> {
+						
+						this.httpClient.put(ctxSensor.getPort(), ctxSensor.getAddress(), "/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
 			
-			this.httpClient.put(ctxSensor.getPort(), ctxSensor.getAddress(),
-					"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
-
-						@Override
-						public void handle(HttpClientResponse resp) {
-
-							if (resp.statusCode() != 200) {
-								context.fail("Failed to start updates, code " + resp.statusCode() + ": " + resp.statusMessage());
-							}
-							
-							// wait for some events to be inserted
-							try {
-								Thread.sleep(5000);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-							async.complete();
-						}
-					}).putHeader("content-type", "text/turtle").end(this.startQueryPosition);
+									@Override
+									public void handle(HttpClientResponse resp) {
+			
+										if (resp.statusCode() != 200) {
+											context.fail("Failed to start updates, code " + resp.statusCode() + ": " + resp.statusMessage());
+										}
+										
+										// wait for some events to be inserted
+										try {
+											Thread.sleep(5000);
+										} catch (InterruptedException e) {
+											e.printStackTrace();
+										}
+										async.complete();
+									}
+								}).putHeader("content-type", "text/turtle").end(this.startQueryPosition);
+					});
+				});
+			});
 		});
 
 		this.httpClient = this.vertx.createHttpClient();

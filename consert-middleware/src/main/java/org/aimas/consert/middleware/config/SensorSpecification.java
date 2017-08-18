@@ -15,8 +15,8 @@ public class SensorSpecification extends AgentSpecification {
 	
 	public SensorSpecification() {}
 	
-	public SensorSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
-			AgentAddress assignedOrgMgrAddress, List<SensingPolicy> sensingPolicies) {
+	public SensorSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, 
+			AgentAddressConfig assignedOrgMgrAddress, List<SensingPolicy> sensingPolicies) {
 	    
 		super(agentAddress, controlPolicy, assignedOrgMgrAddress);
 	    this.sensingPolicies = sensingPolicies;

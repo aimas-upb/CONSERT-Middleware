@@ -5,9 +5,7 @@ import java.io.IOException;
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.agents.CtxUser;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.aimas.consert.middleware.agents.OrgMgr;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +26,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class TaskingCommandRoutesTestUsage {
 
-	private final String CONFIG_FILE = "agents.properties";
 	private final String startQuery = "@prefix hlatest: <http://example.org/hlatest/> .\n"
 			+ "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix start-updates-command: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#StartUpdatesCommand/> .\n"
@@ -50,7 +47,7 @@ public class TaskingCommandRoutesTestUsage {
 			+ "    protocol:hasIdentifier \"CtxUser\" .\n"
 			+ "agent-address:CtxUserAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8081\"^^xsd:int .\n";
+			+ "    protocol:port \"8082\"^^xsd:int .\n";
 
 	private final String stopQuery = startQuery.replace("start-", "stop").replace("StartUpdatesCommand", "StopUpdatesCommand");
 
@@ -79,7 +76,7 @@ public class TaskingCommandRoutesTestUsage {
 			+ "    protocol:hasIdentifier \"CtxUser\" .\n"
 			+ "agent-address:CtxUserAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8081\"^^xsd:int .\n"
+			+ "    protocol:port \"8082\"^^xsd:int .\n"
 			
 			+ "update-mode:NewUpdateMode a provisioning:AssertionUpdateMode ;\n"
 			+ "    provisioning:hasMode \"change-based\"^^xsd:string ;\n"
@@ -90,21 +87,21 @@ public class TaskingCommandRoutesTestUsage {
 	private HttpClient httpClient;
 
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException {
+	public void setUp(TestContext context) throws IOException {
 
-		// Read configuration files
-		Configuration config;
-
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxUser = AgentConfig.readCtxUserConfig(config);
+		this.ctxUser = new AgentConfig("127.0.0.1", 8082);
 
 		// Start Vert.x server for CtxUser
 		Async async = context.async();
 		
 		this.vertx = Vertx.vertx();
-		this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res -> {
-			this.vertx.deployVerticle(CtxUser.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
-			async.complete();
+		
+		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res1 -> {
+			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res2 -> {
+				this.vertx.deployVerticle(CtxUser.class.getName(), new DeploymentOptions().setWorker(true), res3 -> {
+					async.complete();
+				});
+			});
 		});
 
 		this.httpClient = this.vertx.createHttpClient();

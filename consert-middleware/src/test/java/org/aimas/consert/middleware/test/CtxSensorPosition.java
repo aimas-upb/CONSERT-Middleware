@@ -11,6 +11,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.aimas.consert.middleware.agents.CtxSensor;
+import org.aimas.consert.middleware.config.AgentSpecification;
+import org.aimas.consert.middleware.config.CMMAgentContainer;
+import org.aimas.consert.middleware.config.MiddlewareConfig;
+import org.aimas.consert.middleware.config.SensorSpecification;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
@@ -35,6 +39,30 @@ public class CtxSensorPosition extends CtxSensor {
 	private Object syncObj = new Object();  // object used for the synchronization of the threads
 	
 
+	@Override
+	public void start(Future<Void> future) {
+
+		List<AgentSpecification> orgMgrSpecs = MiddlewareConfig.readAgentConfigList(SensorSpecification.class,
+			"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#CtxSensorSpec");
+		AgentSpecification spec = null;
+		
+		for(AgentSpecification as : orgMgrSpecs) {
+			if(as.getAgentLocalName().contains("Position")) {
+				spec = as;
+			}
+		}
+		
+		if(spec != null) {
+			CMMAgentContainer container = spec.getAgentAddress().getAgentContainer();
+			this.orgMgr = new AgentAddress(container.getContainerHost(), container.getContainerPort());
+		} else {
+			// use a default value
+			this.orgMgr = new AgentAddress("127.0.0.1", 8080);
+		}
+		
+		super.start(future);
+	}
+	
 	@Override
 	protected void sendAssertionCapabilities(Future<Void> future) {	
 		

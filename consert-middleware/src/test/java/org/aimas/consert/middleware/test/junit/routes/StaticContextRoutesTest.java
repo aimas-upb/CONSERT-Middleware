@@ -4,14 +4,13 @@ import java.io.IOException;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.aimas.consert.middleware.agents.OrgMgr;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -29,7 +28,6 @@ public class StaticContextRoutesTest {
 	private Vertx vertx;
 	private AgentConfig ctxCoord;
 	private HttpClient httpClient;
-	private final String CONFIG_FILE = "agents.properties";
 	
 
 	private final String postQuery = "@prefix : <http://example.org/hlatest/> .\n"
@@ -45,17 +43,16 @@ public class StaticContextRoutesTest {
 			+ "    rdfs:label \"A work area\"^^xsd:string .\n";
 
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException {
+	public void setUp(TestContext context) throws IOException {
 
-		// Read configuration files
-		Configuration config;
-
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
+		this.ctxCoord = new AgentConfig("127.0.0.1", 8081);
 
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
-		this.vertx.deployVerticle(CtxCoord.class.getName(), context.asyncAssertSuccess());
+		
+		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
+			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
+		});
 
 		this.httpClient = this.vertx.createHttpClient();
 	}

@@ -2,18 +2,18 @@ package org.aimas.consert.middleware.test.junit.routes;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
+import org.aimas.consert.middleware.agents.CtxCoord;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.agents.OrgMgr;
 import org.aimas.consert.middleware.api.MiddlewareAPI;
 import org.aimas.consert.middleware.api.MiddlewareAPIImpl;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.ContextSubscription;
 import org.aimas.consert.middleware.protocol.ContextSubscriptionRequest;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -36,7 +37,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
  */
 @RunWith(VertxUnitRunner.class)
 public class ContextSubscriptionRoutesTest {
-	private final String CONFIG_FILE = "agents.properties";
+
 	private final String postQuery = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix request: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscriptionRequest/> .\n"
 			+ "@prefix context-subscription: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/> .\n"
@@ -62,7 +63,7 @@ public class ContextSubscriptionRoutesTest {
 			+ "    protocol:hasIdentifier \"CtxUser1\" .\n"
 			+ "agent-address:CtxUserAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8081\"^^xsd:int .\n";
+			+ "    protocol:port \"8083\"^^xsd:int .\n";
 
 	private Vertx vertx;
 	private AgentConfig ctxQueryHandler;
@@ -71,22 +72,29 @@ public class ContextSubscriptionRoutesTest {
 	private Repository repo;
 
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException {
+	public void setUp(TestContext context) throws IOException {
+		
+		Async async = context.async();
 
-		// Read configuration files
-		Configuration config;
-
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxQueryHandler = AgentConfig.readCtxQueryHandlerConfig(config);
+		this.ctxQueryHandler = new AgentConfig("127.0.0.1", 8082);
 
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
-		this.vertx.deployVerticle(CtxQueryHandler.class.getName(), context.asyncAssertSuccess());
+		
+		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res1 -> {
+			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res2 -> {
+				this.vertx.deployVerticle(CtxQueryHandler.class.getName(), new DeploymentOptions().setWorker(true), res3 -> {
+					async.complete();
+				});
+			});
+		});
 
 		this.httpClient = this.vertx.createHttpClient();
 
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
+		
+		async.await();
 	}
 
 	@After
@@ -287,7 +295,7 @@ public class ContextSubscriptionRoutesTest {
 		
 		AgentAddress ctxUserAddr = new AgentAddress();
 		ctxUserAddr.setIpAddress("127.0.0.1");
-		ctxUserAddr.setPort(8081);
+		ctxUserAddr.setPort(8083);
 		
 		ctxUser.setAddress(ctxUserAddr);
 		subscription.setSubscriber(ctxUser);
@@ -316,8 +324,6 @@ public class ContextSubscriptionRoutesTest {
 
 							@Override
 							public void handle(Buffer buffer) {
-
-								System.out.println("result: " + buffer);
 								
 								context.assertTrue(buffer.toString().trim().replace("\r", "").replace("\n", "").replace("\t", "").contains(
 										"<http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#ContextSubscription/foo>"));

@@ -8,26 +8,26 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 @RDFBean("orgconf:AgentSpec")
 public class AgentSpecification {
 	
-	protected AgentAddress agentAddress;
-	protected AgentAddress assignedManagerAddress;
+	protected AgentAddressConfig agentAddress;
+	protected AgentAddressConfig assignedManagerAddress;
 	protected AgentPolicy controlPolicy;
 	
 	
 	public AgentSpecification() {}
 	
-	public AgentSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
-			AgentAddress assignedManagerAddress) {
+	public AgentSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, 
+			AgentAddressConfig assignedManagerAddress) {
 	    this.agentAddress = agentAddress;
 	    this.controlPolicy = controlPolicy;
 	    this.assignedManagerAddress = assignedManagerAddress;
     }
 	
 	@RDF("orgconf:hasAgentAddress")
-	public AgentAddress getAgentAddress() {
+	public AgentAddressConfig getAgentAddress() {
 		return agentAddress;
 	}
 	
-	public void setAgentAddress(AgentAddress agentAddress) {
+	public void setAgentAddress(AgentAddressConfig agentAddress) {
 		this.agentAddress = agentAddress;
 	}
 	
@@ -48,7 +48,7 @@ public class AgentSpecification {
 		return controlPolicy != null;
 	}
 	
-	public AgentAddress getAssignedManagerAddress() {
+	public AgentAddressConfig getAssignedManagerAddress() {
 		return assignedManagerAddress;
 	}
 	

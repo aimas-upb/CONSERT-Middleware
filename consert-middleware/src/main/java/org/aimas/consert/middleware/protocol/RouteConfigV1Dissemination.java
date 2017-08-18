@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxQueryHandler;
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.ContextSubscription;
 import org.aimas.consert.middleware.model.RDFObject;
 import org.cyberborean.rdfbeans.RDFBeanManager;
@@ -47,7 +48,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
 	private HttpClient client;  // the client to use for communications with other agents
 	
-	private AgentConfig engineConfig;
+	private AgentAddress engineConfig;
 	
 	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
 	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
@@ -79,8 +80,9 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxQuery(RoutingContext rtCtx) {
 		
+		System.out.println("CtxQueryHandler send query to engine: " + this.engineConfig);
 		// Send the query to the engine
-		this.client.get(this.engineConfig.getPort(), this.engineConfig.getAddress(), this.ANSWER_QUERY_ROUTE,
+		this.client.get(this.engineConfig.getPort(), this.engineConfig.getIpAddress(), this.ANSWER_QUERY_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 			@Override

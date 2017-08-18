@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
+import org.aimas.consert.middleware.agents.OrgMgr;
 import org.aimas.consert.middleware.api.MiddlewareAPI;
 import org.aimas.consert.middleware.api.MiddlewareAPIImpl;
 import org.aimas.consert.middleware.model.AgentAddress;
@@ -16,9 +17,6 @@ import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.model.annotations.ContextAnnotation;
 import org.aimas.consert.model.annotations.DatetimeInterval;
 import org.aimas.consert.model.annotations.TemporalValidityAnnotation;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.model.Model;
@@ -36,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -51,7 +50,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class AssertionCapabilityRoutesTest {
 
-	private final String CONFIG_FILE = "agents.properties";
 	private final String postQuery = "@prefix : <http://example.org/hlatest/> .\n"
 			+ "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix core: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#> .\n"
@@ -105,7 +103,7 @@ public class AssertionCapabilityRoutesTest {
 			+ "    protocol:hasIdentifier \"CtxSensor1\" .\n"
 			+ "agent-address:CtxSensorAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8080\"^^xsd:int .\n";
+			+ "    protocol:port \"8082\"^^xsd:int .\n";
             
 
 	private Vertx vertx;
@@ -114,17 +112,16 @@ public class AssertionCapabilityRoutesTest {
 	private HttpClient httpClient;
 
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException {
-
-		// Read configuration files
-		Configuration config;
-
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
+	public void setUp(TestContext context) throws IOException {
 
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
-		this.vertx.deployVerticle(CtxCoord.class.getName(), context.asyncAssertSuccess());
+		
+		this.ctxCoord = new AgentConfig("127.0.0.1", 8081);
+		
+		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
+			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
+		});
 
 		this.httpClient = this.vertx.createHttpClient();
 	}
@@ -397,7 +394,7 @@ public class AssertionCapabilityRoutesTest {
 		ctxSensor.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/CtxSensor");
 		
 		AgentAddress address = new AgentAddress();
-		address.setPort(8080);
+		address.setPort(8082);
 		address.setIpAddress("127.0.0.1");
 		
 		ctxSensor.setAddress(address);

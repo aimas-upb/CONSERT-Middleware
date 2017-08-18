@@ -1,6 +1,8 @@
 package org.aimas.consert.middleware.agents;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.aimas.consert.middleware.model.tasking.UpdateModeState;
@@ -15,11 +18,10 @@ import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.Constants;
 import org.aimas.consert.model.content.ContextAssertion;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -31,6 +33,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
@@ -47,8 +50,6 @@ import io.vertx.ext.web.Router;
  * CtxSensor agent implemented as a Vert.x server
  */
 public abstract class CtxSensor extends AbstractVerticle implements Agent {
-
-	private final String CONFIG_FILE = "agents.properties"; // path to the configuration file for this agent
 	
 	private final String INSERT_CONTEXT_ASSERTION_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.COORDINATION_ROUTE + "/insert_context_assertion/";
@@ -58,20 +59,23 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 
 	protected AgentConfig agentConfig; // configuration values for this agent
 	private String host; // where this agent is hosted
-	protected int id; // identifier to distinguish CtxSensor instances
 	
 	private boolean isFinished = false;     // allows to know when the CtxSensor has finished sending all the eventss
 
 	private Repository repo; // repository containing the RDF data
 
-	private AgentConfig ctxCoord; // configuration to communicate with the CtxCoord agent
-	private AgentConfig orgMgr; // configuration to communicate with the OrgMgr agent
+	private AgentAddress ctxCoord; // configuration to communicate with the CtxCoord agent
+	protected AgentAddress orgMgr; // configuration to communicate with the OrgMgr agent
 	
 	private HttpClient client;  // an HTTP client that can be used to send requests
 	
 	private List<UUID> assertionCapabilitiesIds;  // identifiers of the sent assertion capabilities
 	
 	protected Map<URI, UpdateModeState> updateModes;  // the update mode for all the assertion types and their state
+	
+	private Repository convRepo;  // repository used to convert Java objects and RDF statements
+	private RepositoryConnection convRepoConn;  // connection to the conversion repository
+	private RDFBeanManager convManager;  // manager for the conversion repository
 
 
 	@Override
@@ -84,55 +88,158 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
+		
+		this.convRepo = new SailRepository(new MemoryStore());
+		this.convRepo.initialize();
+		this.convRepoConn = this.convRepo.getConnection();
+		this.convManager = new RDFBeanManager(this.convRepoConn);
 
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
 		this.router = routeConfig.createRouterSensing(vertx, this);
 
-		// Read configuration
-		this.id = this.config().getInteger("id");
-		try {
-
-			Configuration config = new PropertiesConfiguration(CONFIG_FILE);
-
-			this.agentConfig = AgentConfig.readCtxSensorConfig(config).get(this.id);
-			this.host = config.getString("CtxSensor.host");
-
-			this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
-			this.orgMgr = AgentConfig.readOrgMgrConfig(config);
-
-		} catch (ConfigurationException e) {
-			System.err.println("Error while reading configuration file '" + CONFIG_FILE + "': " + e.getMessage());
-			e.printStackTrace();
-		}
-
-		// Start server
-		HttpServer server = this.vertx.createHttpServer();
-		server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host, res -> {
-			if (res.succeeded()) {
-				System.out.println("Started CtxSensor on port " + server.actualPort() + " host " + this.host);
-			} else {
-				System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host " + this.host);
-			}
-
-			// Send the assertion capabilities before doing anything
-			this.assertionCapabilitiesIds = new LinkedList<UUID>();
-			this.sendAssertionCapabilities(future);
+		// Get configuration
+		Future<Void> futureConfig = Future.future();
+		futureConfig.setHandler(handler -> {
 			
-			// Read events from the adaptor and send them to the CtxCoord agent
-			this.readEvents();
+			Future<Void> futureAgents = Future.future();
+			futureAgents.setHandler(handlerAgents -> {
+				
+				// Start server
+				HttpServer server = this.vertx.createHttpServer();
+				server.requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host, res -> {
+					if (res.succeeded()) {
+						System.out.println("Started CtxSensor on port " + server.actualPort() + " host " + this.host);
+					} else {
+						System.out.println("Failed to start CtxSensor on port " + server.actualPort() + " host "
+								+ this.host);
+					}
+		
+					// Send the assertion capabilities before doing anything
+					this.assertionCapabilitiesIds = new LinkedList<UUID>();
+					this.sendAssertionCapabilities(future);
+					
+					// Read events from the adaptor and send them to the CtxCoord agent
+					this.readEvents();
+				});
+			});
+			
+			this.findAgents(futureAgents);
 		});
+
+		this.host = "0.0.0.0";
+		this.getConfigFromOrgMgr(futureConfig);
 	}
 
 	@Override
 	public void stop() {
 		this.repo.shutDown();
+		this.convRepoConn.close();
+		this.convRepo.shutDown();
 	}
 
 	@Override
 	public Repository getRepository() {
 		return this.repo;
 	}
+	
+	
+	private void findAgents(Future<Void> future) {
+		
+		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		
+		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
+							e.printStackTrace();
+						}
+						
+						convRepoConn.clear();
+						future.complete();
+					}
+				});
+			}
+			
+		}).end();
+	}
+	
+	
+	private void getConfigFromOrgMgr(Future<Void> future) {
+
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		final String registerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
+				+ "/context_agents/";
+		
+		this.agentConfig = new AgentConfig();
+		
+		HttpClient client = this.vertx.createHttpClient();
+		
+		// Query the OrgMgr agent to get the configuration to use
+		client.post(orgMgr.getPort(), orgMgr.getIpAddress(), registerRoute, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							// Convert the statements to an object
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									AgentAddress addr = convManager.get(s.getSubject(), AgentAddress.class);
+									agentConfig.setAddress(addr.getIpAddress());
+									agentConfig.setPort(addr.getPort());
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxSensor: " + e.getMessage());
+							e.printStackTrace();
+						}
+						
+						convRepoConn.clear();
+						
+						future.complete();
+					}
+				});
+			}
+			
+		}).putHeader("content-type", "text/plain").end("CtxSensor");
+	}
+	
 	
 	/**
 	 * starts reading the events from the adaptor and sending them to the CtxCoord
@@ -155,13 +262,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		String route = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.COORDINATION_ROUTE +
 				"/context_assertions/";
 		
-		// using a repository to convert the AssertionCapability objects to RDF statements
-		Repository repository = new SailRepository(new MemoryStore());
-		repository.initialize();
-		RepositoryConnection conn = repository.getConnection();
-		
-		RDFBeanManager manager = new RDFBeanManager(conn);
-		
+		// Convert the AssertionCapability objects to RDF statements		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		
 		try {
@@ -174,10 +275,10 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 				RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
 				writer.startRDF();
 				
-				conn.clear();
-				manager.add(ac);
+				this.convRepoConn.clear();
+				this.convManager.add(ac);
 				
-				RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
+				RepositoryResult<Statement> iter = this.convRepoConn.getStatements(null, null, null);
 				
 				while(iter.hasNext()) {
 					writer.handleStatement(iter.next());
@@ -186,7 +287,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 				writer.endRDF();
 				
 				// send to the CtxCoord
-				this.client.post(ctxCoord.getPort(), ctxCoord.getAddress(), route, new Handler<HttpClientResponse>() {
+				this.client.post(ctxCoord.getPort(), ctxCoord.getIpAddress(), route, new Handler<HttpClientResponse>() {
 	
 					@Override
 					public void handle(HttpClientResponse resp) {
@@ -214,8 +315,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 			e.printStackTrace();
 		}
 		
-		conn.close();
-		repository.shutDown();
+		this.convRepoConn.clear();
 	}
 	
 	/**
@@ -229,7 +329,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		// send to the CtxCoord
 		for(UUID uuid : this.assertionCapabilitiesIds) {
 			
-			this.client.delete(ctxCoord.getPort(), ctxCoord.getAddress(), route + uuid.toString() + "/",
+			this.client.delete(ctxCoord.getPort(), ctxCoord.getIpAddress(), route + uuid.toString() + "/",
 					new Handler<HttpClientResponse>() {
 
 				@Override
@@ -251,8 +351,6 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	 * @param event the context assertion to send
 	 */
 	protected void sendEvent(ContextAssertion event) {
-
-		System.out.println("CtxSensor " + id + " sends event " + event);
 		
 		// First, we need to convert the objects to RDF statements
 		// We use the repository for this
@@ -310,7 +408,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		conn.close();
 
 		// submit insertion task
-		this.client.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(), this.INSERT_CONTEXT_ASSERTION_ROUTE,
+		this.client.post(this.ctxCoord.getPort(), this.ctxCoord.getIpAddress(), this.INSERT_CONTEXT_ASSERTION_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 			@Override

@@ -13,7 +13,7 @@ public class UserSpecification extends AgentSpecification {
 	
 	public UserSpecification() {}
 	
-	public UserSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, AgentAddress assignedManagerAddress, 
+	public UserSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, AgentAddressConfig assignedManagerAddress, 
 			String contextDomainUserDocument) {
 		super(agentAddress, controlPolicy, assignedManagerAddress);
 		

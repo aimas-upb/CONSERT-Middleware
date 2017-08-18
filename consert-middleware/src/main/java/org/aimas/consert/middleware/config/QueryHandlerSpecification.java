@@ -11,8 +11,8 @@ public class QueryHandlerSpecification extends AgentSpecification {
 	
 	public QueryHandlerSpecification() {}
 	
-	public QueryHandlerSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
-			boolean isPrimary, AgentAddress assignedOrgMgrAddress) {
+	public QueryHandlerSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, 
+			boolean isPrimary, AgentAddressConfig assignedOrgMgrAddress) {
 		super(agentAddress, controlPolicy, assignedOrgMgrAddress);
 		
 		this.isPrimary = isPrimary;

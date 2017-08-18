@@ -20,7 +20,7 @@ orgconf:CtxSensorSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config
 orgconf:OrgMgrSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.ManagerSpecification"^^xsd:string .
 orgconf:ApplicationSpec rdfbeans:bindingClass "org.aimas.consert.middleware.config.ApplicationSpecification"^^xsd:string .
 orgconf:AgentPolicy rdfbeans:bindingClass "org.aimas.consert.middleware.config.AgentPolicy"^^xsd:string .
-orgconf:AgentAddress rdfbeans:bindingClass "org.aimas.consert.middleware.config.AgentAddress"^^xsd:string .
+orgconf:AgentAddress rdfbeans:bindingClass "org.aimas.consert.middleware.config.AgentAddressConfig"^^xsd:string .
 orgconf:ContextModelDefinition rdfbeans:bindingClass "org.aimas.consert.middleware.config.ContextModelDefinition"^^xsd:string .
 orgconf:ContextDomain rdfbeans:bindingClass "org.aimas.consert.middleware.config.ContextDomainSpecification"^^xsd:string .
 orgconf:CtxSensorPolicy rdfbeans:bindingClass "org.aimas.consert.middleware.config.SensingPolicy"^^xsd:string .

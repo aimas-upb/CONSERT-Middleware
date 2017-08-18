@@ -6,7 +6,7 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
 @RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
 @RDFBean("orgconf:AgentAddress")
-public class AgentAddress {
+public class AgentAddressConfig {
 	
 	private String agentLocalName;
 	private String agentAppIdentifier;
@@ -14,9 +14,9 @@ public class AgentAddress {
 	private CMMAgentContainer agentContainer;
 	
 	
-	public AgentAddress() {}
+	public AgentAddressConfig() {}
 	
-	public AgentAddress(String agentLocalName, CMMAgentContainer agentContainer, String agentAppIdentifier) {
+	public AgentAddressConfig(String agentLocalName, CMMAgentContainer agentContainer, String agentAppIdentifier) {
 	    this.agentLocalName = agentLocalName;
 	    
 	    this.agentContainer = agentContainer;

@@ -8,15 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.aimas.consert.middleware.agents.AgentConfig;
+import org.aimas.consert.middleware.config.AgentSpecification;
+import org.aimas.consert.middleware.config.CMMAgentContainer;
+import org.aimas.consert.middleware.config.ManagerSpecification;
+import org.aimas.consert.middleware.config.MiddlewareConfig;
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.protocol.ContextSubscriptionRequest;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.RDF4JException;
@@ -47,8 +48,6 @@ import io.vertx.core.http.HttpClientResponse;
  */
 public class MiddlewareAPIImpl implements MiddlewareAPI {
 	
-	private final static String CONFIG_FILE = "agents.properties";  // path to the configuration file for the engine
-	
 	private final static String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.ENGINE_ROUTE + "/anwer_query/";  // route where the engine answers to queries
 	private final static String CONTEXT_SUBSCRIPTION_ROUTE =  RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
@@ -67,33 +66,174 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 	private RDFBeanManager convManager;  // manager for the conversion repository
 	private HttpClient client;  // client to use for the communications with the agents
 	
-	private AgentConfig engineConfig;  // configuration for communications with the CONSERT Engine
-	private AgentConfig ctxQueryHandlerConfig;  // configuration for communications with the CtxQueryHandler
-	private AgentConfig ctxCoordConfig;  // configuration for communications with the CtxCoord
+	private AgentAddress orgMgrConfig;  // configuration for communications with the OrgMgr
+	private AgentAddress engineConfig;  // configuration for communications with the CONSERT Engine
+	private AgentAddress ctxQueryHandlerConfig;  // configuration for communications with the CtxQueryHandler
+	private AgentAddress ctxCoordConfig;  // configuration for communications with the CtxCoord
 	
 
 	public MiddlewareAPIImpl() {
 		
-		// Read the configuration to get the required addresses
-		try {
-			
-			Configuration config = new PropertiesConfiguration(MiddlewareAPIImpl.CONFIG_FILE);
-			this.engineConfig = AgentConfig.readConsertEngineConfig(config);
-			this.ctxQueryHandlerConfig = AgentConfig.readCtxQueryHandlerConfig(config);
-			this.ctxCoordConfig = AgentConfig.readCtxCoordConfig(config);
-			
-		} catch (ConfigurationException e) {
-			
-			System.err.println("Error while reading configuration file '" + CONFIG_FILE + "': " + e.getMessage());
-			e.printStackTrace();
-		}
-
+		// Initialization of the conversion repository
 		this.convRepo = new SailRepository(new MemoryStore());
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
 		this.convManager = new RDFBeanManager(this.convRepoConn);
 		
 		this.client = Vertx.vertx().createHttpClient();
+		
+		// Get configuration of OrgMgr
+		AgentSpecification orgMgrSpec = MiddlewareConfig.readAgentConfig(ManagerSpecification.class,
+			"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#OrgMgrSpec");
+		CMMAgentContainer container = orgMgrSpec.getAgentAddress().getAgentContainer();
+		this.orgMgrConfig = new AgentAddress(container.getContainerHost(), container.getContainerPort());
+		
+		// Get configuration of CtxQueryHandler and CtxCoord agents from OrgMgr, and CONSERT Engine from CtxCoord
+		Future<Void> future = Future.future();
+		
+		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+		final String findCtxQueryHandlerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
+		final String findEngineRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.COORDINATION_ROUTE + "/find_engine/";
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		
+		Future<Void> futureQueryHandler = Future.future();
+		futureQueryHandler.setHandler(handler -> {
+			client.get(ctxCoordConfig.getPort(), ctxCoordConfig.getIpAddress(), findEngineRoute,
+					new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					resp.bodyHandler(new Handler<Buffer>() {
+
+						@Override
+						public void handle(Buffer buffer) {
+							
+							try {
+								
+								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+										RDFFormat.TURTLE);
+								convRepoConn.add(model);
+								
+								for(Statement s : model) {
+
+									if(s.getPredicate().stringValue().contains(rdfType)) {
+										engineConfig = convManager.get(s.getSubject(), AgentAddress.class);
+										break;
+									}
+								}
+								
+							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+								System.err.println("Error while getting configuration for CtxQueryHandler: "
+										+ e.getMessage());
+								e.printStackTrace();
+							}
+							
+							convRepoConn.clear();
+							
+							synchronized(future) {
+								future.complete();
+								future.notify();
+							}
+						}
+					});
+				}
+				
+			}).end();
+		});
+		
+		Future<Void> futureCoord = Future.future();
+		futureCoord.setHandler(handler -> {
+			client.get(orgMgrConfig.getPort(), orgMgrConfig.getIpAddress(), findCtxQueryHandlerRoute,
+					new Handler<HttpClientResponse>() {
+
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					resp.bodyHandler(new Handler<Buffer>() {
+
+						@Override
+						public void handle(Buffer buffer) {
+							
+							try {
+								
+								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+										RDFFormat.TURTLE);
+								convRepoConn.add(model);
+								
+								for(Statement s : model) {
+
+									if(s.getPredicate().stringValue().contains(rdfType)) {
+										ctxQueryHandlerConfig = convManager.get(s.getSubject(), AgentAddress.class);
+										break;
+									}
+								}
+								
+							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+								System.err.println("Error while getting configuration for CtxQueryHandler: "
+										+ e.getMessage());
+								e.printStackTrace();
+							}
+							
+							convRepoConn.clear();
+							
+							futureQueryHandler.complete();
+						}
+					});
+				}
+				
+			}).end();
+		});
+		
+		
+		client.get(orgMgrConfig.getPort(), orgMgrConfig.getIpAddress(), findCtxCoordRoute,
+				new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									ctxCoordConfig = convManager.get(s.getSubject(), AgentAddress.class);
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
+							e.printStackTrace();
+						}
+						
+						convRepoConn.clear();
+						
+						futureCoord.complete();
+					}
+				});
+			}
+			
+		}).end();
+
+		try {
+			synchronized(future) {
+				future.wait(10000);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 
@@ -139,7 +279,7 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 	public void queryContext(String query, Handler<Buffer> handler) {
 		
 		// Send the query		
-		this.client.get(engineConfig.getPort(), engineConfig.getAddress(), MiddlewareAPIImpl.ANSWER_QUERY_ROUTE,
+		this.client.get(engineConfig.getPort(), engineConfig.getIpAddress(), MiddlewareAPIImpl.ANSWER_QUERY_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 					@Override
@@ -180,7 +320,7 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 		this.convRepoConn.clear();
 		
 		// Send the context subscription
-		this.client.post(this.ctxQueryHandlerConfig.getPort(), this.ctxQueryHandlerConfig.getAddress(),
+		this.client.post(this.ctxQueryHandlerConfig.getPort(), this.ctxQueryHandlerConfig.getIpAddress(),
 				MiddlewareAPIImpl.CONTEXT_SUBSCRIPTION_ROUTE, new Handler<HttpClientResponse>() {
 
 					@Override
@@ -231,7 +371,7 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 		
 		// Get all the assertion capabilities
 		
-		this.client.get(this.ctxCoordConfig.getPort(), this.ctxCoordConfig.getAddress(),
+		this.client.get(this.ctxCoordConfig.getPort(), this.ctxCoordConfig.getIpAddress(),
 				MiddlewareAPIImpl.ASSERTION_CAPABILITIES_ROUTE, new Handler<HttpClientResponse>() {
 
 			@Override

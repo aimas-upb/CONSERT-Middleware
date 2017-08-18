@@ -137,8 +137,8 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 		// Initialization
 		String resourceUUID = rtCtx.request().getParam("id");
 		
-		AgentConfig queryHandler = this.ctxUser.getCtxQueryHandlerConfig();
-		this.client.get(queryHandler.getPort(), queryHandler.getAddress(),
+		AgentAddress queryHandler = this.ctxUser.getCtxQueryHandlerConfig();
+		this.client.get(queryHandler.getPort(), queryHandler.getIpAddress(),
 				RouteConfigV1Usage.SUBSCRIPTIONS_RESOURCES_ROUTE + resourceUUID, new Handler<HttpClientResponse>() {
 
 			@Override

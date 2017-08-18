@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
@@ -45,7 +45,7 @@ import io.vertx.ext.web.RoutingContext;
 public class RouteConfigV1Coordination extends RouteConfigV1 {
 
 	private CtxCoord ctxCoord; // the agent that can be accessed with the defined routes
-	private AgentConfig engineConfig;  // the configuration of the CONSERT Engine to communicate with it
+	private AgentAddress engineConfig;  // the configuration of the CONSERT Engine to communicate with it
 
 	private final String INSERT_EVENT_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.ENGINE_ROUTE + "/insert_event/";
@@ -80,6 +80,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// Insertion in CtxCoord
 		AssertionCapability ac = (AssertionCapability) entry.getValue();
 		this.ctxCoord.addAssertionCapability(entry.getKey(), ac);
+		this.ctxCoord.addCtxSensor(ac.getProvider().getAddress());
 	}
 
 	/**
@@ -98,7 +99,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		// Connection to repository to get the provider of each
 		// AssertionCapability and the statements
 		RepositoryConnection conn = this.ctxCoord.getRepository().getConnection();
-		RDFBeanManager manager = new RDFBeanManager(conn);
 
 		// Prepare to write RDF statements
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -187,11 +187,14 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 				rtCtx.response().setStatusCode(404).end();
 				return;
 			}
+			
+			this.ctxCoord.removeCtxSensor(ac.getProvider().getAddress());
 
 			AssertionCapability newAc = (AssertionCapability) entry.getValue();
 
 			// Insertion in CtxCoord
 			this.ctxCoord.addAssertionCapability(UUID.fromString(uuid), newAc);
+			this.ctxCoord.addCtxSensor(newAc.getProvider().getAddress());
 		}
 	}
 
@@ -216,6 +219,8 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 			AssertionCapability ac = this.ctxCoord.removeAssertionCapability(UUID.fromString(uuid));
 			if (ac == null) {
 				rtCtx.response().setStatusCode(404).end();
+			} else {
+				this.ctxCoord.removeCtxSensor(ac.getProvider().getAddress());
 			}
 		} else {
 			rtCtx.response().setStatusCode(404).end();
@@ -333,7 +338,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostInsCtxAssert(RoutingContext rtCtx) {
 		
-		this.client.post(engineConfig.getPort(), engineConfig.getAddress(), this.INSERT_EVENT_ROUTE,
+		this.client.post(engineConfig.getPort(), engineConfig.getIpAddress(), this.INSERT_EVENT_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 			@Override
@@ -516,6 +521,42 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostUnregQueryHandler(RoutingContext rtCtx) {
 		// TODO
+	}
+
+	/**
+	 * GET find engine
+	 * 
+	 * @param rtCtx the routing context
+	 */
+	public void handleGetFindEngine(RoutingContext rtCtx) {
+		
+		RDFBeanManager manager = new RDFBeanManager(this.convRepoConn);
+		
+		try {
+			
+			manager.add(this.ctxCoord.getConsertEngineConfig());
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+			writer.startRDF();
+			
+			RepositoryResult<Statement> statements = this.convRepoConn.getStatements(null, null, null);
+			
+			while(statements.hasNext()) {
+				writer.handleStatement(statements.next());
+			}
+			
+			writer.endRDF();
+			
+			this.convRepoConn.clear();
+			rtCtx.response().setStatusCode(200).putHeader("content-type", "text/turtle").end(baos.toString());
+			
+		} catch (RepositoryException | RDFBeanException e) {
+
+			System.err.println("Error while getting information for Engine address and port: " + e.getMessage());
+			e.printStackTrace();
+			rtCtx.response().setStatusCode(500).end();
+		}
 	}
 
 	private Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass) {

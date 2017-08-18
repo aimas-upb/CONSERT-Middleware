@@ -4,14 +4,13 @@ import java.io.IOException;
 
 import org.aimas.consert.middleware.agents.AgentConfig;
 import org.aimas.consert.middleware.agents.CtxCoord;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.aimas.consert.middleware.agents.OrgMgr;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -26,7 +25,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
  */
 @RunWith(VertxUnitRunner.class)
 public class AssertionCapabilitySubscriptionRoutesTest {
-	private final String CONFIG_FILE = "agents.properties";
+
 	private final String postQuery = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix assertion-capability-subscription: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription/> .\n"
 			+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/> .\n"
@@ -43,7 +42,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 			+ "    protocol:hasIdentifier \"CtxUser1\" .\n"
 			+ "agent-address:CtxUserAddress a protocol:AgentAddress ;\n"
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
-			+ "    protocol:port \"8081\"^^xsd:int .\n";
+			+ "    protocol:port \"8082\"^^xsd:int .\n";
 
 	private Vertx vertx;
 	private AgentConfig ctxCoord;
@@ -51,17 +50,16 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 	private HttpClient httpClient;
 
 	@Before
-	public void setUp(TestContext context) throws IOException, ConfigurationException {
+	public void setUp(TestContext context) throws IOException {
 
-		// Read configuration files
-		Configuration config;
-
-		config = new PropertiesConfiguration(CONFIG_FILE);
-		this.ctxCoord = AgentConfig.readCtxCoordConfig(config);
+		this.ctxCoord = new AgentConfig("127.0.0.1", 8081);
 
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
-		this.vertx.deployVerticle(CtxCoord.class.getName(), context.asyncAssertSuccess());
+		
+		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
+			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
+		});
 
 		this.httpClient = this.vertx.createHttpClient();
 	}
