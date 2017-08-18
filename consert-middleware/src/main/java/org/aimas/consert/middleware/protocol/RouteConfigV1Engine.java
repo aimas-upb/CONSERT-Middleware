@@ -108,12 +108,6 @@ public class RouteConfigV1Engine {
 				this.engine.insertEvent(ca);
 			}
 			
-			// Insert all the statements in the engine repository
-			RepositoryConnection conn = this.engine.getRepository().getConnection();
-			RepositoryResult<Statement> allStatements = this.convRepoConn.getStatements(null, null, null);
-			conn.add(allStatements);
-			conn.close();
-			
 			this.convRepoConn.clear();
 			
 			rtCtx.response().setStatusCode(201).end();
