@@ -15,9 +15,9 @@ import org.junit.runner.RunWith;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.WebSocket;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -119,30 +119,25 @@ public class ContextQueryRouteTest {
 		
 		Async async = context.async();
 
-		this.httpClient.get(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getAddress(),
-				"/api/v1/dissemination/context_query/", new Handler<HttpClientResponse>() {
+		this.httpClient.websocket(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getAddress(),
+				"/api/v1/dissemination/context_query/", new Handler<WebSocket>() {
 
 					@Override
-					public void handle(HttpClientResponse resp) {
+					public void handle(WebSocket socket) {
+						
+						socket.writeTextMessage(sparqlQuery);
 
-						if (resp.statusCode() != 200) {
-							context.fail("Failed to query context, code " + resp.statusCode());
-							async.complete();
-						} else {
-
-							resp.bodyHandler(new Handler<Buffer>() {
+						socket.textMessageHandler(new Handler<String>() {
 
 								@Override
-								public void handle(Buffer buffer) {
+								public void handle(String str) {
 									
-									System.out.println("\nresult of query: " + buffer.toString() + "\n");
-									context.assertNotEquals(buffer.toString(), "");
+									System.out.println("\nresult of query: " + str + "\n");
+									context.assertNotEquals(str, "");
 									async.complete();
 								}
-
-							});
-						}
+						});
 					}
-				}).putHeader("content-type", "text/turtle").end(this.sparqlQuery);
+		});
 	}
 }

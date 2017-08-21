@@ -3,6 +3,8 @@ package org.aimas.consert.middleware.protocol;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -53,6 +55,9 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
 	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
 	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
+	
+	private Map<UUID, ServerWebSocket> sockets;  // sockets to use to notify the agents that their result is ready
+	
 
 	public RouteConfigV1Dissemination(CtxQueryHandler ctxQueryHandler) {
 		this.ctxQueryHandler = ctxQueryHandler;
@@ -63,6 +68,8 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		this.convRepoConn = this.convRepo.getConnection();
 		
 		this.client = this.ctxQueryHandler.getVertx().createHttpClient();
+		
+		this.sockets = new HashMap<UUID, ServerWebSocket>();
 	}
 
 	/**
@@ -100,11 +107,24 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 							@Override
 							public void handle(Buffer buffer) {
 								
-								// Short-lasting queries
+								String result = buffer.toString();
+								
+								try {
+									
+									UUID resourceId = UUID.fromString(result);
+									
+									/*
+									  if no exception is thrown, then it is a long-lasting query, we store the socket
+									  to send the result notification later
+									*/
+								sockets.put(resourceId, socket);
+									
+								} catch(IllegalArgumentException e) {
+									// if the UUID cannot be parsed, then it is a short-lasting query, nothing to do
+								}
 								
 								// Send the results
-								rtCtx.response().setStatusCode(resp.statusCode())
-									.putHeader("content-type", "text/plain").end(buffer.toString());
+								socket.writeTextMessage(result);
 							}
 						});
 					}
@@ -286,9 +306,10 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		
 		// Initialization
 		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
-		RequestResource resource = this.ctxQueryHandler.getResource(resourceUUID);
 		
-		System.out.println("received result notification for resource " + resource);
+		// Send the UUID of the resource to the agent that made the query
+		ServerWebSocket socket = this.sockets.get(resourceUUID);
+		socket.writeTextMessage(resourceUUID.toString());
 	}
 	
 	/**
