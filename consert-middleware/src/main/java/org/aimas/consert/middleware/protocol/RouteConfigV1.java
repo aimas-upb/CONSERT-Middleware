@@ -114,6 +114,9 @@ public class RouteConfigV1 extends RouteConfig {
 		
 		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
 				+ "/result_ready/:id/").handler(dissemination::handleResultReady);
+		
+		router.put(RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+				+ "/update_subscriptions/").handler(dissemination::handleUpdateSubs);
 
 		return router;
 	}

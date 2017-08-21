@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.aimas.consert.middleware.config.AgentSpecification;
 import org.aimas.consert.middleware.config.CMMAgentContainer;
@@ -61,6 +58,9 @@ import io.vertx.ext.web.Router;
  * CtxQueryHandler agent implemented as a Vert.x server
  */
 public class CtxQueryHandler extends AbstractVerticle implements Agent {
+	
+	private static final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -79,8 +79,6 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private AgentAddress consertEngine;  // configuration to communicate with the CONSERT Engine
 	
 	private HttpClient client;  // client to use for the communications with the other agents
-
-	private ScheduledExecutorService subscriptionsService;  // service that sends the queries for context subscriptions
 	
 	private Repository convRepo;  // repository used to convert Java objects and RDF statements
 	private RepositoryConnection convRepoConn;  // connection to the conversion repository
@@ -133,9 +131,6 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 							future.complete();
 						});
-				
-				this.subscriptionsService = Executors.newScheduledThreadPool(1);
-				this.subscriptionsService.execute(new ContextSubscriptionTask());
 			});
 			
 			this.findAgents(futureAgents);
@@ -387,89 +382,83 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	}
 	
 	
-	// Sends the queries of context subscriptions every 5 seconds
-	private class ContextSubscriptionTask implements Runnable {
+	/**
+	 * Sends the queries of context subscriptions
+	 */
+	public void updateSubscriptions() {
 		
-		private static final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
-		
-		public void run() {
+		for(Entry<UUID, ContextSubscription> entry : contextSubscriptions.entrySet()) {
 			
-			for(Entry<UUID, ContextSubscription> entry : contextSubscriptions.entrySet()) {
-				
-				// Send the query to the engine
-				client.get(consertEngine.getPort(), consertEngine.getIpAddress(),
-						ContextSubscriptionTask.ANSWER_QUERY_ROUTE, new Handler<HttpClientResponse>() {
+			// Send the query to the engine
+			client.get(consertEngine.getPort(), consertEngine.getIpAddress(),
+					CtxQueryHandler.ANSWER_QUERY_ROUTE, new Handler<HttpClientResponse>() {
 
-					@Override
-					public void handle(HttpClientResponse resp) {
-						
-						resp.bodyHandler(new Handler<Buffer>() {
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					resp.bodyHandler(new Handler<Buffer>() {
 
-							@Override
-							public void handle(Buffer buffer) {
-								
-								// Parse the received JSON
-								List<BindingSet> results = new ArrayList<BindingSet>();
-								
-								QueryResultParser parser = new SPARQLResultsJSONParser();
-								parser.setQueryResultHandler(new QueryResultHandler() {
+						@Override
+						public void handle(Buffer buffer) {
+							
+							// Parse the received JSON
+							List<BindingSet> results = new ArrayList<BindingSet>();
+							
+							QueryResultParser parser = new SPARQLResultsJSONParser();
+							parser.setQueryResultHandler(new QueryResultHandler() {
 
-									@Override
-									public void handleBoolean(boolean value) throws QueryResultHandlerException {}
+								@Override
+								public void handleBoolean(boolean value) throws QueryResultHandlerException {}
 
-									@Override
-									public void handleLinks(List<String> linkUrls) throws QueryResultHandlerException {}
+								@Override
+								public void handleLinks(List<String> linkUrls) throws QueryResultHandlerException {}
 
-									@Override
-									public void startQueryResult(List<String> bindingNames)
-											throws TupleQueryResultHandlerException {}
+								@Override
+								public void startQueryResult(List<String> bindingNames)
+										throws TupleQueryResultHandlerException {}
 
-									@Override
-									public void endQueryResult() throws TupleQueryResultHandlerException {}
+								@Override
+								public void endQueryResult() throws TupleQueryResultHandlerException {}
 
-									@Override
-									public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
-										results.add(bindingSet);
-									}
-									
-								});
-								InputStream is = new ByteArrayInputStream(buffer.getBytes());
-								
-								try {
-									parser.parseQueryResult(is);
-									
-								} catch (QueryResultParseException | QueryResultHandlerException | IOException e) {
-									
-									System.err.println("Error while parsing JSON query result: " + e.getMessage());
-									e.printStackTrace();
+								@Override
+								public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
+									results.add(bindingSet);
 								}
 								
-
-								// Update the resource and notify the subscriber only if the result has changed
-								RequestResource resource = ctxSubsResources.get(entry.getKey());
+							});
+							InputStream is = new ByteArrayInputStream(buffer.getBytes());
+							
+							try {
+								parser.parseQueryResult(is);
 								
-								if(resource.hasResultChanged(results)) {
-									
-									resource.setResult(results);
-									
-									// Send notification to subscriber
-									URI callbackURI = resource.getInitiatorCallbackURI();
-									client.post(callbackURI.getPort(), callbackURI.getHost(), callbackURI.getPath(),
-											new Handler<HttpClientResponse>() {
-
-										@Override
-										public void handle(HttpClientResponse response) {
-										}
-									}).end();
-								}
+							} catch (QueryResultParseException | QueryResultHandlerException | IOException e) {
+								
+								System.err.println("Error while parsing JSON query result: " + e.getMessage());
+								e.printStackTrace();
 							}
-						});
-					}
-				}).putHeader("content-type", "text/turtle").end(entry.getValue().getSubscriptionQuery());
-			}
-			
-			subscriptionsService.schedule(new ContextSubscriptionTask(), 5, TimeUnit.SECONDS);
+							
+
+							// Update the resource and notify the subscriber only if the result has changed
+							RequestResource resource = ctxSubsResources.get(entry.getKey());
+							
+							if(resource.hasResultChanged(results)) {
+								
+								resource.setResult(results);
+								
+								// Send notification to subscriber
+								URI callbackURI = resource.getInitiatorCallbackURI();
+								client.post(callbackURI.getPort(), callbackURI.getHost(), callbackURI.getPath(),
+										new Handler<HttpClientResponse>() {
+
+									@Override
+									public void handle(HttpClientResponse response) {
+									}
+								}).end();
+							}
+						}
+					});
+				}
+			}).putHeader("content-type", "text/turtle").end(entry.getValue().getSubscriptionQuery());
 		}
 	}
 }

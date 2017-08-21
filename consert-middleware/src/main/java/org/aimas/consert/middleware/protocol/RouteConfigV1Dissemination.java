@@ -269,7 +269,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	}
 	
 	/**
-	 * POST query result ready
+	 * PUT query result ready
 	 * 
 	 * @param rtCtx the routing context
 	 */
@@ -280,6 +280,18 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		RequestResource resource = this.ctxQueryHandler.getResource(resourceUUID);
 		
 		System.out.println("received result notification for resource " + resource);
+	}
+	
+	/**
+	 * PUT update subscriptions
+	 * 
+	 * @param rtCtx the routing context
+	 */
+	public void handleUpdateSubs(RoutingContext rtCtx) {
+		
+		this.ctxQueryHandler.updateSubscriptions();
+		
+		rtCtx.response().setStatusCode(200).end();
 	}
 
 	private void get(RoutingContext rtCtx, Class<?> javaClass, RDFObject obj) {
