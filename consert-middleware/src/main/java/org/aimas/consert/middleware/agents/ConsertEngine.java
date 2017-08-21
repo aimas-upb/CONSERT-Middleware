@@ -62,6 +62,8 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 
 	private final static String UPDATE_SUBSCRIPTIONS_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.DISSEMINATION_ROUTE + "/update_subscriptions/";
+	private final static String STATIC_CONTEXT_UPDATE_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.COORDINATION_ROUTE + "/update_entity_descriptions/";
 	
 	protected Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -75,6 +77,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	
 	private AgentAddress orgMgr;  // configuration to communicate with the OrgMgr agent
 	private AgentAddress ctxQueryHandler;  // configuration to communicate with the CtxQueryHandler agent
+	private AgentAddress ctxCoord;  // configuration to communicate with the CtxCoord agent
 	
 	HttpClient client;  // client to use for the communications with the other agents
 	
@@ -169,7 +172,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	public void notifyAssertionInserted(ContextAssertion assertion) {
 		try {
 			manager.add(assertion);
-			this.notifyQueryHandler();
+			this.notifyAssertionUpdate();
 		} catch (RepositoryException | RDFBeanException e) {
 			System.err.println("Error while inserting assertion in engine's repository: " + e.getMessage());
 			e.printStackTrace();
@@ -180,7 +183,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	public void notifyAssertionDeleted(ContextAssertion assertion) {
 		try {
 			manager.delete(assertion.getAssertionIdentifier(), ContextAssertion.class);
-			this.notifyQueryHandler();
+			this.notifyAssertionUpdate();
 		} catch (RepositoryException | RDFBeanException e) {
 			System.err.println("Error while deleting assertion from engine's repository: " + e.getMessage());
 			e.printStackTrace();
@@ -189,6 +192,8 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	
 	private void findAgents(Future<Void> future) {
 		
+		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
 		final String findCtxQueryHandlerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 				+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -197,6 +202,49 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		convRepo.initialize();
 		RepositoryConnection convRepoConn = convRepo.getConnection();
 		RDFBeanManager convManager = new RDFBeanManager(convRepoConn);
+		
+		Future<Void> futureCoord = Future.future();
+		futureCoord.setHandler(handler -> {
+			this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute,
+					new Handler<HttpClientResponse>() {
+	
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					resp.bodyHandler(new Handler<Buffer>() {
+	
+						@Override
+						public void handle(Buffer buffer) {
+							
+							try {
+								
+								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+										RDFFormat.TURTLE);
+								convRepoConn.add(model);
+								
+								for(Statement s : model) {
+	
+									if(s.getPredicate().stringValue().contains(rdfType)) {
+										ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
+										break;
+									}
+								}
+								
+							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+								System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
+								e.printStackTrace();
+							}
+							
+							convRepoConn.close();
+							convRepo.shutDown();
+							
+							future.complete();
+						}
+					});
+				}
+				
+			}).end();
+		});
 		
 		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), findCtxQueryHandlerRoute,
 				new Handler<HttpClientResponse>() {
@@ -230,11 +278,10 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 							e.printStackTrace();
 						}
 						
-						convRepoConn.close();
-						convRepo.shutDown();
+						convRepoConn.clear();
 						
-						future.complete();
-					}
+						futureCoord.complete();
+					}					
 				});
 			}
 			
@@ -242,9 +289,9 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	}
 	
 	/**
-	 * Notifies the query handler agent that the assertions have been updated
+	 * Notifies the CtxQueryHandler and CtxCoord agents that the assertions have been updated
 	 */
-	private void notifyQueryHandler() {
+	private void notifyAssertionUpdate() {
 		
 		if(this.ctxQueryHandler != null) {
 			
@@ -256,6 +303,14 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						}
 			}).end();
 		}
+			
+		this.client.put(this.ctxCoord.getPort(), this.ctxCoord.getIpAddress(),
+				ConsertEngine.STATIC_CONTEXT_UPDATE_ROUTE, new Handler<HttpClientResponse>() {
+
+					@Override
+					public void handle(HttpClientResponse event) {
+					}
+		}).end();
 	}
 	
 	public void insertEvent(ContextAssertion ca) {
