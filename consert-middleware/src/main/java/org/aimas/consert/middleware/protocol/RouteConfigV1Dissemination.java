@@ -33,6 +33,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.RoutingContext;
 
 
@@ -80,27 +81,36 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxQuery(RoutingContext rtCtx) {
 		
-		// Send the query to the engine
-		this.client.get(this.engineConfig.getPort(), this.engineConfig.getIpAddress(), this.ANSWER_QUERY_ROUTE,
-				new Handler<HttpClientResponse>() {
+		ServerWebSocket socket = rtCtx.request().upgrade();
+		
+		socket.textMessageHandler(new Handler<String>() {
 
 			@Override
-			public void handle(HttpClientResponse resp) {
+			public void handle(String str) {
 				
-				resp.bodyHandler(new Handler<Buffer>() {
+				// Send the query to the engine
+				client.get(engineConfig.getPort(), engineConfig.getIpAddress(), ANSWER_QUERY_ROUTE,
+						new Handler<HttpClientResponse>() {
 
 					@Override
-					public void handle(Buffer buffer) {
+					public void handle(HttpClientResponse resp) {
 						
-						// Short-lasting queries
-						
-						// Send the results
-						rtCtx.response().setStatusCode(resp.statusCode()).putHeader("content-type", "text/plain")
-							.end(buffer.toString());
+						resp.bodyHandler(new Handler<Buffer>() {
+
+							@Override
+							public void handle(Buffer buffer) {
+								
+								// Short-lasting queries
+								
+								// Send the results
+								rtCtx.response().setStatusCode(resp.statusCode())
+									.putHeader("content-type", "text/plain").end(buffer.toString());
+							}
+						});
 					}
-				});
+				}).putHeader("content-type", "text/turtle").end(str);
 			}
-		}).putHeader("content-type", "text/turtle").end(rtCtx.getBodyAsString());
+		});
 	}
 
 	/**

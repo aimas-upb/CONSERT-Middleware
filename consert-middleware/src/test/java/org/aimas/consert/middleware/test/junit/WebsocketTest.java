@@ -8,7 +8,6 @@ import org.aimas.consert.middleware.agents.CtxQueryHandler;
 import org.aimas.consert.middleware.agents.OrgMgr;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
-import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,11 +27,6 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
  */
 @RunWith(VertxUnitRunner.class)
 public class WebsocketTest {
-	
-	// Shows that websockets don't work with regular HTTP server handlers
-	
-	
-	/*
 	
 	private static final String QUERY_CONTEXT_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.DISSEMINATION_ROUTE + "/context_query/";
@@ -103,5 +97,5 @@ public class WebsocketTest {
 		}
 	}
 	
-	*/
+	
 }
