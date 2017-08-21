@@ -80,7 +80,6 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxQuery(RoutingContext rtCtx) {
 		
-		System.out.println("CtxQueryHandler send query to engine: " + this.engineConfig);
 		// Send the query to the engine
 		this.client.get(this.engineConfig.getPort(), this.engineConfig.getIpAddress(), this.ANSWER_QUERY_ROUTE,
 				new Handler<HttpClientResponse>() {
