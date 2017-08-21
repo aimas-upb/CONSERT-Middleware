@@ -1,8 +1,10 @@
 package org.aimas.consert.middleware.agents;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -14,6 +16,11 @@ import java.util.concurrent.Executors;
 import org.aimas.consert.engine.EngineRunner;
 import org.aimas.consert.engine.EventTracker;
 import org.aimas.consert.engine.api.ContextAssertionListener;
+import org.aimas.consert.middleware.config.AgentSpecification;
+import org.aimas.consert.middleware.config.CMMAgentContainer;
+import org.aimas.consert.middleware.config.CoordinatorSpecification;
+import org.aimas.consert.middleware.config.MiddlewareConfig;
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.content.ContextAssertion;
@@ -21,7 +28,9 @@ import org.aimas.consert.tests.hla.TestSetup;
 import org.aimas.consert.utils.PlotlyExporter;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.Repository;
@@ -32,12 +41,17 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.kie.api.runtime.KieSession;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
@@ -46,6 +60,11 @@ import io.vertx.ext.web.Router;
  */
 public class ConsertEngine extends AbstractVerticle implements Agent, ContextAssertionListener {
 
+	private final static String UPDATE_SUBSCRIPTIONS_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.DISSEMINATION_ROUTE + "/update_subscriptions/";
+	private final static String STATIC_CONTEXT_UPDATE_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.COORDINATION_ROUTE + "/update_entity_descriptions/";
+	
 	protected Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
 
@@ -55,6 +74,12 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	private Repository repo; // repository containing the RDF data
 	private RepositoryConnection repoConn;  // connection to the repository
 	private RDFBeanManager manager;  // manager for the repository
+	
+	private AgentAddress orgMgr;  // configuration to communicate with the OrgMgr agent
+	private AgentAddress ctxQueryHandler;  // configuration to communicate with the CtxQueryHandler agent
+	private AgentAddress ctxCoord;  // configuration to communicate with the CtxCoord agent
+	
+	HttpClient client;  // client to use for the communications with the other agents
 	
 	private Thread engineRunner;               // thread to run the CONSERT Engine
 	private EventTracker eventTracker;         // service that allows to add events in the engine
@@ -66,6 +91,8 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	public void start(Future<Void> future) {
 
 		this.vertx = this.context.owner();
+		
+		this.client = this.vertx.createHttpClient();
 
 		// Initialization of the repository
 		this.repo = new SailRepository(new MemoryStore());
@@ -81,6 +108,18 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		JsonObject config = this.config();
 		this.agentConfig = new AgentConfig(config.getString("address"), config.getInteger("port"));
 		this.host = config.getString("host");
+		
+		// Get configuration of OrgMgr
+		AgentSpecification orgMgrSpec = MiddlewareConfig.readAgentConfig(CoordinatorSpecification.class,
+			"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#CtxCoordSpec");
+		
+		if(orgMgrSpec != null) {
+			CMMAgentContainer container = orgMgrSpec.getAgentAddress().getAgentContainer();
+			this.orgMgr = new AgentAddress(container.getContainerHost(), container.getContainerPort());
+		} else {
+			// use a default value
+			this.orgMgr = new AgentAddress("127.0.0.1", 8080);
+		}
 
 		// Start server
 		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
@@ -101,7 +140,8 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 			    	this.insertionService = Executors.newSingleThreadExecutor();
 			    	
 			    	this.engineRunner.start();
-					future.complete();
+			    	
+			    	this.findAgents(future);
 				});
 	}
 	
@@ -132,6 +172,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	public void notifyAssertionInserted(ContextAssertion assertion) {
 		try {
 			manager.add(assertion);
+			this.notifyAssertionUpdate();
 		} catch (RepositoryException | RDFBeanException e) {
 			System.err.println("Error while inserting assertion in engine's repository: " + e.getMessage());
 			e.printStackTrace();
@@ -142,10 +183,134 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	public void notifyAssertionDeleted(ContextAssertion assertion) {
 		try {
 			manager.delete(assertion.getAssertionIdentifier(), ContextAssertion.class);
+			this.notifyAssertionUpdate();
 		} catch (RepositoryException | RDFBeanException e) {
 			System.err.println("Error while deleting assertion from engine's repository: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	private void findAgents(Future<Void> future) {
+		
+		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+		final String findCtxQueryHandlerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+				+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		
+		Repository convRepo = new SailRepository(new MemoryStore());
+		convRepo.initialize();
+		RepositoryConnection convRepoConn = convRepo.getConnection();
+		RDFBeanManager convManager = new RDFBeanManager(convRepoConn);
+		
+		Future<Void> futureCoord = Future.future();
+		futureCoord.setHandler(handler -> {
+			this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute,
+					new Handler<HttpClientResponse>() {
+	
+				@Override
+				public void handle(HttpClientResponse resp) {
+					
+					resp.bodyHandler(new Handler<Buffer>() {
+	
+						@Override
+						public void handle(Buffer buffer) {
+							
+							try {
+								
+								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+										RDFFormat.TURTLE);
+								convRepoConn.add(model);
+								
+								for(Statement s : model) {
+	
+									if(s.getPredicate().stringValue().contains(rdfType)) {
+										ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
+										break;
+									}
+								}
+								
+							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+								System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
+								e.printStackTrace();
+							}
+							
+							convRepoConn.close();
+							convRepo.shutDown();
+							
+							future.complete();
+						}
+					});
+				}
+				
+			}).end();
+		});
+		
+		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), findCtxQueryHandlerRoute,
+				new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
+									RDFFormat.TURTLE);
+							convRepoConn.add(model);
+							
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									
+									ctxQueryHandler = convManager.get(s.getSubject(), AgentAddress.class);
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxQueryHandler: "
+									+ e.getMessage());
+							e.printStackTrace();
+						}
+						
+						convRepoConn.clear();
+						
+						futureCoord.complete();
+					}					
+				});
+			}
+			
+		}).end();
+	}
+	
+	/**
+	 * Notifies the CtxQueryHandler and CtxCoord agents that the assertions have been updated
+	 */
+	private void notifyAssertionUpdate() {
+		
+		if(this.ctxQueryHandler != null) {
+			
+			this.client.put(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getIpAddress(),
+					ConsertEngine.UPDATE_SUBSCRIPTIONS_ROUTE, new Handler<HttpClientResponse>() {
+	
+						@Override
+						public void handle(HttpClientResponse event) {
+						}
+			}).end();
+		}
+			
+		this.client.put(this.ctxCoord.getPort(), this.ctxCoord.getIpAddress(),
+				ConsertEngine.STATIC_CONTEXT_UPDATE_ROUTE, new Handler<HttpClientResponse>() {
+
+					@Override
+					public void handle(HttpClientResponse event) {
+					}
+		}).end();
 	}
 	
 	public void insertEvent(ContextAssertion ca) {
