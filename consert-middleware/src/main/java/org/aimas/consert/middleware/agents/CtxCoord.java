@@ -94,8 +94,8 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 			this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
 					res -> {
 						if (res.succeeded()) {
-							System.out.println(
-									"Started CtxCoord on port " + this.agentConfig.getPort() + " host " + this.host);
+							System.out.println("Started CtxCoord on port " + this.agentConfig.getPort() + " host "
+								+ this.host);
 						} else {
 							System.out.println("Failed to start CtxCoord on port " + this.agentConfig.getPort()
 								+ " host " + this.host);

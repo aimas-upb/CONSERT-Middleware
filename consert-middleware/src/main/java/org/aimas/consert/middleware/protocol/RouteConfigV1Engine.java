@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.aimas.consert.middleware.agents.ConsertEngine;
+import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.model.content.ContextAssertion;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.eclipse.rdf4j.model.IRI;
@@ -27,6 +29,10 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -34,10 +40,15 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class RouteConfigV1Engine {
 	
+	private static final boolean LONG_LASTING_QUERY = true;  // change this value to try short-lasting and
+	                                                         // long-lasting queries
+
 	private ConsertEngine engine;  // the engine that can be accessed with the defined routes
 	
 	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
 	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
+	
+	private HttpClient client;  // the client to use for the communications with other agents
 
 	
 	public RouteConfigV1Engine(ConsertEngine engine) {
@@ -46,6 +57,8 @@ public class RouteConfigV1Engine {
 		this.convRepo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
+		
+		this.client = this.engine.getVertx().createHttpClient();
 	}
 	
 	
@@ -93,7 +106,8 @@ public class RouteConfigV1Engine {
 				
 				try {
 					
-					ContextAssertion ca = (ContextAssertion) manager.get(s.getSubject(), bindingClasses.get(s.getObject()));
+					ContextAssertion ca = (ContextAssertion) manager.get(s.getSubject(),
+							bindingClasses.get(s.getObject()));
 					ca.setProcessingTimeStamp(System.currentTimeMillis());
 					ca.setAssertionIdentifier(s.getSubject().stringValue());
 					contextAssertions.add(ca);
@@ -137,8 +151,49 @@ public class RouteConfigV1Engine {
 		TupleQueryResultHandler writer = new SPARQLResultsJSONWriter(baos);
 		query.evaluate(writer);
 		
-		// Send the result
-		rtCtx.response().setStatusCode(200).putHeader("content-type", "application/json").end(baos.toString());
+		
+		if(RouteConfigV1Engine.LONG_LASTING_QUERY) {
+			
+			// Generate a new UUID and send it
+			UUID uuid = UUID.randomUUID();
+			rtCtx.response().setStatusCode(201).putHeader("content-type", "text/plain").end(uuid.toString());
+			
+			// for test purposes only, to show that the time before sending the result of the query is not important
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			// Notify the CtxQueryHandler that the result is ready and give the result 
+			AgentAddress ctxQueryHandler = this.engine.getCtxQueryHandler();
+			
+			Future<Void> future = Future.future();
+			future.setHandler(handler -> {
+
+				AgentAddress ctxQueryHandlerNotNull = this.engine.getCtxQueryHandler();
+				
+				this.client.put(ctxQueryHandlerNotNull.getPort(), ctxQueryHandlerNotNull.getIpAddress(),
+					RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+					+ "/result_ready/" + uuid.toString() + "/", new Handler<HttpClientResponse>() {
+
+						@Override
+						public void handle(HttpClientResponse resp) {
+						}
+				}).putHeader("content-type", "application/json").end(baos.toString());
+			});
+			
+			if(ctxQueryHandler == null) {
+				this.engine.findQueryHandler(future);
+			} else {
+				future.complete();
+			}
+			
+		} else {
+			
+			// Send the result
+			rtCtx.response().setStatusCode(200).putHeader("content-type", "application/json").end(baos.toString());
+		}
 		
 		conn.close();
 	}

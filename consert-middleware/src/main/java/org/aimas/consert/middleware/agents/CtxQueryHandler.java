@@ -72,7 +72,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	private Repository subscriptionsRepo;  // repository containing the RDF data for context subscriptions
 
 	public Map<UUID, ContextSubscription> contextSubscriptions; // list of context subscriptions
-	public Map<UUID, RequestResource> ctxSubsResources; // list of resources for context subscriptions
+	public Map<UUID, RequestResource> resources; // list of resources
 
 	private AgentAddress ctxCoord;       // configuration to communicate with the CtxCoord agent
 	private AgentAddress orgMgr;         // configuration to communicate with the OrgMgr agent
@@ -105,7 +105,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 		// Initialization of the lists
 		this.contextSubscriptions = new HashMap<UUID, ContextSubscription>();
-		this.ctxSubsResources = new HashMap<UUID, RequestResource>();
+		this.resources = new HashMap<UUID, RequestResource>();
 
 		// Get configuration
 		Future<Void> futureConfig = Future.future();
@@ -314,7 +314,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 
 	public void addContextSubscription(UUID uuid, ContextSubscription cs, RequestResource res) {
 		this.contextSubscriptions.put(uuid, cs);
-		this.ctxSubsResources.put(uuid, res);
+		this.resources.put(uuid, res);
 	}
 
 	public ContextSubscription getContextSubscription(UUID uuid) {
@@ -370,7 +370,15 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	}
 	
 	public RequestResource getResource(UUID uuid) {
-		return this.ctxSubsResources.get(uuid);
+		return this.resources.get(uuid);
+	}
+	
+	public RequestResource removeResource(UUID uuid) {
+		return this.resources.remove(uuid);
+	}
+	
+	public RequestResource addResource(UUID uuid, RequestResource resource) {
+		return this.resources.put(uuid, resource);
 	}
 
 	public AgentConfig getAgentConfig() {
@@ -439,7 +447,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 							
 
 							// Update the resource and notify the subscriber only if the result has changed
-							RequestResource resource = ctxSubsResources.get(entry.getKey());
+							RequestResource resource = resources.get(entry.getKey());
 							
 							if(resource.hasResultChanged(results)) {
 								
@@ -447,7 +455,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 								
 								// Send notification to subscriber
 								URI callbackURI = resource.getInitiatorCallbackURI();
-								client.post(callbackURI.getPort(), callbackURI.getHost(), callbackURI.getPath(),
+								client.put(callbackURI.getPort(), callbackURI.getHost(), callbackURI.getPath(),
 										new Handler<HttpClientResponse>() {
 
 									@Override
