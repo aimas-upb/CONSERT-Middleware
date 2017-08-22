@@ -79,7 +79,11 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	private AgentAddress ctxQueryHandler;  // configuration to communicate with the CtxQueryHandler agent
 	private AgentAddress ctxCoord;  // configuration to communicate with the CtxCoord agent
 	
-	HttpClient client;  // client to use for the communications with the other agents
+	private HttpClient client;  // client to use for the communications with the other agents
+	
+	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
+	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
+	private RDFBeanManager convManager;  // manager for the conversion repository
 	
 	private Thread engineRunner;               // thread to run the CONSERT Engine
 	private EventTracker eventTracker;         // service that allows to add events in the engine
@@ -99,6 +103,11 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		this.repo.initialize();
 		this.repoConn = this.repo.getConnection();
 		this.manager = new RDFBeanManager(this.repoConn);
+		
+		this.convRepo = new SailRepository(new MemoryStore());
+		this.convRepo.initialize();
+		this.convRepoConn = this.convRepo.getConnection();
+		this.convManager = new RDFBeanManager(this.convRepoConn);
 
 		// Create router
 		RouteConfig routeConfig = new RouteConfigV1();
@@ -126,7 +135,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 				res -> {
 					if (res.succeeded()) {
 						System.out.println("Started CONSERT Engine on port " + this.agentConfig.getPort() + " host "
-								+ this.host);
+							+ this.host);
 					} else {
 						System.out.println("Failed to start CONSERT Engine on port " + this.agentConfig.getPort()
 							+ " host " + this.host);
@@ -141,7 +150,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 			    	
 			    	this.engineRunner.start();
 			    	
-			    	this.findAgents(future);
+			    	this.findCoordinator(future);
 				});
 	}
 	
@@ -156,6 +165,9 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		
 		this.repoConn.close();
 		this.repo.shutDown();
+		
+		this.convRepoConn.close();
+		this.convRepo.shutDown();
 
     	PlotlyExporter.exportToHTML(null, this.kSession);
     	this.insertionService.shutdownNow();
@@ -190,61 +202,55 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		}
 	}
 	
-	private void findAgents(Future<Void> future) {
+	private void findCoordinator(Future<Void> future) {
 		
 		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+		
+		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+
+			@Override
+			public void handle(HttpClientResponse resp) {
+				
+				resp.bodyHandler(new Handler<Buffer>() {
+
+					@Override
+					public void handle(Buffer buffer) {
+						
+						try {
+							
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
+							convRepoConn.add(model);
+
+							for(Statement s : model) {
+
+								if(s.getPredicate().stringValue().contains(rdfType)) {
+									ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
+									break;
+								}
+							}
+							
+						} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
+							System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
+							e.printStackTrace();
+						}
+						
+						convRepoConn.clear();
+						
+						future.complete();
+					}
+				});
+			}
+			
+		}).end();
+	}
+	
+	public void findQueryHandler(Future<Void> future) {
+		
 		final String findCtxQueryHandlerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 				+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-		
-		Repository convRepo = new SailRepository(new MemoryStore());
-		convRepo.initialize();
-		RepositoryConnection convRepoConn = convRepo.getConnection();
-		RDFBeanManager convManager = new RDFBeanManager(convRepoConn);
-		
-		Future<Void> futureCoord = Future.future();
-		futureCoord.setHandler(handler -> {
-			this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute,
-					new Handler<HttpClientResponse>() {
-	
-				@Override
-				public void handle(HttpClientResponse resp) {
-					
-					resp.bodyHandler(new Handler<Buffer>() {
-	
-						@Override
-						public void handle(Buffer buffer) {
-							
-							try {
-								
-								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
-										RDFFormat.TURTLE);
-								convRepoConn.add(model);
-								
-								for(Statement s : model) {
-	
-									if(s.getPredicate().stringValue().contains(rdfType)) {
-										ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
-										break;
-									}
-								}
-								
-							} catch (UnsupportedRDFormatException | IOException | RDF4JException | RDFBeanException e) {
-								System.err.println("Error while getting configuration for CtxCoord: " + e.getMessage());
-								e.printStackTrace();
-							}
-							
-							convRepoConn.close();
-							convRepo.shutDown();
-							
-							future.complete();
-						}
-					});
-				}
-				
-			}).end();
-		});
 		
 		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), findCtxQueryHandlerRoute,
 				new Handler<HttpClientResponse>() {
@@ -259,8 +265,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						
 						try {
 							
-							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
-									RDFFormat.TURTLE);
+							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
@@ -279,8 +284,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						}
 						
 						convRepoConn.clear();
-						
-						futureCoord.complete();
+						future.complete();
 					}					
 				});
 			}
@@ -330,6 +334,10 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		public void run() {
 			eventTracker.insertAtomicEvent(ca);
         }
+	}
+	
+	public AgentAddress getCtxQueryHandler() {		
+		return this.ctxQueryHandler;
 	}
 	
 	/**

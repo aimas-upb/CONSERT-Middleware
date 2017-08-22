@@ -1,8 +1,14 @@
 package org.aimas.consert.middleware.protocol;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -17,6 +23,13 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryResultHandler;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.resultio.QueryResultParseException;
+import org.eclipse.rdf4j.query.resultio.QueryResultParser;
+import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONParser;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -24,6 +37,7 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
@@ -33,6 +47,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.ServerWebSocket;
 import io.vertx.ext.web.RoutingContext;
 
 
@@ -44,6 +59,9 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	private final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
 	
+	private final String REQUEST_RESOURCE_URI =
+			"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#RequestResource";
+	
 	private CtxQueryHandler ctxQueryHandler; // the agent that can be accessed with the defined routes
 	
 	private HttpClient client;  // the client to use for communications with other agents
@@ -52,6 +70,10 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	
 	private Repository convRepo;  // repository used for the conversion between Java objects and RDF statements
 	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
+	private RDFBeanManager convManager;  // manager for the conversions 
+	
+	private Map<UUID, ServerWebSocket> sockets;  // sockets to use to notify the agents that their result is ready
+	
 
 	public RouteConfigV1Dissemination(CtxQueryHandler ctxQueryHandler) {
 		this.ctxQueryHandler = ctxQueryHandler;
@@ -60,8 +82,11 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		this.convRepo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
+		this.convManager = new RDFBeanManager(this.convRepoConn);
 		
 		this.client = this.ctxQueryHandler.getVertx().createHttpClient();
+		
+		this.sockets = new HashMap<UUID, ServerWebSocket>();
 	}
 
 	/**
@@ -80,28 +105,63 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 */
 	public void handleGetCtxQuery(RoutingContext rtCtx) {
 		
-		System.out.println("CtxQueryHandler send query to engine: " + this.engineConfig);
-		// Send the query to the engine
-		this.client.get(this.engineConfig.getPort(), this.engineConfig.getIpAddress(), this.ANSWER_QUERY_ROUTE,
-				new Handler<HttpClientResponse>() {
+		ServerWebSocket socket = rtCtx.request().upgrade();
+		
+		socket.textMessageHandler(new Handler<String>() {
 
 			@Override
-			public void handle(HttpClientResponse resp) {
+			public void handle(String str) {
 				
-				resp.bodyHandler(new Handler<Buffer>() {
+				// Send the query to the engine
+				client.get(engineConfig.getPort(), engineConfig.getIpAddress(), ANSWER_QUERY_ROUTE,
+						new Handler<HttpClientResponse>() {
 
 					@Override
-					public void handle(Buffer buffer) {
+					public void handle(HttpClientResponse resp) {
 						
-						// Short-lasting queries
-						
-						// Send the results
-						rtCtx.response().setStatusCode(resp.statusCode()).putHeader("content-type", "text/plain")
-							.end(buffer.toString());
+						resp.bodyHandler(new Handler<Buffer>() {
+
+							@Override
+							public void handle(Buffer buffer) {
+								
+								String result = buffer.toString();
+								
+								/*
+								  if the status code is 201, then it is a long-lasting query, we store the socket
+								  to send the result notification later, we create the resource and we send its
+								  UUID to the agent that made the query
+								*/
+								if(resp.statusCode() == 201) {
+									
+									UUID resourceId = UUID.fromString(result);
+									
+									sockets.put(resourceId, socket);
+									
+									// Create the resource									
+									AgentConfig ctxQHConfig = ctxQueryHandler.getAgentConfig();
+									RequestResource resource = new RequestResource();
+									resource.setResourceURI(URI.create("http://" + ctxQHConfig.getAddress() + ":"
+											+ ctxQHConfig.getPort() + RouteConfig.API_ROUTE
+											+ RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+											+ "/resources/" + resourceId.toString()));
+									resource.setParticipantURI(URI.create("http://" + ctxQHConfig.getAddress() + ":"
+											+ ctxQHConfig.getPort()));
+									resource.setRequest(str);
+									resource.setState(new RequestState(RequestState.REQ_RECEIVED));
+									resource.setId(REQUEST_RESOURCE_URI + "/" + result);
+
+									// Add the resource in CtxQueryHandler
+									ctxQueryHandler.addResource(resourceId, resource);
+								}
+								
+								// Send the results
+								socket.writeTextMessage(result);
+							}
+						});
 					}
-				});
+				}).putHeader("content-type", "text/turtle").end(str);
 			}
-		}).putHeader("content-type", "text/turtle").end(rtCtx.getBodyAsString());
+		});
 	}
 
 	/**
@@ -120,7 +180,6 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 			
 			Model model = Rio.parse(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.TURTLE);
 			this.convRepoConn.add(model);
-			RDFBeanManager manager = new RDFBeanManager(this.convRepoConn);
 			
 			IRI rdfType = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 			
@@ -136,13 +195,16 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 					
 					try {
 						
-						csr = (ContextSubscriptionRequest) manager.get(s.getSubject(), ContextSubscriptionRequest.class);
+						csr = (ContextSubscriptionRequest) this.convManager.get(s.getSubject(),
+								ContextSubscriptionRequest.class);
 						
 					} catch(ClassCastException e) {
 						continue;
 					}
 				}
 			}
+			
+			this.convRepoConn.clear();
 	
 			// Insertion in CtxQueryHandler
 			ContextSubscription cs = csr.getContextSubscription();
@@ -155,14 +217,15 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 			
 			AgentConfig ctxQHConfig = this.ctxQueryHandler.getAgentConfig();
 			RequestResource resource = new RequestResource();
-			resource.setResourceURI(URI.create("http://" + ctxQHConfig.getAddress() + ":" + ctxQHConfig.getPort() + RouteConfig.API_ROUTE
-					+ RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE + "/resources/"
-					+ uuid.toString()));
+			resource.setResourceURI(URI.create("http://" + ctxQHConfig.getAddress() + ":" + ctxQHConfig.getPort()
+					+ RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.DISSEMINATION_ROUTE
+					+ "/resources/" + uuid.toString()));
 			resource.setInitiatorURI(csr.getInitiatorURI());
 			resource.setParticipantURI(URI.create("http://" + ctxQHConfig.getAddress() + ":" + ctxQHConfig.getPort()));
 			resource.setRequest(csr.getContextSubscription().getSubscriptionQuery());
 			resource.setState(new RequestState(RequestState.REQ_RECEIVED));
 			resource.setInitiatorCallbackURI(csr.getInitiatorCallbackURI());
+			resource.setId(this.REQUEST_RESOURCE_URI + "/" + uuid.toString());
 
 			// Add the resource in CtxQueryHandler
 			this.ctxQueryHandler.addContextSubscription(uuid, cs, resource);
@@ -254,7 +317,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * 
 	 * @param rtCtx the routing context
 	 */
-	public void handleResources(RoutingContext rtCtx) {
+	public void handleGetResource(RoutingContext rtCtx) {
 
 		// Initialization
 		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
@@ -262,7 +325,49 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 
 		// Send resource if found
 		if (resource != null) {
-			this.get(rtCtx, RequestResource.class, resource);
+			
+			try {
+				this.convManager.add(resource);
+			} catch (RepositoryException | RDFBeanException e) {
+				System.err.println("Error while convert resource " + resourceUUID.toString() + " to RDF statements: "
+					+ e.getMessage());
+				e.printStackTrace();
+			}
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
+			writer.startRDF();
+			
+			RepositoryResult<Statement> statements = this.convRepoConn.getStatements(null, null, null);
+			
+			while(statements.hasNext()) {
+				writer.handleStatement(statements.next());
+			}
+			
+			writer.endRDF();
+			this.convRepoConn.clear();
+			
+			rtCtx.response().setStatusCode(200).end(baos.toString());
+			
+		} else {
+			rtCtx.response().setStatusCode(404).end();
+		}
+	}
+	
+	/**
+	 * DELETE resource
+	 * 
+	 * @param rtCtx the routing context
+	 */
+	public void handleDeleteResource(RoutingContext rtCtx) {
+
+		// Initialization
+		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
+		RequestResource resource = this.ctxQueryHandler.removeResource(resourceUUID);
+
+		// Send 200 code if the resource has been found
+		if (resource != null) {
+			rtCtx.response().setStatusCode(200).end();
 		} else {
 			rtCtx.response().setStatusCode(404).end();
 		}
@@ -274,12 +379,54 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleResultReady(RoutingContext rtCtx) {
-		
+
 		// Initialization
 		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
 		RequestResource resource = this.ctxQueryHandler.getResource(resourceUUID);
 		
-		System.out.println("received result notification for resource " + resource);
+		// Parse the received JSON and set the result
+		List<BindingSet> results = new ArrayList<BindingSet>();
+		
+		QueryResultParser parser = new SPARQLResultsJSONParser();
+		parser.setQueryResultHandler(new QueryResultHandler() {
+
+			@Override
+			public void handleBoolean(boolean value) throws QueryResultHandlerException {}
+
+			@Override
+			public void handleLinks(List<String> linkUrls) throws QueryResultHandlerException {}
+
+			@Override
+			public void startQueryResult(List<String> bindingNames)
+					throws TupleQueryResultHandlerException {}
+
+			@Override
+			public void endQueryResult() throws TupleQueryResultHandlerException {}
+
+			@Override
+			public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
+				results.add(bindingSet);
+			}
+			
+		});
+		InputStream is = new ByteArrayInputStream(rtCtx.getBody().getBytes());
+		
+		try {
+			parser.parseQueryResult(is);
+			
+		} catch (QueryResultParseException | QueryResultHandlerException | IOException e) {
+			
+			System.err.println("Error while parsing JSON query result: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
+		resource.setResult(results);
+		
+		// Send the UUID of the resource to the agent that made the query
+		ServerWebSocket socket = this.sockets.get(resourceUUID);
+		socket.writeTextMessage(resourceUUID.toString());
+		
+		rtCtx.response().setStatusCode(200).end();
 	}
 	
 	/**

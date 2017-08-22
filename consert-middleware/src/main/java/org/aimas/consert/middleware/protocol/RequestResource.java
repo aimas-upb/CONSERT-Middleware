@@ -23,10 +23,16 @@ public class RequestResource extends RDFObject {
 
 	private String request; // content of the request
 	private List<BindingSet> result; // content of the result of the request
+	private String stringResult;  // human readable version of the result
 
 	private URI initiatorCallbackURI; // URI to use for the callback on the initiator
 	private RequestState state; // current state in the protocol
 
+	
+	public RequestResource() {
+		this.stringResult = null;
+	}
+	
 	
 	@RDF("protocol:hasResourceURI")
 	public URI getResourceURI() {
@@ -67,6 +73,10 @@ public class RequestResource extends RDFObject {
 	@RDF("protocol:hasResult")
 	public String getStringResult() {
 		
+		if(this.stringResult != null) {
+			return this.stringResult;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		
 		for(BindingSet res : this.result) {
@@ -76,6 +86,10 @@ public class RequestResource extends RDFObject {
 		}
 		
 		return sb.toString();
+	}
+	
+	public void setStringResult(String result) {
+		this.stringResult = result;
 	}
 	
 	public List<BindingSet> getResult() {
