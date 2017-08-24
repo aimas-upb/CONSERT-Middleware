@@ -41,7 +41,7 @@ import io.vertx.ext.web.RoutingContext;
 public class RouteConfigV1Engine {
 	
 	private static final boolean LONG_LASTING_QUERY = true;  // change this value to try short-lasting and
-	                                                         // long-lasting queries
+	                                                         // long-lasting queries (for test purposes)
 
 	private ConsertEngine engine;  // the engine that can be accessed with the defined routes
 	

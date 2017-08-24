@@ -6,6 +6,9 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * Defines the configuration of a CtxSensor agent according to the deployment ontology
+ */
 @RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
 @RDFBean("orgconf:CtxSensorSpec")
 public class SensorSpecification extends AgentSpecification {
@@ -15,8 +18,8 @@ public class SensorSpecification extends AgentSpecification {
 	
 	public SensorSpecification() {}
 	
-	public SensorSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, 
-			AgentAddressConfig assignedOrgMgrAddress, List<SensingPolicy> sensingPolicies) {
+	public SensorSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
+			AgentAddress assignedOrgMgrAddress, List<SensingPolicy> sensingPolicies) {
 	    
 		super(agentAddress, controlPolicy, assignedOrgMgrAddress);
 	    this.sensingPolicies = sensingPolicies;

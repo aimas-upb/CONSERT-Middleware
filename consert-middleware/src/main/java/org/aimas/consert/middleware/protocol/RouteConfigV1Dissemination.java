@@ -56,10 +56,11 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class RouteConfigV1Dissemination extends RouteConfigV1 {
 
-	private final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+	// route to use to ask the CONSERT Engine to answer a query
+	private final static String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
 	
-	private final String REQUEST_RESOURCE_URI =
+	private final static String REQUEST_RESOURCE_URI =
 			"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#RequestResource";
 	
 	private CtxQueryHandler ctxQueryHandler; // the agent that can be accessed with the defined routes
@@ -225,7 +226,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 			resource.setRequest(csr.getContextSubscription().getSubscriptionQuery());
 			resource.setState(new RequestState(RequestState.REQ_RECEIVED));
 			resource.setInitiatorCallbackURI(csr.getInitiatorCallbackURI());
-			resource.setId(this.REQUEST_RESOURCE_URI + "/" + uuid.toString());
+			resource.setId(RouteConfigV1Dissemination.REQUEST_RESOURCE_URI + "/" + uuid.toString());
 
 			// Add the resource in CtxQueryHandler
 			this.ctxQueryHandler.addContextSubscription(uuid, cs, resource);
@@ -323,7 +324,7 @@ public class RouteConfigV1Dissemination extends RouteConfigV1 {
 		UUID resourceUUID = UUID.fromString(rtCtx.request().getParam("id"));
 		RequestResource resource = this.ctxQueryHandler.getResource(resourceUUID);
 
-		// Send resource if found
+		// Convert to RDF statements and send the resource if found
 		if (resource != null) {
 			
 			try {

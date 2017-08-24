@@ -59,8 +59,22 @@ import io.vertx.ext.web.Router;
  */
 public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	
+	// the route to use for asking the answer to a query
 	private static final String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.ENGINE_ROUTE + "/answer_query/";
+	
+	// the route to use to find the configuration of the CtxCoord agent
+	private static final String FIND_CTXCOORD_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+	
+	// the route to use to find the configuration of the CONSERT Engine
+	private static final String FIND_ENGINE_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.COORDINATION_ROUTE + "/find_engine/";
+	
+	// route to use to register an agent to the OrgMgr
+	private final static String REGISTER_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/context_agents/";
+	
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -74,8 +88,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	public Map<UUID, ContextSubscription> contextSubscriptions; // list of context subscriptions
 	public Map<UUID, RequestResource> resources; // list of resources
 
-	private AgentAddress ctxCoord;       // configuration to communicate with the CtxCoord agent
-	private AgentAddress orgMgr;         // configuration to communicate with the OrgMgr agent
+	private AgentAddress ctxCoord;  // configuration to communicate with the CtxCoord agent
+	private AgentAddress orgMgr;  // configuration to communicate with the OrgMgr agent
 	private AgentAddress consertEngine;  // configuration to communicate with the CONSERT Engine
 	
 	private HttpClient client;  // client to use for the communications with the other agents
@@ -98,6 +112,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		this.subscriptionsRepo = new SailRepository(new MemoryStore());
 		this.subscriptionsRepo.initialize();
 		
+		// Initialization of the configuration repository
 		this.convRepo = new SailRepository(new MemoryStore());
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
@@ -153,7 +168,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	}
 
 	@Override
-	public void stop() {		
+	public void stop() {
+		
+		// close all the repositories
 		this.dataRepo.shutDown();
 		this.subscriptionsRepo.shutDown();
 		this.convRepoConn.close();
@@ -166,18 +183,19 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Allows to find the configuration of the required agents: CtxCoord and CONSERT Engine
+	 * @param future contains the handler to execute once the configurations have been received
+	 */
 	private void findAgents(Future<Void> future) {
 		
-		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
-		final String findEngineRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.COORDINATION_ROUTE + "/find_engine/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 		
 		Future<Void> futureCoord = Future.future();
 		futureCoord.setHandler(handler -> {
 			
-			client.get(ctxCoord.getPort(), ctxCoord.getIpAddress(), findEngineRoute,
+			// Query the OrgMgr agent to get the configuration to use for the CONSERT Engine
+			client.get(ctxCoord.getPort(), ctxCoord.getIpAddress(), FIND_ENGINE_ROUTE,
 					new Handler<HttpClientResponse>() {
 
 				@Override
@@ -190,6 +208,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 							
 							try {
 								
+								// Convert the statements to a Java object
 								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
 										RDFFormat.TURTLE);
 								convRepoConn.add(model);
@@ -197,6 +216,8 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 								for(Statement s : model) {
 
 									if(s.getPredicate().stringValue().contains(rdfType)) {
+										
+										// Set the configuration
 										consertEngine = convManager.get(s.getSubject(), AgentAddress.class);
 										break;
 									}
@@ -217,7 +238,9 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 			}).end();
 		});
 		
-		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+		// Query the OrgMgr agent to get the configuration to use for the CtxCoord
+		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), FIND_CTXCOORD_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -229,12 +252,15 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 						
 						try {
 							
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
 								if(s.getPredicate().stringValue().contains(rdfType)) {
+									
+									// Set the configuration
 									ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
 									break;
 								}
@@ -255,18 +281,21 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Get the configuration to use from the OrgMgr agent in asynchronous mode
+	 * @param future contains the handler to execute when once the configuration has been received
+	 */
 	private void getConfigFromOrgMgr(Future<Void> future) {
 
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-		final String registerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
-				+ "/context_agents/";
 		
 		this.agentConfig = new AgentConfig();
 		
 		HttpClient client = this.vertx.createHttpClient();
 		
 		// Query the OrgMgr agent to get the configuration to use
-		client.post(orgMgr.getPort(), orgMgr.getIpAddress(), registerRoute, new Handler<HttpClientResponse>() {
+		client.post(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), CtxQueryHandler.REGISTER_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -278,13 +307,15 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 						
 						try {
 							
-							// Convert the statements to an object
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
 								if(s.getPredicate().stringValue().contains(rdfType)) {
+									
+									// Set the configuration
 									AgentAddress addr = convManager.get(s.getSubject(), AgentAddress.class);
 									agentConfig.setAddress(addr.getIpAddress());
 									agentConfig.setPort(addr.getPort());
@@ -312,15 +343,31 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		return this.dataRepo;
 	}
 
+	/**
+	 * Adds a context subscription and its resource to the maps
+	 * @param uuid the UUID of the context subscription to insert
+	 * @param cs the context subscription to insert
+	 * @param res the resource for the context subscription
+	 */
 	public void addContextSubscription(UUID uuid, ContextSubscription cs, RequestResource res) {
 		this.contextSubscriptions.put(uuid, cs);
 		this.resources.put(uuid, res);
 	}
 
+	/**
+	 * Gives a context subscription from the map
+	 * @param uuid the UUID of the context subscription to get
+	 * @return the requested context subscription
+	 */
 	public ContextSubscription getContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.get(uuid);
 	}
 
+	/**
+	 * Gives a context subscription from the map as RDF statements
+	 * @param uuid the UUID of the context subscription to get
+	 * @return the RDF statements that describe the requested context subscription
+	 */
 	public String getContextSubscriptionRDF(UUID uuid) {
 
 		ContextSubscription ctxSubs = this.contextSubscriptions.get(uuid);
@@ -361,22 +408,49 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		return writer.toString();
 	}
 	
+	/**
+	 * Replaces an existing context subscription from the map
+	 * @param uuid the UUID of the context subscription to replace
+	 * @param ctxSubs the new context subscription
+	 * @return the new context subscription
+	 */
 	public ContextSubscription setContextSubscription(UUID uuid, ContextSubscription ctxSubs) {
 		return this.contextSubscriptions.replace(uuid, ctxSubs);
 	}
 
+	/**
+	 * Removes a context subscription from the map
+	 * @param uuid the UUID of the context subscription to remove
+	 * @return the removed context subscription
+	 */
 	public ContextSubscription removeContextSubscription(UUID uuid) {
 		return this.contextSubscriptions.remove(uuid);
 	}
 	
+	/**
+	 * Gives a resource from the map
+	 * @param uuid the UUID of the corresponding context subscription
+	 * @return the requested resource
+	 */
 	public RequestResource getResource(UUID uuid) {
 		return this.resources.get(uuid);
 	}
 	
+	/**
+	 * Removes a resource from the map
+	 * @param uuid the UUID of the corresponding context subscription
+	 * @return the removed resource
+	 */
 	public RequestResource removeResource(UUID uuid) {
 		return this.resources.remove(uuid);
 	}
 	
+	/**
+	 * Adds a resource to the map
+	 * @param uuid the UUID of the corresponding context subscription
+	 * @param resource the resource to insert
+	 * @return the inserted resource
+	 */
 	public RequestResource addResource(UUID uuid, RequestResource resource) {
 		return this.resources.put(uuid, resource);
 	}
@@ -397,7 +471,7 @@ public class CtxQueryHandler extends AbstractVerticle implements Agent {
 		
 		for(Entry<UUID, ContextSubscription> entry : contextSubscriptions.entrySet()) {
 			
-			// Send the query to the engine
+			// Send the query to the engine for each subscription
 			client.get(consertEngine.getPort(), consertEngine.getIpAddress(),
 					CtxQueryHandler.ANSWER_QUERY_ROUTE, new Handler<HttpClientResponse>() {
 

@@ -1,8 +1,7 @@
 package org.aimas.consert.middleware.agents;
 
 /**
- * The configuration of an agent and the methods that allow to get the
- * configuration from a file
+ * The configuration of an agent
  */
 public class AgentConfig {
 

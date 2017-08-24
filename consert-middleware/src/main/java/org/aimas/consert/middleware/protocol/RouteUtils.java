@@ -38,11 +38,9 @@ public class RouteUtils {
 	 * Generic POST handler
 	 * 
 	 * @param rtCtx the routing context
-	 * @param rdfClassName the full URI of the RDF class that the inserted
-	 *            instance is from
+	 * @param rdfClassName the full URI of the RDF class that the inserted instance is from
 	 * @param javaClass the Java class related to the given RDF class name
-	 * @param agent the agent containing the repository that stores the RDF
-	 *            triples
+	 * @param agent the agent containing the repository that stores the RDF triples
 	 * @return the inserted object and the UUID to get it
 	 */
 	public static Entry<UUID, Object> post(RoutingContext rtCtx, String rdfClassName, Class<?> javaClass, Agent agent) {
@@ -90,8 +88,7 @@ public class RouteUtils {
 	 * 
 	 * @param rtCtx the routing context
 	 * @param javaClass the Java class related to the given RDF class name
-	 * @param agent the agent containing the repository that stores the RDF
-	 *            triples
+	 * @param agent the agent containing the repository that stores the RDF triples
 	 * @param obj the java object corresponding to the RDF statements to fetch
 	 */
 	public static void get(RoutingContext rtCtx, Class<?> javaClass, Agent agent, RDFObject obj) {
@@ -174,11 +171,9 @@ public class RouteUtils {
 	 * Generic PUT handler
 	 * 
 	 * @param rtCtx the routing context
-	 * @param rdfClassName the full URI of the RDF class that the inserted
-	 *            instance is from
+	 * @param rdfClassName the full URI of the RDF class that the inserted instance is from
 	 * @param javaClass the Java class related to the given RDF class name
-	 * @param agent the agent containing the repository that stores the RDF
-	 *            triples
+	 * @param agent the agent containing the repository that stores the RDF triples
 	 * @param resourceId the ID of the resource in the repository
 	 * @return the updated object and the UUID to get it
 	 */
@@ -241,8 +236,7 @@ public class RouteUtils {
 	 * 
 	 * @param rtCtx the routing context
 	 * @param javaClass the Java class related to the given RDF class name
-	 * @param agent the agent containing the repository that stores the RDF
-	 *            triples
+	 * @param agent the agent containing the repository that stores the RDF triples
 	 * @param resourceId the ID of the resource in the repository
 	 * @return true if the object has been correctly removed
 	 */

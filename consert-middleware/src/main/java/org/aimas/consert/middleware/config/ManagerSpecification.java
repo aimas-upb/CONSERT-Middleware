@@ -7,20 +7,23 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * Defines the configuration of an OrgMgr agent according to the deployment ontology
+ */
 @RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
 @RDFBean("orgconf:OrgMgrSpec")
 public class ManagerSpecification extends AgentSpecification {
 	
-	private AgentAddressConfig parentManager;
-	private AgentAddressConfig rootManager;
-	private List<AgentAddressConfig> knownRootManagers;
+	private AgentAddress parentManager;
+	private AgentAddress rootManager;
+	private List<AgentAddress> knownRootManagers;
 	
 	private URI managerType;
 	
 	
 	public ManagerSpecification() {}
 	
-	public ManagerSpecification(AgentAddressConfig agentAddress, URI managerType, AgentAddressConfig parentManager) {
+	public ManagerSpecification(AgentAddress agentAddress, URI managerType, AgentAddress parentManager) {
 	    super(agentAddress, null, null);
 	    this.parentManager = parentManager;
 	    this.managerType = managerType;
@@ -36,29 +39,29 @@ public class ManagerSpecification extends AgentSpecification {
 	}
 	
 	@RDF("orgconf:hasManagerParent")
-	public AgentAddressConfig getParentManagerAddress() {
+	public AgentAddress getParentManagerAddress() {
 		return parentManager;
 	}
 	
-	public void setParentManagerAddress(AgentAddressConfig parentManager) {
+	public void setParentManagerAddress(AgentAddress parentManager) {
 		this.parentManager = parentManager;
 	}
 	
 	@RDF("orgconf:hasManagerRoot")
-	public AgentAddressConfig getRootManagerAddress() {
+	public AgentAddress getRootManagerAddress() {
 		return rootManager;
 	}
 	
-	public void setRootManagerAddress(AgentAddressConfig rootManager) {
+	public void setRootManagerAddress(AgentAddress rootManager) {
 		this.rootManager = rootManager;
 	}
 	
 	@RDF("orgconf:knowsManagerRoot")
-	public List<AgentAddressConfig> getKnownRootManagers() {
+	public List<AgentAddress> getKnownRootManagers() {
 		return knownRootManagers;
 	}
 	
-	public void setKnownRootManagers(List<AgentAddressConfig> knownRootManagers) {
+	public void setKnownRootManagers(List<AgentAddress> knownRootManagers) {
 		this.knownRootManagers = knownRootManagers;
 	}
 }

@@ -38,11 +38,12 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 	private static final String ALTER_UPDATE_MODE_COMMAND_URI =
 			"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AlterUpdateModeCommand";
 	
+	// route to use for the resources
 	private static final String SUBSCRIPTIONS_RESOURCES_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.DISSEMINATION_ROUTE + "/resources/";
 
-	private CtxUser ctxUser; // the agent that can be accessed with the defined routes
-	private AssertionUpdateMode defaultUpdateMode; // the default update mode used when starting updates
+	private CtxUser ctxUser;  // the agent that can be accessed with the defined routes
+	private AssertionUpdateMode defaultUpdateMode;  // the default update mode used when starting updates
 	
 	private HttpClient client;  // client to use for the communications with other agents
 
@@ -97,6 +98,8 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 			
 			AgentAddress address = taskingCommand.getTargetAgent().getAddress();
 			AgentConfig agentConfig = this.ctxUser.getAgentConfig();
+			
+			// make sure that the CtxSensor is the recipient of the tasking command, and if so, execute the command
 			if(address.getIpAddress().equals(agentConfig.getAddress()) && address.getPort() == agentConfig.getPort()) {
 				
 				if(taskingCommand instanceof StartUpdatesCommand) {
@@ -137,6 +140,7 @@ public class RouteConfigV1Usage extends RouteConfigV1 {
 		// Initialization
 		String resourceUUID = rtCtx.request().getParam("id");
 		
+		// get the resource of the given UUID
 		AgentAddress queryHandler = this.ctxUser.getCtxQueryHandlerConfig();
 		this.client.get(queryHandler.getPort(), queryHandler.getIpAddress(),
 				RouteConfigV1Usage.SUBSCRIPTIONS_RESOURCES_ROUTE + resourceUUID, new Handler<HttpClientResponse>() {

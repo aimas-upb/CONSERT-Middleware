@@ -60,10 +60,21 @@ import io.vertx.ext.web.Router;
  */
 public class ConsertEngine extends AbstractVerticle implements Agent, ContextAssertionListener {
 
+	// route to use to ask for an update of the context subscriptions
 	private final static String UPDATE_SUBSCRIPTIONS_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.DISSEMINATION_ROUTE + "/update_subscriptions/";
+	
+	// route to use to post a static context update
 	private final static String STATIC_CONTEXT_UPDATE_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.COORDINATION_ROUTE + "/update_entity_descriptions/";
+	
+	// route to use to find the configuration of the CtxCoord agent
+	private final static String FIND_CTXCOORD_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+	
+	// route to use to find the configuration of the CtxQueryHandler agent
+	private final static String FIND_CTXQUERYHANDLER_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+	+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
 	
 	protected Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -85,9 +96,9 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	private RepositoryConnection convRepoConn;  // the connection to the conversion repository
 	private RDFBeanManager convManager;  // manager for the conversion repository
 	
-	private Thread engineRunner;               // thread to run the CONSERT Engine
-	private EventTracker eventTracker;         // service that allows to add events in the engine
-	private KieSession kSession;               // rules for the engine
+	private Thread engineRunner;  // thread to run the CONSERT Engine
+	private EventTracker eventTracker;  // service that allows to add events in the engine
+	private KieSession kSession;  // rules for the engine
 	private ExecutorService insertionService;  // service allowing to insert context assertions in the CONSERT Engine
 	
 	
@@ -104,6 +115,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		this.repoConn = this.repo.getConnection();
 		this.manager = new RDFBeanManager(this.repoConn);
 		
+		// Initialization of the conversion repository
 		this.convRepo = new SailRepository(new MemoryStore());
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
@@ -150,12 +162,9 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 			    	
 			    	this.engineRunner.start();
 			    	
+			    	// get the configuration of the CtxCoord agent to communicate with it
 			    	this.findCoordinator(future);
 				});
-	}
-	
-	public void stopVertx() {
-		this.vertx.close();
 	}
 
 	@Override
@@ -163,12 +172,14 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		
 		//dumpRepository("dump.txt");
 		
+		// Close the repositories
 		this.repoConn.close();
 		this.repo.shutDown();
 		
 		this.convRepoConn.close();
 		this.convRepo.shutDown();
 
+		// Export the data to a HTML page displaying a graph, and close all the services
     	PlotlyExporter.exportToHTML(null, this.kSession);
     	this.insertionService.shutdownNow();
     	this.kSession.halt();
@@ -183,6 +194,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	@Override
 	public void notifyAssertionInserted(ContextAssertion assertion) {
 		try {
+			// Insert the new assertion in the repository, and notify that the data has been updated
 			manager.add(assertion);
 			this.notifyAssertionUpdate();
 		} catch (RepositoryException | RDFBeanException e) {
@@ -194,6 +206,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	@Override
 	public void notifyAssertionDeleted(ContextAssertion assertion) {
 		try {
+			// Insert the assertion from the repository, and notify that the data has been updated
 			manager.delete(assertion.getAssertionIdentifier(), ContextAssertion.class);
 			this.notifyAssertionUpdate();
 		} catch (RepositoryException | RDFBeanException e) {
@@ -202,13 +215,17 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		}
 	}
 	
+	/**
+	 * Allows to find the configuration of the CtxCoord agent in asynchronous mode
+	 * @param future contains the handler to execute when once the configuration has been received
+	 */
 	private void findCoordinator(Future<Void> future) {
 		
-		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 		
-		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+		// ask for the CtxCoord configuration to the OrgMgr agent
+		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), ConsertEngine.FIND_CTXCOORD_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -220,6 +237,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						
 						try {
 							
+							// parse the response and set the configuration value
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 
@@ -237,7 +255,6 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						}
 						
 						convRepoConn.clear();
-						
 						future.complete();
 					}
 				});
@@ -246,13 +263,15 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		}).end();
 	}
 	
+	/**
+	 * Allows to find the configuration of the CtxQueryHandler agent in asynchronous mode
+	 * @param future contains the handler to execute when once the configuration has been received
+	 */
 	public void findQueryHandler(Future<Void> future) {
 		
-		final String findCtxQueryHandlerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 		
-		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), findCtxQueryHandlerRoute,
+		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), ConsertEngine.FIND_CTXQUERYHANDLER_ROUTE,
 				new Handler<HttpClientResponse>() {
 
 			@Override
@@ -265,6 +284,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						
 						try {
 							
+							// parse the response and set the configuration value
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
@@ -297,6 +317,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	 */
 	private void notifyAssertionUpdate() {
 		
+		// Notify the CtxQueryHandler agent if there is one
 		if(this.ctxQueryHandler != null) {
 			
 			this.client.put(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getIpAddress(),
@@ -308,6 +329,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 			}).end();
 		}
 			
+		// Notify the CtxCoord agent
 		this.client.put(this.ctxCoord.getPort(), this.ctxCoord.getIpAddress(),
 				ConsertEngine.STATIC_CONTEXT_UPDATE_ROUTE, new Handler<HttpClientResponse>() {
 
@@ -317,6 +339,10 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		}).end();
 	}
 	
+	/**
+	 * Inserts a context assertion in the engine
+	 * @param ca the context assertion to insert
+	 */
 	public void insertEvent(ContextAssertion ca) {
 		this.insertionService.execute(new EventInsertionTask(ca));
 	}
@@ -341,11 +367,12 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 	}
 	
 	/**
-	 * Write the content of the repository to a file
+	 * Write the content of the repository to a file (for test purposes)
 	 * @param filename name of the file to write
 	 */
 	private void dumpRepository(String filename) {
 		
+		// Write only the statements that concern the HLAs
 		List<IRI> iris = new ArrayList<IRI>();
 		iris.add(SimpleValueFactory.getInstance().createIRI("http://example.org/hlatest/WorkingHLA"));
 		iris.add(SimpleValueFactory.getInstance().createIRI("http://example.org/hlatest/ExerciseHLA"));
@@ -353,6 +380,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		iris.add(SimpleValueFactory.getInstance().createIRI("http://example.org/hlatest/DiningHLA"));
 		
 		try {
+			// Write the file
 			Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
 			RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, fileWriter);
 			

@@ -55,6 +55,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	private Repository convRepo;  // repository used to convert RDF statements and Java objects
 	private RepositoryConnection convRepoConn;  // connection to the conversion repository
 
+	
 	public RouteConfigV1Coordination(CtxCoord ctxCoord) {
 		this.ctxCoord = ctxCoord;
 		this.engineConfig = this.ctxCoord.getConsertEngineConfig();
@@ -338,6 +339,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 	 */
 	public void handlePostInsCtxAssert(RoutingContext rtCtx) {
 		
+		// send the context assertion to CONSERT Engine for its insertion
 		this.client.post(engineConfig.getPort(), engineConfig.getIpAddress(), this.INSERT_EVENT_ROUTE,
 				new Handler<HttpClientResponse>() {
 
@@ -404,11 +406,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 					}
 				}
 			}
-			
-			// Display
-			/*for(ContextEntity ce : entities) {
-				System.out.println(ce);
-			}*/
 
 			conn.close();
 			tmpRep.shutDown();
@@ -475,11 +472,6 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 					}
 				}
 			}
-			
-			// Display
-			/*for(ContextEntity ce : entities) {
-				System.out.println(ce);
-			}*/
 
 			conn.close();
 			tmpRep.shutDown();
@@ -532,6 +524,7 @@ public class RouteConfigV1Coordination extends RouteConfigV1 {
 		
 		RDFBeanManager manager = new RDFBeanManager(this.convRepoConn);
 		
+		// Convert the configuration Java object to its equivalent in RDF statements, and send them
 		try {
 			
 			manager.add(this.ctxCoord.getConsertEngineConfig());

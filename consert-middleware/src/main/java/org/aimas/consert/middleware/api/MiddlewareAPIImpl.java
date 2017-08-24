@@ -48,18 +48,25 @@ import io.vertx.core.http.HttpClientResponse;
  */
 public class MiddlewareAPIImpl implements MiddlewareAPI {
 	
+	// route where the engine answers to queries
 	private final static String ANSWER_QUERY_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-			+ RouteConfig.ENGINE_ROUTE + "/anwer_query/";  // route where the engine answers to queries
+			+ RouteConfig.ENGINE_ROUTE + "/anwer_query/"; 
+	
+	// route for context subscriptions
 	private final static String CONTEXT_SUBSCRIPTION_ROUTE =  RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-			+ RouteConfigV1.DISSEMINATION_ROUTE + "/context_subscriptions/";  // route for context subscriptions
+			+ RouteConfigV1.DISSEMINATION_ROUTE + "/context_subscriptions/";
+	
+	// route for context assertion capabilities
 	private final static String ASSERTION_CAPABILITIES_ROUTE =  RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-			+ RouteConfigV1.COORDINATION_ROUTE + "/context_assertions/";  // route for context assertion capabilities
+			+ RouteConfigV1.COORDINATION_ROUTE + "/context_assertions/";
+	
 	
 	private final static IRI RDF_TYPE = SimpleValueFactory.getInstance()
 			.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 	
 	private final static IRI ASSERTION_CAPABILITY_IRI = SimpleValueFactory.getInstance()
 			.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability");
+	
 	
 	private Repository convRepo;  // repository used to convert RDF statements and Java objects
 	private RepositoryConnection convRepoConn;  // connection to the conversion repository
@@ -101,6 +108,8 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 		
 		Future<Void> futureQueryHandler = Future.future();
 		futureQueryHandler.setHandler(handler -> {
+			
+			// Query the OrgMgr agent to get the configuration to use for the CONSERT Engine
 			client.get(ctxCoordConfig.getPort(), ctxCoordConfig.getIpAddress(), findEngineRoute,
 					new Handler<HttpClientResponse>() {
 
@@ -114,12 +123,14 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 							
 							try {
 								
+								// Convert the statements to a Java object
 								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
 										RDFFormat.TURTLE);
 								convRepoConn.add(model);
 								
 								for(Statement s : model) {
 
+									// Set the configuration
 									if(s.getPredicate().stringValue().contains(rdfType)) {
 										engineConfig = convManager.get(s.getSubject(), AgentAddress.class);
 										break;
@@ -147,6 +158,8 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 		
 		Future<Void> futureCoord = Future.future();
 		futureCoord.setHandler(handler -> {
+			
+			// Query the OrgMgr agent to get the configuration to use for the CtxQueryHandler
 			client.get(orgMgrConfig.getPort(), orgMgrConfig.getIpAddress(), findCtxQueryHandlerRoute,
 					new Handler<HttpClientResponse>() {
 
@@ -160,12 +173,14 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 							
 							try {
 								
+								// Convert the statements to a Java object
 								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
 										RDFFormat.TURTLE);
 								convRepoConn.add(model);
 								
 								for(Statement s : model) {
 
+									// Set the configuration
 									if(s.getPredicate().stringValue().contains(rdfType)) {
 										ctxQueryHandlerConfig = convManager.get(s.getSubject(), AgentAddress.class);
 										break;
@@ -188,7 +203,7 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 			}).end();
 		});
 		
-		
+		// Query the OrgMgr agent to get the configuration to use for the CtxCoord
 		client.get(orgMgrConfig.getPort(), orgMgrConfig.getIpAddress(), findCtxCoordRoute,
 				new Handler<HttpClientResponse>() {
 
@@ -202,11 +217,13 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 						
 						try {
 							
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
+								// Set the configuration
 								if(s.getPredicate().stringValue().contains(rdfType)) {
 									ctxCoordConfig = convManager.get(s.getSubject(), AgentAddress.class);
 									break;
@@ -227,6 +244,7 @@ public class MiddlewareAPIImpl implements MiddlewareAPI {
 			
 		}).end();
 
+		// Wait for the configuration to be completely set before ending the method
 		try {
 			synchronized(future) {
 				future.wait(10000);

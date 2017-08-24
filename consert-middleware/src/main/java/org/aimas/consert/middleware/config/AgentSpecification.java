@@ -4,30 +4,33 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * Defines the specification of an agent according to the deployment ontology
+ */
 @RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
 @RDFBean("orgconf:AgentSpec")
 public class AgentSpecification {
 	
-	protected AgentAddressConfig agentAddress;
-	protected AgentAddressConfig assignedManagerAddress;
+	protected AgentAddress agentAddress;
+	protected AgentAddress assignedManagerAddress;
 	protected AgentPolicy controlPolicy;
 	
 	
 	public AgentSpecification() {}
 	
-	public AgentSpecification(AgentAddressConfig agentAddress, AgentPolicy controlPolicy, 
-			AgentAddressConfig assignedManagerAddress) {
+	public AgentSpecification(AgentAddress agentAddress, AgentPolicy controlPolicy, 
+			AgentAddress assignedManagerAddress) {
 	    this.agentAddress = agentAddress;
 	    this.controlPolicy = controlPolicy;
 	    this.assignedManagerAddress = assignedManagerAddress;
     }
 	
 	@RDF("orgconf:hasAgentAddress")
-	public AgentAddressConfig getAgentAddress() {
+	public AgentAddress getAgentAddress() {
 		return agentAddress;
 	}
 	
-	public void setAgentAddress(AgentAddressConfig agentAddress) {
+	public void setAgentAddress(AgentAddress agentAddress) {
 		this.agentAddress = agentAddress;
 	}
 	
@@ -48,7 +51,7 @@ public class AgentSpecification {
 		return controlPolicy != null;
 	}
 	
-	public AgentAddressConfig getAssignedManagerAddress() {
+	public AgentAddress getAssignedManagerAddress() {
 		return assignedManagerAddress;
 	}
 	

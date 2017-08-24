@@ -14,9 +14,9 @@ import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 @RDFBean("protocol:ContextSubscriptionRequest")
 public class ContextSubscriptionRequest {
 	
-	private URI initiatorURI; // URI to use to communicate with the initiator
-	private URI initiatorCallbackURI; // URI to use for the callback on the initiator
-	private ContextSubscription ctxSubs; // The content of the context subscription
+	private URI initiatorURI;  // URI to use to communicate with the initiator
+	private URI initiatorCallbackURI;  // URI to use for the callback on the initiator
+	private ContextSubscription ctxSubs;  // The content of the context subscription
 
 	public ContextSubscriptionRequest() {}
 

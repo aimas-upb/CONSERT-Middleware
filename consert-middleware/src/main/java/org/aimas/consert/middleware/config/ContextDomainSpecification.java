@@ -7,6 +7,9 @@ import org.cyberborean.rdfbeans.annotations.RDF;
 import org.cyberborean.rdfbeans.annotations.RDFBean;
 import org.cyberborean.rdfbeans.annotations.RDFNamespaces;
 
+/**
+ * Defines a context domain according to the deployment ontology
+ */
 @RDFNamespaces("orgconf=http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#")
 @RDFBean("orgconf:ContextDomain")
 public class ContextDomainSpecification {

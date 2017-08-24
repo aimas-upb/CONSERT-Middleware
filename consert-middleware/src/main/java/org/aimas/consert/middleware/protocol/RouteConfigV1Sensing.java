@@ -34,8 +34,8 @@ public class RouteConfigV1Sensing extends RouteConfigV1 {
 	private static final String ALTER_UPDATE_MODE_COMMAND_URI =
 			"http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AlterUpdateModeCommand";
 	
-	private CtxSensor ctxSensor; // the agent that can be accessed with the defined routes
-	private AssertionUpdateMode defaultUpdateMode; // the default update mode used when starting updates
+	private CtxSensor ctxSensor;  // the agent that can be accessed with the defined routes
+	private AssertionUpdateMode defaultUpdateMode;  // the default update mode used when starting updates
 
 	
 	public RouteConfigV1Sensing(CtxSensor ctxSensor) {
@@ -87,6 +87,8 @@ public class RouteConfigV1Sensing extends RouteConfigV1 {
 			
 			AgentAddress address = taskingCommand.getTargetAgent().getAddress();
 			AgentConfig agentConfig = this.ctxSensor.getAgentConfig();
+			
+			// make sure that the CtxSensor is the recipient of the tasking command, and if so, execute the command
 			if(address.getIpAddress().equals(agentConfig.getAddress()) && address.getPort() == agentConfig.getPort()) {
 				
 				if(taskingCommand instanceof StartUpdatesCommand) {

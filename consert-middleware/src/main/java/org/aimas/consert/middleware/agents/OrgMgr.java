@@ -20,22 +20,22 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 
 /**
- * CtxCoord agent implemented as a Vert.x server
+ * OrgMgr agent implemented as a Vert.x server
  */
 public class OrgMgr extends AbstractVerticle implements Agent {
 
-	protected Vertx vertx; // Vertx instance
-	private Router router; // router for communication with this agent
+	protected Vertx vertx;  // Vertx instance
+	private Router router;  // router for communication with this agent
 
-	private Repository repo; // repository containing the RDF data
+	private Repository repo;  // repository containing the RDF data
 
-	private AgentConfig agentConfig; // configuration values for this agent
-	private String host; // where this agent is hosted
+	private AgentConfig agentConfig;  // configuration values for this agent
+	private String host;  // where this agent is hosted
 	
-	private AgentAddress ctxCoord;
-	private AgentAddress ctxQueryHandler;
-	private List<AgentAddress> ctxSensors;
-	private AgentAddress ctxUser;
+	private AgentAddress ctxCoord;  // configuration to communicate with the CtxCoord agent
+	private AgentAddress ctxQueryHandler;  // configuration to communicate with the CtxQueryHandler agent
+	private List<AgentAddress> ctxSensors;  // configuration to communicate with the CtxSensor agents
+	private AgentAddress ctxUser;  // configuration to communicate with the CtxUser agent
 
 
 	@Override

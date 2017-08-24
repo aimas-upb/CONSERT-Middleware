@@ -47,25 +47,35 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 
 /**
- * CtxSensor agent implemented as a Vert.x server
+ * Base class for a CtxSensor agent implemented as a Vert.x server
  */
 public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	
-	private final String INSERT_CONTEXT_ASSERTION_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+	// route to use to insert a new context assertion
+	private static final String INSERT_CONTEXT_ASSERTION_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
 			+ RouteConfig.COORDINATION_ROUTE + "/insert_context_assertion/";
-
-	private Vertx vertx; // Vertx instance
-	private Router router; // router for communication with this agent
-
-	protected AgentConfig agentConfig; // configuration values for this agent
-	private String host; // where this agent is hosted
 	
-	private boolean isFinished = false;     // allows to know when the CtxSensor has finished sending all the eventss
+	// route to use to find the CtxCoord agent
+	private static final String FIND_CTXCOORD_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+	
+	// route to use to register an agent to the OrgMgr
+	private static final String REGISTER_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/context_agents/";
+	
 
-	private Repository repo; // repository containing the RDF data
+	private Vertx vertx;  // Vertx instance
+	private Router router;  // router for communication with this agent
 
-	private AgentAddress ctxCoord; // configuration to communicate with the CtxCoord agent
-	protected AgentAddress orgMgr; // configuration to communicate with the OrgMgr agent
+	protected AgentConfig agentConfig;  // configuration values for this agent
+	private String host;  // where this agent is hosted
+	
+	private boolean isFinished = false;  // allows to know when the CtxSensor has finished sending all the events
+
+	private Repository repo;  // repository containing the RDF data
+
+	private AgentAddress ctxCoord;  // configuration to communicate with the CtxCoord agent
+	protected AgentAddress orgMgr;  // configuration to communicate with the OrgMgr agent
 	
 	private HttpClient client;  // an HTTP client that can be used to send requests
 	
@@ -89,6 +99,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
 		
+		// Initialization of the conversion repository
 		this.convRepo = new SailRepository(new MemoryStore());
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
@@ -144,13 +155,16 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Allows to find the configuration of the required agents: CtxCoord
+	 * @param future contains the handler to execute once the configurations have been received
+	 */
 	private void findAgents(Future<Void> future) {
 		
-		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 		
-		this.client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+		this.client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), CtxSensor.FIND_CTXCOORD_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -162,12 +176,15 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 						
 						try {
 							
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
 								if(s.getPredicate().stringValue().contains(rdfType)) {
+									
+									// Set the configuration
 									ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
 									break;
 								}
@@ -188,18 +205,21 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Get the configuration to use from the OrgMgr agent in asynchronous mode
+	 * @param future contains the handler to execute when once the configuration has been received
+	 */
 	private void getConfigFromOrgMgr(Future<Void> future) {
 
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-		final String registerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
-				+ "/context_agents/";
 		
 		this.agentConfig = new AgentConfig();
 		
 		HttpClient client = this.vertx.createHttpClient();
 		
 		// Query the OrgMgr agent to get the configuration to use
-		client.post(orgMgr.getPort(), orgMgr.getIpAddress(), registerRoute, new Handler<HttpClientResponse>() {
+		client.post(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), CtxSensor.REGISTER_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -211,13 +231,15 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 						
 						try {
 							
-							// Convert the statements to an object
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
 								if(s.getPredicate().stringValue().contains(rdfType)) {
+									
+									// Set the configuration
 									AgentAddress addr = convManager.get(s.getSubject(), AgentAddress.class);
 									agentConfig.setAddress(addr.getIpAddress());
 									agentConfig.setPort(addr.getPort());
@@ -429,6 +451,11 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		isFinished = finished;
 	}
 	
+	/**
+	 * Asks the CtxSensor to start sending updates
+	 * @param assertionType the type of assertions updates to send
+	 * @param updateMode the mode to use for the updates
+	 */
 	public void startUpdates(URI assertionType, AssertionUpdateMode updateMode) {
 		
 		UpdateModeState modeState = this.updateModes.get(assertionType);
@@ -440,11 +467,20 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 		}
 	}
 	
+	/**
+	 * Asks the CtxSensor to stop sending updates
+	 * @param assertionType the type of assertions updates to send
+	 */
 	public void stopUpdates(URI assertionType) {
 		UpdateModeState modeState = this.updateModes.get(assertionType);
 		modeState.setEnabled(false);
 	}
 	
+	/**
+	 * Asks the CtxSensor to change an update mode
+	 * @param assertionType the type of assertions updates to change
+	 * @param newUpdateMode the new mode to use for the updates
+	 */
 	public void alterUpdates(URI assertionType, AssertionUpdateMode newUpdateMode) {
 		
 		UpdateModeState modeState = this.updateModes.get(assertionType);

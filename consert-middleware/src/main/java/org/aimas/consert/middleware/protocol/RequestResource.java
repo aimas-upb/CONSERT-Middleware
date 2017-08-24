@@ -17,16 +17,16 @@ import org.eclipse.rdf4j.query.BindingSet;
 @RDFBean("protocol:RequestResource")
 public class RequestResource extends RDFObject {
 
-	private URI resourceURI; // URI to use to access the resource
-	private URI initiatorURI; // URI to use for communications with the initiator agent
-	private URI participantURI; // URI to use for communications with the participant agent
+	private URI resourceURI;  // URI to use to access the resource
+	private URI initiatorURI;  // URI to use for communications with the initiator agent
+	private URI participantURI;  // URI to use for communications with the participant agent
 
-	private String request; // content of the request
-	private List<BindingSet> result; // content of the result of the request
-	private String stringResult;  // human readable version of the result
+	private String request;  // content of the request
+	private List<BindingSet> result;  // content of the result of the request
+	private String stringResult;   // human readable version of the result
 
-	private URI initiatorCallbackURI; // URI to use for the callback on the initiator
-	private RequestState state; // current state in the protocol
+	private URI initiatorCallbackURI;  // URI to use for the callback on the initiator
+	private RequestState state;  // current state in the protocol
 
 	
 	public RequestResource() {

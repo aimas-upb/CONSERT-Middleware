@@ -40,6 +40,19 @@ import io.vertx.ext.web.Router;
  * CtxUser agent implemented as a Vert.x server
  */
 public class CtxUser extends AbstractVerticle implements Agent {
+	
+	// route to use to find the CtxCoord agent
+	private static final String FIND_CTXCOORD_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
+	
+	// route to use to find the CtxQueryHandler agent
+	private static final String FIND_CTXQUERYHANDLER_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
+	
+	// route to use to register an agent to the OrgMgr
+	private final static String REGISTER_ROUTE = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
+			+ RouteConfig.MANAGEMENT_ROUTE + "/context_agents/";
+	
 
 	private Vertx vertx; // Vertx instance
 	private Router router; // router for communication with this agent
@@ -74,6 +87,7 @@ public class CtxUser extends AbstractVerticle implements Agent {
 		this.repo = new SailRepository(new MemoryStore());
 		this.repo.initialize();
 		
+		// Initialization of the conversion repository
 		this.convRepo = new SailRepository(new MemoryStore());
 		this.convRepo.initialize();
 		this.convRepoConn = this.convRepo.getConnection();
@@ -137,17 +151,19 @@ public class CtxUser extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Allows to find the configuration of the required agents: CtxCoord and CtxQueryHandler
+	 * @param future contains the handler to execute once the configurations have been received
+	 */
 	private void findAgents(Future<Void> future) {
 		
-		final String findCtxCoordRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.MANAGEMENT_ROUTE + "/find_coordinator/";
-		final String findCtxQueryHandlerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE
-				+ RouteConfig.MANAGEMENT_ROUTE + "/find_query_handler/";
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 		
 		Future<Void> futureCoord = Future.future();
 		futureCoord.setHandler(handler -> {
-			client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxQueryHandlerRoute,
+			
+			// Query the OrgMgr agent to get the configuration to use for the CtxQueryHandler
+			client.get(orgMgr.getPort(), orgMgr.getIpAddress(), CtxUser.FIND_CTXQUERYHANDLER_ROUTE,
 					new Handler<HttpClientResponse>() {
 
 				@Override
@@ -160,12 +176,14 @@ public class CtxUser extends AbstractVerticle implements Agent {
 							
 							try {
 								
+								// Convert the statements to a Java object
 								Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "",
 										RDFFormat.TURTLE);
 								convRepoConn.add(model);
 								
 								for(Statement s : model) {
 
+									// Set the configuration
 									if(s.getPredicate().stringValue().contains(rdfType)) {
 										ctxQueryHandler = convManager.get(s.getSubject(), AgentAddress.class);
 										break;
@@ -179,7 +197,6 @@ public class CtxUser extends AbstractVerticle implements Agent {
 							}
 							
 							convRepoConn.clear();
-							
 							future.complete();
 						}
 					});
@@ -188,8 +205,9 @@ public class CtxUser extends AbstractVerticle implements Agent {
 			}).end();
 		});
 		
-		
-		client.get(orgMgr.getPort(), orgMgr.getIpAddress(), findCtxCoordRoute, new Handler<HttpClientResponse>() {
+		// Query the OrgMgr agent to get the configuration to use for the CtxCoord
+		client.get(this.orgMgr.getPort(), this.orgMgr.getIpAddress(), CtxUser.FIND_CTXCOORD_ROUTE,
+				new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -201,11 +219,13 @@ public class CtxUser extends AbstractVerticle implements Agent {
 						
 						try {
 							
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
+								// Set the configuration
 								if(s.getPredicate().stringValue().contains(rdfType)) {
 									ctxCoord = convManager.get(s.getSubject(), AgentAddress.class);
 									break;
@@ -228,16 +248,18 @@ public class CtxUser extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Get the configuration to use from the OrgMgr agent in asynchronous mode
+	 * @param future contains the handler to execute when once the configuration has been received
+	 */
 	private void getConfigFromOrgMgr(Future<Void> future) {
 
 		final String rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-		final String registerRoute = RouteConfig.API_ROUTE + RouteConfigV1.VERSION_ROUTE + RouteConfig.MANAGEMENT_ROUTE
-				+ "/context_agents/";
 		
 		this.agentConfig = new AgentConfig();
 		
 		// Query the OrgMgr agent to get the configuration to use
-		client.post(orgMgr.getPort(), orgMgr.getIpAddress(), registerRoute, new Handler<HttpClientResponse>() {
+		client.post(orgMgr.getPort(), orgMgr.getIpAddress(), CtxUser.REGISTER_ROUTE, new Handler<HttpClientResponse>() {
 
 			@Override
 			public void handle(HttpClientResponse resp) {
@@ -249,13 +271,15 @@ public class CtxUser extends AbstractVerticle implements Agent {
 						
 						try {
 							
-							// Convert the statements to an object
+							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);
 							
 							for(Statement s : model) {
 
 								if(s.getPredicate().stringValue().contains(rdfType)) {
+									
+									// Set the configuration
 									AgentAddress addr = convManager.get(s.getSubject(), AgentAddress.class);
 									agentConfig.setAddress(addr.getIpAddress());
 									agentConfig.setPort(addr.getPort());
@@ -279,14 +303,28 @@ public class CtxUser extends AbstractVerticle implements Agent {
 	}
 	
 	
+	/**
+	 * Asks the CtxUser to start sending updates
+	 * @param assertionType the type of assertions updates to send
+	 * @param updateMode the mode to use for the updates
+	 */
 	public void startUpdates(URI assertionType, AssertionUpdateMode updateMode) {
 		this.updateModes.put(assertionType, updateMode);
 	}
 	
+	/**
+	 * Asks the CtxUser to stop sending updates
+	 * @param assertionType the type of assertions updates to send
+	 */
 	public void stopUpdates(URI assertionType) {
 		this.updateModes.remove(assertionType);
 	}
 	
+	/**
+	 * Asks the CtxUser to change an update mode
+	 * @param assertionType the type of assertions updates to change
+	 * @param newUpdateMode the new mode to use for the updates
+	 */
 	public void alterUpdates(URI assertionType, AssertionUpdateMode newUpdateMode) {
 		this.updateModes.replace(assertionType, newUpdateMode);
 	}

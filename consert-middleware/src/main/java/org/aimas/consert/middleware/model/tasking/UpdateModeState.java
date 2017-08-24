@@ -7,8 +7,8 @@ import org.aimas.consert.middleware.model.AssertionUpdateMode;
  */
 public class UpdateModeState {
 
-	private AssertionUpdateMode updateMode;
-	private boolean enabled;
+	private AssertionUpdateMode updateMode;  // the chosen mode for the updates
+	private boolean enabled;  // equals true if the updates are enabled
 	
 	
 	public UpdateModeState(AssertionUpdateMode updateMode, boolean enabled) {

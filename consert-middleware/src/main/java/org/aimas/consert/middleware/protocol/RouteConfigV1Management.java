@@ -30,7 +30,7 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 	private RepositoryConnection convRepoConn;  // connection to the conversion repository
 	private RDFBeanManager convManager;  // manager for the conversion repository
 	
-	private int port;
+	private int port;  // value of the next port to attribute
 
 	public RouteConfigV1Management(OrgMgr orgMgr) {
 		this.orgMgr = orgMgr;
@@ -52,12 +52,14 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 		
 		String agent = rtCtx.getBodyAsString();
 		
+		// Set the values for the configuration of the new agent
 		AgentAddress addr = new AgentAddress();
 		addr.setIpAddress(rtCtx.request().remoteAddress().host());
 		addr.setPort(this.port);
 		
 		this.port++;
 		
+		// Add the new agent in the OrgMgr's knowledge in function of its type
 		switch(agent) {
 			
 			case "CtxCoord":
@@ -81,6 +83,7 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 				return;
 		}
 		
+		// Convert the new configuration to RDF statements and send them in the response
 		try {
 			
 			this.convManager.add(addr);
@@ -129,13 +132,20 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 	}
 	
 	
+	/**
+	 * Generic method to give the configuration of a specified agent
+	 * @param rtCtx the routing context to use to send the response
+	 * @param agent the configuration to send
+	 */
 	private void findAgent(RoutingContext rtCtx, AgentAddress agent) {
 		
+		// send 404 code if the agent is unknown
 		if(agent == null) {
 			rtCtx.response().setStatusCode(404).end();
 			return;
 		}
 		
+		// convert the configuration to RDF statements and send them in the reponse
 		try {
 			
 			this.convManager.add(agent);

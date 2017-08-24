@@ -22,9 +22,15 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
+/**
+ * utility class that allows to read configuration files
+ */
 public abstract class MiddlewareConfig {
 
+	// name of the file for the agents configuration
 	public static final String AGENT_CONFIG_FILE_NAME = "agent-config.ttl";
+	
+	// name of the file for the platform configuration
 	public static final String PLATFORM_CONFIG_FILE_NAME = "platform-config.ttl";
 	
 	private static Repository convRepo;  // repository used to convert Java objects and RDF statements
@@ -65,6 +71,7 @@ public abstract class MiddlewareConfig {
 			
 			InputStream is = new FileInputStream(MiddlewareConfig.AGENT_CONFIG_FILE_NAME);
 			
+			// Convert the RDF statements to Java objects
 			Model model = Rio.parse(is, "", RDFFormat.TURTLE);
 			MiddlewareConfig.convRepoConn.add(model);
 
@@ -98,6 +105,7 @@ public abstract class MiddlewareConfig {
 		
 		List<AgentSpecification> specs = MiddlewareConfig.readAgentConfigList(agentSpecClass, agentSpecURI);
 		
+		// Return the first configuration if there is at least one 
 		if(specs == null) {
 			return null;
 		} else if(specs.isEmpty()) {
