@@ -41,7 +41,10 @@ public class RDFTest {
 
 	@Test
 	public void testRDFToObjectSimple() {
+		
+		// Shows how to convert RDF statements into Java objects
 
+		// Create the object that we should get for the comparison
 		AgentAddress expected = new AgentAddress();
 		expected.setId("http://pervasive.semanticweb.org/ont/2017/06/consert/protocol#AgentAddress/Address");
 		expected.setIpAddress("127.0.0.1");
@@ -53,6 +56,7 @@ public class RDFTest {
 				+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
 				+ "    protocol:port \"8080\"^^xsd:int .\n";
 
+		// Prepare the repository that will contain the RDF statements
 		Repository repo = new SailRepository(new MemoryStore());
 		repo.initialize();
 		RepositoryConnection conn = repo.getConnection();
@@ -60,9 +64,11 @@ public class RDFTest {
 
 		try {
 
+			// Insert the RDF data in the repository
 			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TURTLE);
 			conn.add(model);
 
+			// Get the Java object from the repository
 			AgentAddress real = (AgentAddress) manager.get("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/Address", AgentAddress.class);
 
 			conn.close();
@@ -82,7 +88,10 @@ public class RDFTest {
 
 	@Test
 	public void testRDFToObjectComplex() {
+		
+		// See if the attributes of an object are also converted into Java objects
 
+		// Create the object that we should get for the comparison
 		AgentAddress addr = new AgentAddress();
 		addr.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/Address");
 		addr.setIpAddress("127.0.0.1");
@@ -105,6 +114,7 @@ public class RDFTest {
 				+ "    protocol:hasAddress agent-address:Address ;\n"
 				+ "    protocol:hasIdentifier \"TestIdentifier\"^^xsd:string .\n";
 
+		// Prepare the repository that will contain the RDF statements
 		Repository repo = new SailRepository(new MemoryStore());
 		repo.initialize();
 		RepositoryConnection conn = repo.getConnection();
@@ -112,9 +122,11 @@ public class RDFTest {
 
 		try {
 
+			// Insert the RDF data in the repository
 			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TURTLE);
 			conn.add(model);
 
+			// Get the Java object from the repository
 			AgentSpec real = (AgentSpec) manager.get("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/Spec", AgentSpec.class);
 
 			Assert.assertEquals(expected, real);
@@ -129,6 +141,8 @@ public class RDFTest {
 
 	@Test
 	public void testInferredContextAnnotations() {
+		
+		// See if it is possible to get the objects of a subclass by asking for objects of their superclass
 
 		String rdfData = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 				+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#> .\n"
@@ -161,19 +175,21 @@ public class RDFTest {
 				+ "(http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/tsann1, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#StructuredAnnotation) [null]"
 				+ "(http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#ContextAnnotation/tsann2, http://www.w3.org/1999/02/22-rdf-syntax-ns#type, http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#StructuredAnnotation) [null]";
 
+		// Prepare the repository that will contain the RDF statements
 		Repository repo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
 		repo.initialize();
 		RepositoryConnection conn = repo.getConnection();
 
 		try {
 
+			// Insert the RDF data in the repository
 			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TURTLE);
 			conn.add(model);
 
-			IRI ann = SimpleValueFactory.getInstance()
-					.createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#StructuredAnnotation");
+			IRI ann = SimpleValueFactory.getInstance().createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#StructuredAnnotation");
 			IRI type = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 
+			// Get all the statements of type StructuredAnnotation, and then check if we get instances of CertaintyAnnotation and TimestampAnnotation
 			RepositoryResult<Statement> iter = conn.getStatements(null, type, ann);
 			StringBuilder sb = new StringBuilder();
 
@@ -199,6 +215,8 @@ public class RDFTest {
 
 	@Test
 	public void testGraphs() {
+		
+		// Shows how to use RDF graphs
 
 		String rdfData = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 				+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#> .\n"
@@ -215,12 +233,14 @@ public class RDFTest {
 				+ "    certainty-annotation:certainty a annotation:CertaintyAnnotation .\n"
 				+ "}\n";
 
+		// Prepare the repository that will contain the RDF statements
 		Repository repo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
 		repo.initialize();
 		RepositoryConnection conn = repo.getConnection();
 
 		try {
 
+			// Insert the RDF data, which contains two graphs, in the repository
 			Model model = Rio.parse(new ByteArrayInputStream(rdfData.getBytes()), "", RDFFormat.TRIG);
 			conn.add(model);
 
@@ -232,6 +252,7 @@ public class RDFTest {
 			StringBuilder sbAssert = new StringBuilder();
 			StringBuilder sbAnn = new StringBuilder();
 
+			// Get all the statements from the first graph
 			RepositoryResult<Statement> iter = conn.getStatements(null, null, null, assertG);
 
 			while (iter.hasNext()) {
@@ -240,6 +261,7 @@ public class RDFTest {
 				// System.out.println(s);
 			}
 
+			// Get all the statements from the second graph
 			iter = conn.getStatements(null, null, null, annG);
 
 			while (iter.hasNext()) {
@@ -251,10 +273,9 @@ public class RDFTest {
 			conn.close();
 			repo.shutDown();
 
-			boolean contained = sbAssert.toString().contains("assertionGraph")
-					&& sbAnn.toString().contains("annotationGraph");
-			boolean separated = !(sbAssert.toString().contains("annotationGraph")
-					|| sbAnn.toString().contains("assertionGraph"));
+			// Check whether each set of statements contains only statements of the corresponding graph 
+			boolean contained = sbAssert.toString().contains("assertionGraph") && sbAnn.toString().contains("annotationGraph");
+			boolean separated = !(sbAssert.toString().contains("annotationGraph") || sbAnn.toString().contains("assertionGraph"));
 
 			Assert.assertTrue(contained && separated);
 
@@ -270,6 +291,9 @@ public class RDFTest {
 	@Test
 	public void testList() {
 		
+		//Shows how to use lists
+		
+		// Create a list to insert
 		ContextAnnotation ca1 = new NumericTimestampAnnotation();
 		ContextAnnotation ca2 = new NumericCertaintyAnnotation();
 		AssertionCapability ac = new AssertionCapability();
@@ -278,11 +302,13 @@ public class RDFTest {
 		l.add(ca2);
 		ac.setAnnotations(l);
 		
+		// Prepare the repository that will contain the RDF statements
 		Repository repo = new SailRepository(new MemoryStore());
 		repo.initialize();
 		RepositoryConnection conn = repo.getConnection();
 		RDFBeanManager manager = new RDFBeanManager(conn);
 		
+		// Insert the RDF data, which contains two graphs, in the repository
 		try {
 			manager.add(ac);
 		} catch (RepositoryException | RDFBeanException e) {
@@ -294,6 +320,7 @@ public class RDFTest {
 		RDFWriter writer = Rio.createWriter(RDFFormat.TURTLE, baos);
 		writer.startRDF();
 		
+		// Get all the statements from the repository
 		RepositoryResult<Statement> iter = conn.getStatements(null, null, null);
 		
 		while(iter.hasNext()) {
@@ -305,6 +332,7 @@ public class RDFTest {
 		conn.close();
 		repo.shutDown();
 		
+		// See the representation of the list as RDF statements
 		System.out.println(baos.toString());
 		
 		Assert.assertTrue(baos.toString().contains("hasAnnotation> <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericCertaintyAnnotation-2> , <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#NumericTimestampAnnotation-1> ;"));

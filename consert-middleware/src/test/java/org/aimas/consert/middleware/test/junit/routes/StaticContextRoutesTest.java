@@ -30,7 +30,7 @@ public class StaticContextRoutesTest {
 	private HttpClient httpClient;
 	
 
-	private final String postQuery = "@prefix : <http://example.org/hlatest/> .\n"
+	private static final String POST_QUERY = "@prefix : <http://example.org/hlatest/> .\n"
 			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n"
 			+ "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\n"
 			
@@ -50,6 +50,7 @@ public class StaticContextRoutesTest {
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
 		
+		// Deploy the required verticles for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
 		});
@@ -68,6 +69,7 @@ public class StaticContextRoutesTest {
 		
 		Async async = context.async();
 		
+		// Send a static context assertion to the CtxCoord agent for its insertion
 		this.httpClient.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(),
 				"/api/v1/coordination/insert_entity_descriptions/", new Handler<HttpClientResponse>() {
 
@@ -80,7 +82,7 @@ public class StaticContextRoutesTest {
 				
 				async.complete();
 			}
-		}).putHeader("content-type", "text/turtle").end(this.postQuery);
+		}).putHeader("content-type", "text/turtle").end(POST_QUERY);
 	}
 	
 	@Test
@@ -88,6 +90,7 @@ public class StaticContextRoutesTest {
 		
 		Async async = context.async();
 		
+		// Send a static context update to the CtxCoord agent
 		this.httpClient.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(),
 				"/api/v1/coordination/update_entity_descriptions/", new Handler<HttpClientResponse>() {
 
@@ -100,6 +103,6 @@ public class StaticContextRoutesTest {
 				
 				async.complete();
 			}
-		}).putHeader("content-type", "text/turtle").end(this.postQuery);
+		}).putHeader("content-type", "text/turtle").end(POST_QUERY);
 	}
 }

@@ -23,7 +23,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 /**
- * Unit test for the use of websockets
+ * Unit test for the use of WebSockets
  */
 @RunWith(VertxUnitRunner.class)
 public class WebsocketTest {
@@ -58,6 +58,7 @@ public class WebsocketTest {
 		
 		Async async = context.async();
 		
+		// Deploy the required verticles for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res1 -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res2 -> {
 				this.vertx.deployVerticle(CtxQueryHandler.class.getName(), new DeploymentOptions().setWorker(true), res3 -> {
@@ -80,6 +81,7 @@ public class WebsocketTest {
 	@Test
 	public void testQuery(TestContext context) {
 		
+		// Send a query to the CtxQueryHandler agent
 		this.httpClient.websocket(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getAddress(),
 				WebsocketTest.QUERY_CONTEXT_ROUTE, new Handler<WebSocket>() {
 
@@ -90,6 +92,7 @@ public class WebsocketTest {
 			}
 		});
 		
+		// Wait for data to be inserted, otherwise the query will return an empty result
 		try {
 			Thread.sleep(3000);
 		} catch (InterruptedException e) {

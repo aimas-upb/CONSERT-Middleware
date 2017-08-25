@@ -51,7 +51,7 @@ public class ContextQueryRouteTest {
 	private final static IRI RDF_TYPE = SimpleValueFactory.getInstance().createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 	private final static IRI REQUEST_RESOURCE_IRI = SimpleValueFactory.getInstance().createIRI("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#RequestResource");
 
-	private final String sparqlQuery =
+	private static final String SPARQL_QUERY =
 			  "PREFIX hlatest: <http://example.org/hlatest/>\n"
 			+ "PREFIX annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#>\n"
 			+ "SELECT ?assert \n"
@@ -64,7 +64,7 @@ public class ContextQueryRouteTest {
 			+ "    FILTER (?timestamp >= 1494589332000) .\n"
 			+ "}\n";
 	
-	private final String startQueryPosition = "@prefix hlatest: <http://example.org/hlatest/> .\n"
+	private static final String START_QUERY_POSITION = "@prefix hlatest: <http://example.org/hlatest/> .\n"
 			+ "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix start-updates-command: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#StartUpdatesCommand/> .\n"
 			+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/> .\n"
@@ -111,6 +111,7 @@ public class ContextQueryRouteTest {
 		AgentConfig ctxSensor = new AgentConfig("127.0.0.1", 8082);
 		this.ctxQueryHandler = new AgentConfig("127.0.0.1", 8083);
 		
+		// Deploy the required verticles for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res2 -> {
 				this.vertx.deployVerticle(CtxSensorPosition.class.getName(), new DeploymentOptions().setWorker(true), res3 -> {
@@ -133,7 +134,7 @@ public class ContextQueryRouteTest {
 										}
 										async.complete();
 									}
-								}).putHeader("content-type", "text/turtle").end(this.startQueryPosition);
+								}).putHeader("content-type", "text/turtle").end(START_QUERY_POSITION);
 					});
 				});
 			});
@@ -156,13 +157,14 @@ public class ContextQueryRouteTest {
 		Async async = context.async();
 		Future<Void> future = Future.future();
 
+		// Make the query by sending it to the CtxQueryHandler agent through a WebSocket
 		this.httpClient.websocket(this.ctxQueryHandler.getPort(), this.ctxQueryHandler.getAddress(),
 				"/api/v1/dissemination/context_query/", new Handler<WebSocket>() {
 
 					@Override
 					public void handle(WebSocket socket) {
 						
-						socket.writeTextMessage(sparqlQuery);
+						socket.writeTextMessage(SPARQL_QUERY);
 
 						socket.textMessageHandler(new Handler<String>() {
 
@@ -182,6 +184,7 @@ public class ContextQueryRouteTest {
 											return;
 										}
 										
+										// Get the resource that corresponds to the received UUID
 										httpClient.get(ctxQueryHandler.getPort(), ctxQueryHandler.getAddress(), "/api/v1/dissemination/resources/" + str + "/", new Handler<HttpClientResponse>() {
 
 											@Override
@@ -192,7 +195,7 @@ public class ContextQueryRouteTest {
 													@Override
 													public void handle(Buffer buffer) {
 														
-														// Convert the received statements to a Java object
+														// Convert the received statements to a Java object and display the result from the resource
 														try {
 															
 															Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
@@ -223,7 +226,7 @@ public class ContextQueryRouteTest {
 										
 									} catch(IllegalArgumentException e) {
 										
-										// the UUID cannot be parsed, it was a short-lasting query
+										// the UUID cannot be parsed, it was a short-lasting query, we can directly display the result
 										result.append(str);
 										System.out.println("short-lasting query");
 										

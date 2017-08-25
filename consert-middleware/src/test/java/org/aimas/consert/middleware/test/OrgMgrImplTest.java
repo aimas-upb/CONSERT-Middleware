@@ -5,6 +5,9 @@ import org.aimas.consert.middleware.agents.OrgMgr;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 
+/**
+ * Implementation of the OrgMgr agent for the HLATest scenario
+ */
 public class OrgMgrImplTest extends OrgMgr {
 
 	@Override
@@ -13,7 +16,7 @@ public class OrgMgrImplTest extends OrgMgr {
 		Future<Void> startFuture = Future.future();
 		startFuture.setHandler(handler -> {
 			
-			// Deploy the agents
+			// Deploy the agents: a CtxCoord, a CtxSensor for the LLA events, and a CtxSensor for the position events
 			DeploymentOptions deplOpt = new DeploymentOptions().setWorker(true);
 			
 			vertx.deployVerticle(CtxCoordImplTest.class.getName(), deplOpt, result -> {

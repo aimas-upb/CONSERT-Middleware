@@ -29,6 +29,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
 
+/**
+ * Implementation of the CtxCoord agent for the HLATest scenario
+ */
 public class CtxCoordImplTest extends CtxCoord {
 	
 	private ScheduledExecutorService taskingCommandsService;  // allows to start the updates thanks to tasking commands 

@@ -26,7 +26,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class AssertionCapabilitySubscriptionRoutesTest {
 
-	private final String postQuery = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
+	private static final String POST_QUERY = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix assertion-capability-subscription: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapabilitySubscription/> .\n"
 			+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/> .\n"
 			+ "@prefix agent-address: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentAddress/> .\n"
@@ -57,6 +57,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
 		
+		// Deploy the required verticles for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
 		});
@@ -93,8 +94,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 							async.complete();
 						} else {
 
-							// Get the created resource's UUID to make requests
-							// on it later
+							// Get the created resource's UUID to make requests on it later
 							resp.bodyHandler(new Handler<Buffer>() {
 
 								@Override
@@ -106,7 +106,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 							});
 						}
 					}
-				}).putHeader("content-type", "text/turtle").end(this.postQuery);
+				}).putHeader("content-type", "text/turtle").end(POST_QUERY);
 	}
 
 	@Test
@@ -157,7 +157,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 
 		Async async = context.async();
 
-		String updated = this.postQuery.replace("CtxUser", "CtxQueryHandler");
+		String updated = POST_QUERY.replace("CtxUser", "CtxQueryHandler");
 
 		// PUT
 
@@ -173,7 +173,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 							async.complete();
 						}
 
-						// GET one
+						// GET one to see whether the update has really been made
 
 						httpClient.get(ctxCoord.getPort(), ctxCoord.getAddress(),
 								"/api/v1/coordination/assertion_capability_subscriptions/" + resourceUUID + "/",
@@ -228,7 +228,7 @@ public class AssertionCapabilitySubscriptionRoutesTest {
 							async.complete();
 						}
 
-						// GET one
+						// GET one to see whether the deletion has really been made
 
 						httpClient.get(ctxCoord.getPort(), ctxCoord.getAddress(),
 								"/api/v1/coordination/assertion_capability_subscriptions/" + resourceUUID + "/",

@@ -28,14 +28,19 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.Future;
 
+/**
+ * Implementation of the CtxSensor agent that reads LLA events for the HLATest scenario
+ */
 public class CtxSensorLLA extends CtxSensor {
 	
-	private final String EVENTS_FILE_NAME = "files/single_hla_120s_01er_015fd.json";
+	// name of the file that contains the LLA events
+	private static final String EVENTS_FILE_NAME = "files/single_hla_120s_01er_015fd.json";
+	
 	
 	private ScheduledExecutorService readerService;  // reads the file containing the context assertions
 	                                                 // and their annotations
 	
-	private Queue<Object> events;           // list of the read events
+	private Queue<Object> events;  // list of the read events
 	private Object syncObj = new Object();  // object used for the synchronization of the threads
 	
 	
@@ -46,12 +51,14 @@ public class CtxSensorLLA extends CtxSensor {
 			"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#CtxSensorSpec");
 		AgentSpecification spec = null;
 		
+		// Get the configuration for the CtxSensor that reads LLAs
 		for(AgentSpecification as : orgMgrSpecs) {
 			if(as.getAgentLocalName().contains("LLA")) {
 				spec = as;
 			}
 		}
 		
+		// Get the configuration of the OrgMgr agent
 		if(spec != null) {
 			CMMAgentContainer container = spec.getAgentAddress().getAgentContainer();
 			this.orgMgr = new AgentAddress(container.getContainerHost(), container.getContainerPort());
@@ -68,6 +75,7 @@ public class CtxSensorLLA extends CtxSensor {
 		
 		AgentAddress ctxSensorAddress = new AgentAddress(this.agentConfig.getAddress(), this.agentConfig.getPort());
 		
+		// Send the assertion capability for LLA events
 		AssertionCapability ac = new AssertionCapability();
 		ac.setProvider(new AgentSpec(ctxSensorAddress, ac.getId()));
 		ac.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/LLA");
@@ -88,8 +96,9 @@ public class CtxSensorLLA extends CtxSensor {
 		
 		// Start reading the context assertions and their annotations
 		ClassLoader classLoader = CtxSensor.class.getClassLoader();
-	    File eventsFile = new File(classLoader.getResource(this.EVENTS_FILE_NAME).getFile());
+	    File eventsFile = new File(classLoader.getResource(CtxSensorLLA.EVENTS_FILE_NAME).getFile());
 
+	    // Keep the LLA events only
 		this.events = JSONEventReader.parseEvents(eventsFile);
 		this.events.removeIf(ca -> !(ca instanceof LLA));
 		
@@ -98,9 +107,12 @@ public class CtxSensorLLA extends CtxSensor {
 	}
 	
 	
+	/**
+	 * Allows to read an event and to send it to the CtxCoord agent
+	 */
 	private class EventReadTask implements Runnable {
 		
-		private Repository repo;
+		private Repository repo;  // contains the RDF statements for the events
 		
 		public EventReadTask() {
 			this.repo = new SailRepository(new MemoryStore());
@@ -111,7 +123,7 @@ public class CtxSensorLLA extends CtxSensor {
 
 			URI uri = URI.create("http://example.org/hlatest/LLA");
 			
-			// if the position LLAs are enabled, read the next event and send it 
+			// if the LLA updates are enabled, read the next event and send it 
 			if(updateModes.containsKey(uri)) {
 			
 				// get event to be inserted
@@ -138,7 +150,8 @@ public class CtxSensorLLA extends CtxSensor {
 								nextEvent = (ContextAssertion)events.peek();
 								
 								if(nextEvent != null
-									&& nextEvent.getStartTimestamp() - event.getStartTimestamp() < updateMode.getUpdateRate()){
+									&& nextEvent.getStartTimestamp() - event.getStartTimestamp()
+										< updateMode.getUpdateRate()){
 									
 									nextEvent = (ContextAssertion)events.poll();
 								} else {

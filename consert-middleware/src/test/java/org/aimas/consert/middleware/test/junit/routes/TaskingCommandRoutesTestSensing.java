@@ -26,7 +26,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class TaskingCommandRoutesTestSensing {
 
-	private final String startQuery = "@prefix hlatest: <http://example.org/hlatest/> .\n"
+	private static final String START_QUERY = "@prefix hlatest: <http://example.org/hlatest/> .\n"
 			+ "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix start-updates-command: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#StartUpdatesCommand/> .\n"
 			+ "@prefix agent-spec: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AgentSpec/> .\n"
@@ -49,9 +49,9 @@ public class TaskingCommandRoutesTestSensing {
 			+ "    protocol:ipAddress \"127.0.0.1\"^^xsd:string ;\n"
 			+ "    protocol:port \"8082\"^^xsd:int .\n";
 
-	private final String stopQuery = startQuery.replace("start-", "stop").replace("StartUpdatesCommand", "StopUpdatesCommand");
+	private static final String STOP_QUERY = START_QUERY.replace("start-", "stop").replace("StartUpdatesCommand", "StopUpdatesCommand");
 
-	private final String alterQuery = "@prefix hlatest: <http://example.org/hlatest/> .\n"
+	private static final String ALTER_QUERY = "@prefix hlatest: <http://example.org/hlatest/> .\n"
 			+ "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix provisioning: <http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/coordconf#> .\n"
 			+ "@prefix alter-update-mode-command: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AlterUpdateModeCommand/> .\n"
@@ -96,6 +96,7 @@ public class TaskingCommandRoutesTestSensing {
 		
 		this.vertx = Vertx.vertx();
 		
+		// Deploy the required agents for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res1 -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), res2 -> {
 				this.vertx.deployVerticle(CtxSensorPosition.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
@@ -114,7 +115,7 @@ public class TaskingCommandRoutesTestSensing {
 
 	public void start(TestContext context, Async async) {
 
-		// Send tasking command
+		// Send start tasking command
 		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
 				"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
 
@@ -127,7 +128,7 @@ public class TaskingCommandRoutesTestSensing {
 						
 						async.complete();
 					}
-				}).putHeader("content-type", "text/turtle").end(this.startQuery);
+				}).putHeader("content-type", "text/turtle").end(START_QUERY);
 	}
 	
 	@Test
@@ -145,7 +146,7 @@ public class TaskingCommandRoutesTestSensing {
 		
 		Async async = context.async();
 
-		// Send tasking command
+		// Send stop tasking command
 		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
 				"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
 
@@ -158,7 +159,7 @@ public class TaskingCommandRoutesTestSensing {
 						
 						async.complete();
 					}
-				}).putHeader("content-type", "text/turtle").end(this.stopQuery);
+				}).putHeader("content-type", "text/turtle").end(STOP_QUERY);
 	}
 
 	@Test
@@ -170,7 +171,7 @@ public class TaskingCommandRoutesTestSensing {
 		
 		Async async = context.async();
 
-		// Send tasking command
+		// Send alter tasking command
 		this.httpClient.put(this.ctxSensor.getPort(), this.ctxSensor.getAddress(),
 				"/api/v1/sensing/tasking_command/", new Handler<HttpClientResponse>() {
 
@@ -183,6 +184,6 @@ public class TaskingCommandRoutesTestSensing {
 						
 						async.complete();
 					}
-				}).putHeader("content-type", "text/turtle").end(this.alterQuery);
+				}).putHeader("content-type", "text/turtle").end(ALTER_QUERY);
 	}
 }

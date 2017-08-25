@@ -24,6 +24,42 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
  */
 @RunWith(VertxUnitRunner.class)
 public class ContextAssertionRoutesTest {
+	
+	private final static String ASSERTION = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
+			+ "@prefix core: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#> .\n"
+			+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#> .\n"
+			+ "@prefix hlatest: <http://example.org/hlatest/> .\n"
+			+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n"
+			+ "\n"
+			+ "hlatest:SittingLLA rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.SittingLLA\"^^xsd:string .\n"
+			+ "hlatest:Person rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.Person\"^^xsd:string .\n"
+			+ "annotation:DefaultAnnotationData rdfbeans:bindingClass \"org.aimas.consert.model.annotations.DefaultAnnotationData\"^^xsd:string .\n"
+			+ "hlatest:LLAType rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.LLAType\"^^xsd:string .\n"
+			+ "core:assertion-1 rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.SittingLLA\"^^xsd:string .\n"
+			+ "\n"
+			+ "protocol:assertionGraph {\n"
+			+ "    core:assertion-1 a hlatest:SittingLLA ;\n"
+			+ "        hlatest:hasLLATypeRole <lla:SITTING> ;\n"
+			+ "        hlatest:hasPersonRole <person:mihai> ;\n"
+			+ "        <annotation:hasAnnotation> annotation:annotation-1 .\n"
+			
+			+ "    <lla:SITTING> a hlatest:LLAType ;\n"
+			+ "        rdfs:label \"SITTING\" .\n"
+			
+			+ "    <person:mihai> a hlatest:Person ;\n"
+			+ "        hlatest:name \"mihai\" .\n"
+			+ "}\n"
+			
+			+ "protocol:annotationGraph {\n"
+			+ "    annotation:annotation-1 a annotation:DefaultAnnotationData ;\n"
+			+ "        annotation:confidence \"0.8557057441203378\"^^xsd:double ;\n"
+			+ "        annotation:duration \"0\"^^xsd:long ;\n"
+			+ "        annotation:endTime \"2017-05-12T14:41:41.000+03:00\"^^xsd:dateTime ;\n"
+			+ "        annotation:lastUpdated \"1.494589301E12\"^^xsd:double ;\n"
+			+ "        annotation:startTime \"2017-05-12T14:41:41.000+03:00\"^^xsd:dateTime ;\n"
+			+ "        annotation:timestamp \"1.494589301E12\"^^xsd:double .\n"
+			+ "}\n";
+	
 
 	private Vertx vertx;
 	private AgentConfig ctxCoord;
@@ -37,6 +73,7 @@ public class ContextAssertionRoutesTest {
 		// Start Vert.x server for CtxCoord
 		this.vertx = Vertx.vertx();
 		
+		// Deploy the required verticles for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
 		});
@@ -55,42 +92,7 @@ public class ContextAssertionRoutesTest {
 		
 		Async async = context.async();
 		
-		String rdf = "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
-				+ "@prefix core: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#> .\n"
-				+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#> .\n"
-				+ "@prefix hlatest: <http://example.org/hlatest/> .\n"
-				+ "@prefix rdfbeans: <http://viceversatech.com/rdfbeans/2.0/> .\n"
-				+ "\n"
-				+ "hlatest:SittingLLA rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.SittingLLA\"^^xsd:string .\n"
-				+ "hlatest:Person rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.Person\"^^xsd:string .\n"
-				+ "annotation:DefaultAnnotationData rdfbeans:bindingClass \"org.aimas.consert.model.annotations.DefaultAnnotationData\"^^xsd:string .\n"
-				+ "hlatest:LLAType rdfbeans:bindingClass \"org.aimas.consert.tests.hla.entities.LLAType\"^^xsd:string .\n"
-				+ "core:assertion-1 rdfbeans:bindingClass \"org.aimas.consert.tests.hla.assertions.SittingLLA\"^^xsd:string .\n"
-				+ "\n"
-				+ "protocol:assertionGraph {\n"
-				+ "    core:assertion-1 a hlatest:SittingLLA ;\n"
-				+ "        hlatest:hasLLATypeRole <lla:SITTING> ;\n"
-				+ "        hlatest:hasPersonRole <person:mihai> ;\n"
-				+ "        <annotation:hasAnnotation> annotation:annotation-1 .\n"
-				
-				+ "    <lla:SITTING> a hlatest:LLAType ;\n"
-				+ "        rdfs:label \"SITTING\" .\n"
-				
-				+ "    <person:mihai> a hlatest:Person ;\n"
-				+ "        hlatest:name \"mihai\" .\n"
-				+ "}\n"
-				
-				+ "protocol:annotationGraph {\n"
-				+ "    annotation:annotation-1 a annotation:DefaultAnnotationData ;\n"
-				+ "        annotation:confidence \"0.8557057441203378\"^^xsd:double ;\n"
-				+ "        annotation:duration \"0\"^^xsd:long ;\n"
-				+ "        annotation:endTime \"2017-05-12T14:41:41.000+03:00\"^^xsd:dateTime ;\n"
-				+ "        annotation:lastUpdated \"1.494589301E12\"^^xsd:double ;\n"
-				+ "        annotation:startTime \"2017-05-12T14:41:41.000+03:00\"^^xsd:dateTime ;\n"
-				+ "        annotation:timestamp \"1.494589301E12\"^^xsd:double .\n"
-				+ "}\n";
-		
-		
+		// Send the assertion to the CtxCoord agent for its insertion in the engine
 		this.httpClient.post(this.ctxCoord.getPort(), this.ctxCoord.getAddress(),
 				"/api/v1/coordination/insert_context_assertion/", new Handler<HttpClientResponse>() {
 
@@ -112,6 +114,6 @@ public class ContextAssertionRoutesTest {
 						
 						async.complete();
 					}
-				}).putHeader("content-type", "application/trig").end(rdf);
+				}).putHeader("content-type", "application/trig").end(ASSERTION);
 	}
 }

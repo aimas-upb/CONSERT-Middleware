@@ -28,14 +28,18 @@ import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.Future;
 
+/**
+ * Implementation of the CtxSensor agent that reads position events for the HLATest scenario
+ */
 public class CtxSensorPosition extends CtxSensor {
 	
-	private final String EVENTS_FILE_NAME = "files/single_hla_120s_01er_015fd.json";
+	// name of the file that contains the LLA events
+	private static final String EVENTS_FILE_NAME = "files/single_hla_120s_01er_015fd.json";
 	
 	private ScheduledExecutorService readerService;  // reads the file containing the context assertions
 	                                                 // and their annotations
 	
-	private Queue<Object> events;           // list of the read events
+	private Queue<Object> events;  // list of the read events
 	private Object syncObj = new Object();  // object used for the synchronization of the threads
 	
 
@@ -46,12 +50,14 @@ public class CtxSensorPosition extends CtxSensor {
 			"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#CtxSensorSpec");
 		AgentSpecification spec = null;
 		
+		// Get the configuration for the CtxSensor that reads positions
 		for(AgentSpecification as : orgMgrSpecs) {
 			if(as.getAgentLocalName().contains("Position")) {
 				spec = as;
 			}
 		}
 		
+		// Get the configuration of the OrgMgr agent
 		if(spec != null) {
 			CMMAgentContainer container = spec.getAgentAddress().getAgentContainer();
 			this.orgMgr = new AgentAddress(container.getContainerHost(), container.getContainerPort());
@@ -68,6 +74,7 @@ public class CtxSensorPosition extends CtxSensor {
 		
 		AgentAddress ctxSensorAddress = new AgentAddress(this.agentConfig.getAddress(), this.agentConfig.getPort());
 		
+		// Send the assertion capability for position events
 		AssertionCapability ac = new AssertionCapability();
 		ac.setProvider(new AgentSpec(ctxSensorAddress, ac.getId()));
 		ac.setId("http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#AssertionCapability/Position");
@@ -88,8 +95,9 @@ public class CtxSensorPosition extends CtxSensor {
 		
 		// Start reading the context assertions and their annotations
 		ClassLoader classLoader = CtxSensor.class.getClassLoader();
-	    File eventsFile = new File(classLoader.getResource(this.EVENTS_FILE_NAME).getFile());
+	    File eventsFile = new File(classLoader.getResource(CtxSensorPosition.EVENTS_FILE_NAME).getFile());
 
+	    // Keep the position events only
 		this.events = JSONEventReader.parseEvents(eventsFile);	
 		this.events.removeIf(ca -> !(ca instanceof Position));
 		
@@ -97,9 +105,13 @@ public class CtxSensorPosition extends CtxSensor {
 		this.readerService.execute(new EventReadTask());
 	}
 	
+	
+	/**
+	 * Allows to read an event and to send it to the CtxCoord agent
+	 */
 	private class EventReadTask implements Runnable {
 		
-		private Repository repo;
+		private Repository repo;  // contains the RDF statements for the events
 		
 		public EventReadTask() {
 			this.repo = new SailRepository(new MemoryStore());

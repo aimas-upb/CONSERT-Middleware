@@ -50,7 +50,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 @RunWith(VertxUnitRunner.class)
 public class AssertionCapabilityRoutesTest {
 
-	private final String postQuery = "@prefix : <http://example.org/hlatest/> .\n"
+	private static final String POST_QUERY = "@prefix : <http://example.org/hlatest/> .\n"
 			+ "@prefix protocol: <http://pervasive.semanticweb.org/ont/2017/07/consert/protocol#> .\n"
 			+ "@prefix core: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#> .\n"
 			+ "@prefix annotation: <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#> .\n"
@@ -119,6 +119,7 @@ public class AssertionCapabilityRoutesTest {
 		
 		this.ctxCoord = new AgentConfig("127.0.0.1", 8081);
 		
+		// Deploy the required verticles for the queries
 		this.vertx.deployVerticle(OrgMgr.class.getName(), new DeploymentOptions().setWorker(true), res -> {
 			this.vertx.deployVerticle(CtxCoord.class.getName(), new DeploymentOptions().setWorker(true), context.asyncAssertSuccess());
 		});
@@ -136,7 +137,7 @@ public class AssertionCapabilityRoutesTest {
 	public void testPost(TestContext context) {
 
 		Async async = context.async();
-		this.post(context, async, this.postQuery);
+		this.post(context, async, POST_QUERY);
 		async.await();
 	}
 
@@ -155,8 +156,7 @@ public class AssertionCapabilityRoutesTest {
 							async.complete();
 						} else {
 
-							// Get the created resource's UUID to make requests
-							// on it later
+							// Get the created resource's UUID to make requests on it later
 							resp.bodyHandler(new Handler<Buffer>() {
 
 								@Override
@@ -175,7 +175,7 @@ public class AssertionCapabilityRoutesTest {
 	public void testGetAll(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost, this.postQuery);
+		this.post(context, asyncPost, POST_QUERY);
 		asyncPost.await();
 
 		Async async = context.async();
@@ -215,7 +215,7 @@ public class AssertionCapabilityRoutesTest {
 	public void testGetOne(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost, this.postQuery);
+		this.post(context, asyncPost, POST_QUERY);
 		asyncPost.await();
 
 		Async async = context.async();
@@ -283,12 +283,12 @@ public class AssertionCapabilityRoutesTest {
 	public void testPut(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost, this.postQuery);
+		this.post(context, asyncPost, POST_QUERY);
 		asyncPost.await();
 
 		Async async = context.async();
 
-		String updated = this.postQuery.replace("    annotation:hasAnnotation context-annotation:ann2 ;\n", "");
+		String updated = POST_QUERY.replace("    annotation:hasAnnotation context-annotation:ann2 ;\n", "");
 
 		// PUT
 
@@ -304,7 +304,7 @@ public class AssertionCapabilityRoutesTest {
 							async.complete();
 						}
 
-						// GET one
+						// GET one to see whether the update has really been made
 
 						httpClient.get(ctxCoord.getPort(), ctxCoord.getAddress(),
 								"/api/v1/coordination/context_assertions/" + resourceUUID + "/",
@@ -341,11 +341,11 @@ public class AssertionCapabilityRoutesTest {
 	public void testDelete(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost, this.postQuery);
+		this.post(context, asyncPost, POST_QUERY);
 		asyncPost.await();
 		
 		asyncPost = context.async();
-		this.post(context, asyncPost, this.postQuery.replace("foo", "foo2"));
+		this.post(context, asyncPost, POST_QUERY.replace("foo", "foo2"));
 		asyncPost.await();
 
 		Async async = context.async();
@@ -364,7 +364,7 @@ public class AssertionCapabilityRoutesTest {
 							async.complete();
 						}
 
-						// GET one
+						// GET one to see whether the deletion has really been made
 
 						httpClient.get(ctxCoord.getPort(), ctxCoord.getAddress(),
 								"/api/v1/coordination/context_assertions/" + resourceUUID + "/",
@@ -385,7 +385,7 @@ public class AssertionCapabilityRoutesTest {
 	public void testAPI(TestContext context) {
 
 		Async asyncPost = context.async();
-		this.post(context, asyncPost, this.postQuery);
+		this.post(context, asyncPost, POST_QUERY);
 		asyncPost.await();
 		
 		List<AgentSpec> expected = new ArrayList<AgentSpec>();
