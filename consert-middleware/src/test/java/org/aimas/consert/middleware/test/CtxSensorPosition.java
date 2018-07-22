@@ -1,5 +1,7 @@
 package org.aimas.consert.middleware.test;
 
+import io.vertx.core.Future;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,13 +22,11 @@ import org.aimas.consert.middleware.model.AgentSpec;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.aimas.consert.model.content.ContextAssertion;
+import org.aimas.consert.tests.casas.CASASEventReader;
 import org.aimas.consert.tests.hla.assertions.Position;
-import org.aimas.consert.utils.JSONEventReader;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-
-import io.vertx.core.Future;
 
 /**
  * Implementation of the CtxSensor agent that reads position events for the HLATest scenario
@@ -98,7 +98,9 @@ public class CtxSensorPosition extends CtxSensor {
 	    File eventsFile = new File(classLoader.getResource(CtxSensorPosition.EVENTS_FILE_NAME).getFile());
 
 	    // Keep the position events only
-		this.events = JSONEventReader.parseEvents(eventsFile);	
+	    CASASEventReader eventReader = new CASASEventReader();
+	    
+		this.events = eventReader.parseEvents(eventsFile);	
 		this.events.removeIf(ca -> !(ca instanceof Position));
 		
 		this.readerService = Executors.newScheduledThreadPool(1);

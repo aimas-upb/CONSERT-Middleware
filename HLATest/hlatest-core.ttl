@@ -1,363 +1,325 @@
+# baseURI: http://example.org/hlatest/
+# imports: http://pervasive.semanticweb.org/ont/2017/07/consert/annotation
+# imports: http://pervasive.semanticweb.org/ont/2017/07/consert/core
+
 @prefix : <http://example.org/hlatest/> .
+@prefix core: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix core: <http://pervasive.semanticweb.org/ont/2017/07/consert/core#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@base <http://example.org/hlatest/> .
 
-<http://example.org/hlatest/> rdf:type owl:Ontology ;
-                               owl:imports <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation> ,
-                                           <http://pervasive.semanticweb.org/ont/2017/07/consert/core> ;
-                               owl:versionInfo "Created with TopBraid Composer"^^xsd:string .
-
-#################################################################
-#    Annotation properties
-#################################################################
-
-###  http://viceversatech.com/rdfbeans/2.0/bindingClass
-<http://viceversatech.com/rdfbeans/2.0/bindingClass> rdf:type owl:AnnotationProperty .
-
-
-#################################################################
-#    Object Properties
-#################################################################
-
-###  http://example.org/hlatest/hasAreaRole
-:hasAreaRole rdf:type owl:ObjectProperty ;
-             rdfs:subPropertyOf core:assertionObject ;
-             rdfs:domain :Position ;
-             rdfs:range :AreaType ;
-             rdfs:label "hasAreaRole"^^xsd:string .
-
-
-###  http://example.org/hlatest/hasHLATypeRole
-:hasHLATypeRole rdf:type owl:ObjectProperty ;
-                rdfs:subPropertyOf core:assertionObject ;
-                rdfs:domain :HLA ;
-                rdfs:range :HLAType ;
-                rdfs:label "hasHLATypeRole"^^xsd:string .
-
-
-###  http://example.org/hlatest/hasLLATypeRole
-:hasLLATypeRole rdf:type owl:ObjectProperty ;
-                rdfs:subPropertyOf core:assertionObject ;
-                rdfs:domain :LLA ;
-                rdfs:range :LLAType ;
-                rdfs:label "hasLLATypeRole"^^xsd:string .
-
-
-###  http://example.org/hlatest/hasPersonRole
-:hasPersonRole rdf:type owl:ObjectProperty ;
-               rdfs:subPropertyOf core:assertionSubject ;
-               rdfs:domain [ rdf:type owl:Class ;
-                             owl:unionOf ( :HLA
-                                           :LLA
-                                           :Position
-                                         )
-                           ] ;
-               rdfs:range :Person ;
-               rdfs:label "hasPersonRole"^^xsd:string .
-
-
-###  http://example.org/hlatest/hla
-:hla rdf:type owl:ObjectProperty ;
-     rdfs:subPropertyOf core:derivedRelationAssertion ;
-     rdfs:domain :Person ;
-     rdfs:range :HLAType ;
-     rdfs:comment "The derived high level activity of a person in a room."^^xsd:string ;
-     rdfs:label "hla"^^xsd:string .
-
-
-###  http://example.org/hlatest/lla
-:lla rdf:type owl:ObjectProperty ;
-     rdfs:subPropertyOf core:sensedRelationAssertion ;
-     rdfs:domain :Person ;
-     rdfs:range :LLAType ;
-     rdfs:comment "The sensed low level activity of a person in a room."^^xsd:string ;
-     rdfs:label "lla"^^xsd:string .
-
-
-###  http://example.org/hlatest/position
-:position rdf:type owl:ObjectProperty ;
-          rdfs:subPropertyOf core:sensedRelationAssertion ;
-          rdfs:domain :Person ;
-          rdfs:range :AreaType ;
-          rdfs:comment "The sensed position of a person in a room."^^xsd:string ;
-          rdfs:label "position"^^xsd:string .
-
-
-#################################################################
-#    Data properties
-#################################################################
-
-###  http://example.org/hlatest/name
-:name rdf:type owl:DatatypeProperty ;
-      rdfs:subPropertyOf core:entityDataDescription ;
-      rdfs:domain :Person ;
-      rdfs:range xsd:string ;
-      rdfs:comment "The name of the person."^^xsd:string ;
-      rdfs:label "name"^^xsd:string .
-
-
-#################################################################
-#    Classes
-#################################################################
-
-###  http://example.org/hlatest/AreaType
-:AreaType rdf:type owl:Class ;
-          owl:equivalentClass [ rdf:type owl:Class ;
-                                owl:oneOf ( :CONFERENCE_AREA
-                                            :DINING_AREA
-                                            :ENTERTAINMENT_AREA
-                                            :EXERCISE_AREA
-                                            :HYGENE_AREA
-                                            :SITTING_AREA
-                                            :SNACK_AREA
-                                            :WORK_AREA
-                                          )
-                              ] ;
-          rdfs:subClassOf core:ContextEntity ;
-          rdfs:comment "The room area type in which a Person can be located."^^xsd:string ;
-          rdfs:label "AreaType"^^xsd:string .
-
-
-###  http://example.org/hlatest/HLA
-:HLA rdf:type owl:Class ;
-     rdfs:subClassOf core:BinaryContextAssertion ,
-                     [ rdf:type owl:Restriction ;
-                       owl:onProperty core:assertionObject ;
-                       owl:allValuesFrom :HLA
-                     ] ,
-                     [ rdf:type owl:Restriction ;
-                       owl:onProperty core:assertionSubject ;
-                       owl:allValuesFrom :Person
-                     ] ,
-                     [ rdf:type owl:Restriction ;
-                       owl:onProperty core:assertionAcquisitionType ;
-                       owl:hasValue core:Derived
-                     ] ;
-     rdfs:comment "The inferred high-level activity performed by a person."^^xsd:string ;
-     rdfs:label "HLA"^^xsd:string .
-
-
-###  http://example.org/hlatest/HLAType
-:HLAType rdf:type owl:Class ;
-         owl:equivalentClass [ rdf:type owl:Class ;
-                               owl:oneOf ( :DINING
-                                           :DISCUSSING
-                                           :EXERCISE
-                                           :WORKING
-                                         )
-                             ] ;
-         rdfs:subClassOf core:ContextEntity ;
-         rdfs:comment "The type of detected high-level activity."^^xsd:string ;
-         rdfs:label "HLAType"^^xsd:string .
-
-
-###  http://example.org/hlatest/LLA
-:LLA rdf:type owl:Class ;
-     rdfs:subClassOf core:BinaryContextAssertion ,
-                     [ rdf:type owl:Restriction ;
-                       owl:onProperty core:assertionObject ;
-                       owl:allValuesFrom :LLAType
-                     ] ,
-                     [ rdf:type owl:Restriction ;
-                       owl:onProperty core:assertionSubject ;
-                       owl:allValuesFrom :Person
-                     ] ,
-                     [ rdf:type owl:Restriction ;
-                       owl:onProperty core:assertionAcquisitionType ;
-                       owl:hasValue core:Sensed
-                     ] ;
-     rdfs:comment "The act of detecting a low level activity executed by a person."^^xsd:string ;
-     rdfs:label "LLA"^^xsd:string .
-
-
-###  http://example.org/hlatest/LLAType
-:LLAType rdf:type owl:Class ;
-         owl:equivalentClass [ rdf:type owl:Class ;
-                               owl:oneOf ( :SITTING
-                                           :STANDING
-                                           :WALKING
-                                         )
-                             ] ;
-         rdfs:subClassOf core:ContextEntity ;
-         rdfs:comment "The type of low-level activity."^^xsd:string ;
-         rdfs:label "LLAType"^^xsd:string .
-
-
-###  http://example.org/hlatest/Person
-:Person rdf:type owl:Class ;
-        rdfs:subClassOf core:ContextEntity ;
-        rdfs:comment "A person who can be located in a room."^^xsd:string ;
-        rdfs:label "Person"^^xsd:string .
-
-
-###  http://example.org/hlatest/Position
-:Position rdf:type owl:Class ;
-          rdfs:subClassOf core:BinaryContextAssertion ,
-                          [ rdf:type owl:Restriction ;
-                            owl:onProperty core:assertionObject ;
-                            owl:allValuesFrom :AreaType
-                          ] ,
-                          [ rdf:type owl:Restriction ;
-                            owl:onProperty core:assertionSubject ;
-                            owl:allValuesFrom :Person
-                          ] ,
-                          [ rdf:type owl:Restriction ;
-                            owl:onProperty core:assertionAcquisitionType ;
-                            owl:hasValue core:Sensed
-                          ] ;
-          rdfs:label "Position"^^xsd:string .
-
-
-#################################################################
-#    Individuals
-#################################################################
-
-###  http://example.org/hlatest/Alex
-:Alex rdf:type owl:NamedIndividual ,
-               :Person ;
-      :name "Alex"^^xsd:string ;
-      rdfs:label "Alex"^^xsd:string .
-
-
-###  http://example.org/hlatest/CONFERENCE_AREA
-:CONFERENCE_AREA rdf:type owl:NamedIndividual ,
-                          :AreaType ;
-                 rdfs:label "CONFERENCE_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/DINING
-:DINING rdf:type owl:NamedIndividual ,
-                 :HLAType ;
-        rdfs:label "DINING"^^xsd:string .
-
-
-###  http://example.org/hlatest/DINING_AREA
-:DINING_AREA rdf:type owl:NamedIndividual ,
-                      :AreaType ;
-             rdfs:label "DINING_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/DISCUSSING
-:DISCUSSING rdf:type owl:NamedIndividual ,
-                     :HLAType ;
-            rdfs:label "DISCUSSING"^^xsd:string .
-
-
-###  http://example.org/hlatest/ENTERTAINMENT_AREA
-:ENTERTAINMENT_AREA rdf:type owl:NamedIndividual ,
-                             :AreaType ;
-                    rdfs:label "ENTERTAINMENT_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/EXERCISE
-:EXERCISE rdf:type owl:NamedIndividual ,
-                   :HLAType ;
-          rdfs:label "EXERCISE"^^xsd:string .
-
-
-###  http://example.org/hlatest/EXERCISE_AREA
-:EXERCISE_AREA rdf:type owl:NamedIndividual ,
-                        :AreaType ;
-               rdfs:label "EXERCISE_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/HLA_1
-:HLA_1 rdf:type owl:NamedIndividual ,
-                :HLA ;
-       :hasHLATypeRole :WORKING ;
-       :hasPersonRole :Mihai ;
-       rdfs:label "HLA_1"^^xsd:string .
-
-
-###  http://example.org/hlatest/HYGENE_AREA
-:HYGENE_AREA rdf:type owl:NamedIndividual ,
-                      :AreaType ;
-             rdfs:label "HYGENE_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/Interval-1
-:Interval-1 rdf:type owl:NamedIndividual ,
-                     <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#DatetimeInterval> ;
-            <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#endTime> "2017-07-07T12:00:00Z" ;
-            <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#startTime> "2017-07-07T12:00:00Z" .
-
-
-###  http://example.org/hlatest/LLA_1
-:LLA_1 rdf:type owl:NamedIndividual ,
-                :LLA ;
-       :hasLLATypeRole :SITTING ;
-       :hasPersonRole :Mihai ;
-       <http://viceversatech.com/rdfbeans/2.0/bindingClass> "org.aimas.consert.tests.hla.assertions.SittingLLA"^^xsd:string ;
-       rdfs:label "LLA_1"^^xsd:string .
-
-
-###  http://example.org/hlatest/Mihai
-:Mihai rdf:type owl:NamedIndividual ,
-                :Person ;
-       :name "Mihai"^^xsd:string ;
-       rdfs:label "Mihai"^^xsd:string .
-
-
-###  http://example.org/hlatest/Position_1
-:Position_1 rdf:type owl:NamedIndividual ,
-                     :Position ;
-            :hasAreaRole :WORK_AREA ;
-            :hasPersonRole :Mihai ;
-            rdfs:label "Position_1"^^xsd:string .
-
-
-###  http://example.org/hlatest/SITTING
-:SITTING rdf:type owl:NamedIndividual ,
-                  :LLAType ;
-         rdfs:label "SITTING"^^xsd:string .
-
-
-###  http://example.org/hlatest/SITTING_AREA
-:SITTING_AREA rdf:type owl:NamedIndividual ,
-                       :AreaType ;
-              rdfs:label "SITTING_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/SNACK_AREA
-:SNACK_AREA rdf:type owl:NamedIndividual ,
-                     :AreaType ;
-            rdfs:label "SNACK_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/STANDING
-:STANDING rdf:type owl:NamedIndividual ,
-                   :LLAType ;
-          rdfs:label "STANDING"^^xsd:string .
-
-
-###  http://example.org/hlatest/WALKING
-:WALKING rdf:type owl:NamedIndividual ,
-                  :LLAType ;
-         rdfs:label "WALKING"^^xsd:string .
-
-
-###  http://example.org/hlatest/WORKING
-:WORKING rdf:type owl:NamedIndividual ,
-                  :HLAType ;
-         rdfs:label "WORKING"^^xsd:string .
-
-
-###  http://example.org/hlatest/WORK_AREA
-:WORK_AREA rdf:type owl:NamedIndividual ,
-                    :AreaType ;
-           rdfs:label "WORK_AREA"^^xsd:string .
-
-
-###  http://example.org/hlatest/lla-ex1
-:lla-ex1 rdf:type owl:NamedIndividual ;
-         :hasLLATypeRole :SITTING ;
-         :hasPersonRole :Mihai ;
-         rdfs:label "lla-ex1"^^xsd:string .
-
-
-###  Generated by the OWL API (version 4.2.8.20170104-2310) https://github.com/owlcs/owlapi
+:
+  rdf:type owl:Ontology ;
+  owl:imports <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation> ;
+  owl:imports <http://pervasive.semanticweb.org/ont/2017/07/consert/core> ;
+  owl:versionInfo "Created with TopBraid Composer"^^xsd:string ;
+.
+:Alex
+  rdf:type :Person ;
+  rdf:type owl:NamedIndividual ;
+  :name "Alex"^^xsd:string ;
+  rdfs:label "Alex"^^xsd:string ;
+.
+:AreaType
+  rdf:type owl:Class ;
+  rdfs:comment "The room area type in which a Person can be located."^^xsd:string ;
+  rdfs:label "AreaType"^^xsd:string ;
+  rdfs:subClassOf core:ContextEntity ;
+  owl:equivalentClass [
+      rdf:type owl:Class ;
+      owl:oneOf (
+          :CONFERENCE_AREA
+          :DINING_AREA
+          :ENTERTAINMENT_AREA
+          :EXERCISE_AREA
+          :HYGENE_AREA
+          :SITTING_AREA
+          :SNACK_AREA
+          :WORK_AREA
+        ) ;
+    ] ;
+.
+:CONFERENCE_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "CONFERENCE_AREA"^^xsd:string ;
+.
+:DINING
+  rdf:type :HLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "DINING"^^xsd:string ;
+.
+:DINING_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "DINING_AREA"^^xsd:string ;
+.
+:DISCUSSING
+  rdf:type :HLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "DISCUSSING"^^xsd:string ;
+.
+:ENTERTAINMENT_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "ENTERTAINMENT_AREA"^^xsd:string ;
+.
+:EXERCISE
+  rdf:type :HLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "EXERCISE"^^xsd:string ;
+.
+:EXERCISE_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "EXERCISE_AREA"^^xsd:string ;
+.
+:HLA
+  rdf:type owl:Class ;
+  rdfs:comment "The inferred high-level activity performed by a person."^^xsd:string ;
+  rdfs:label "HLA"^^xsd:string ;
+  rdfs:subClassOf core:BinaryContextAssertion ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom :HLA ;
+      owl:onProperty core:assertionObject ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom :Person ;
+      owl:onProperty core:assertionSubject ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:hasValue core:Derived ;
+      owl:onProperty core:assertionAcquisitionType ;
+    ] ;
+.
+:HLAType
+  rdf:type owl:Class ;
+  rdfs:comment "The type of detected high-level activity."^^xsd:string ;
+  rdfs:label "HLAType"^^xsd:string ;
+  rdfs:subClassOf core:ContextEntity ;
+  owl:equivalentClass [
+      rdf:type owl:Class ;
+      owl:oneOf (
+          :DINING
+          :DISCUSSING
+          :EXERCISE
+          :WORKING
+        ) ;
+    ] ;
+.
+:HLA_1
+  rdf:type :HLA ;
+  rdf:type owl:NamedIndividual ;
+  :hasHLATypeRole :WORKING ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "HLA_1"^^xsd:string ;
+.
+:HYGENE_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "HYGENE_AREA"^^xsd:string ;
+.
+:Interval-1
+  rdf:type <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#DatetimeInterval> ;
+  rdf:type owl:NamedIndividual ;
+  <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#endTime> "2017-07-07T12:00:00Z" ;
+  <http://pervasive.semanticweb.org/ont/2017/07/consert/annotation#startTime> "2017-07-07T12:00:00Z" ;
+.
+:LLA
+  rdf:type owl:Class ;
+  rdfs:comment "The act of detecting a low level activity executed by a person."^^xsd:string ;
+  rdfs:label "LLA"^^xsd:string ;
+  rdfs:subClassOf core:BinaryContextAssertion ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom :LLAType ;
+      owl:onProperty :hasAreaRole ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom :Person ;
+      owl:onProperty :hasPersonRole ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:hasValue core:Sensed ;
+      owl:onProperty core:assertionAcquisitionType ;
+    ] ;
+.
+:LLAType
+  rdf:type owl:Class ;
+  rdfs:comment "The type of low-level activity."^^xsd:string ;
+  rdfs:label "LLAType"^^xsd:string ;
+  rdfs:subClassOf core:ContextEntity ;
+  owl:equivalentClass [
+      rdf:type owl:Class ;
+      owl:oneOf (
+          :SITTING
+          :STANDING
+          :WALKING
+        ) ;
+    ] ;
+.
+:LLA_1
+  rdf:type :LLA ;
+  rdf:type owl:NamedIndividual ;
+  :hasLLATypeRole :SITTING ;
+  :hasPersonRole :Mihai ;
+  <http://viceversatech.com/rdfbeans/2.0/bindingClass> "org.aimas.consert.tests.hla.assertions.SittingLLA"^^xsd:string ;
+  rdfs:label "LLA_1"^^xsd:string ;
+.
+:Mihai
+  rdf:type :Person ;
+  rdf:type owl:NamedIndividual ;
+  :name "Mihai"^^xsd:string ;
+  rdfs:label "Mihai"^^xsd:string ;
+.
+:Person
+  rdf:type owl:Class ;
+  rdfs:comment "A person who can be located in a room."^^xsd:string ;
+  rdfs:label "Person"^^xsd:string ;
+  rdfs:subClassOf core:ContextEntity ;
+.
+:Position
+  rdf:type owl:Class ;
+  rdfs:label "Position"^^xsd:string ;
+  rdfs:subClassOf core:BinaryContextAssertion ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom :AreaType ;
+      owl:onProperty core:assertionObject ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom :Person ;
+      owl:onProperty core:assertionSubject ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:hasValue core:Sensed ;
+      owl:onProperty core:assertionAcquisitionType ;
+    ] ;
+.
+:Position_1
+  rdf:type :Position ;
+  rdf:type owl:NamedIndividual ;
+  :hasAreaRole :WORK_AREA ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "Position_1"^^xsd:string ;
+.
+:SITTING
+  rdf:type :LLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "SITTING"^^xsd:string ;
+.
+:SITTING_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "SITTING_AREA"^^xsd:string ;
+.
+:SNACK_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "SNACK_AREA"^^xsd:string ;
+.
+:STANDING
+  rdf:type :LLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "STANDING"^^xsd:string ;
+.
+:WALKING
+  rdf:type :LLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "WALKING"^^xsd:string ;
+.
+:WORKING
+  rdf:type :HLAType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "WORKING"^^xsd:string ;
+.
+:WORK_AREA
+  rdf:type :AreaType ;
+  rdf:type owl:NamedIndividual ;
+  rdfs:label "WORK_AREA"^^xsd:string ;
+.
+:hasAreaRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain :Position ;
+  rdfs:label "hasAreaRole"^^xsd:string ;
+  rdfs:range :AreaType ;
+  rdfs:subPropertyOf core:assertionObject ;
+.
+:hasHLATypeRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain :HLA ;
+  rdfs:label "hasHLATypeRole"^^xsd:string ;
+  rdfs:range :HLAType ;
+  rdfs:subPropertyOf core:assertionObject ;
+.
+:hasLLATypeRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain :LLA ;
+  rdfs:label "hasLLATypeRole"^^xsd:string ;
+  rdfs:range :LLAType ;
+  rdfs:subPropertyOf core:assertionObject ;
+.
+:hasPersonRole
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain [
+      rdf:type owl:Class ;
+      owl:unionOf (
+          :HLA
+          :LLA
+          :Position
+        ) ;
+    ] ;
+  rdfs:label "hasPersonRole"^^xsd:string ;
+  rdfs:range :Person ;
+  rdfs:subPropertyOf core:assertionSubject ;
+.
+:hla
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment "The derived high level activity of a person in a room."^^xsd:string ;
+  rdfs:domain :Person ;
+  rdfs:label "hla"^^xsd:string ;
+  rdfs:range :HLAType ;
+  rdfs:subPropertyOf core:derivedRelationAssertion ;
+.
+:lla
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment "The sensed low level activity of a person in a room."^^xsd:string ;
+  rdfs:domain :Person ;
+  rdfs:label "lla"^^xsd:string ;
+  rdfs:range :LLAType ;
+  rdfs:subPropertyOf core:sensedRelationAssertion ;
+.
+:lla-ex1
+  rdf:type owl:NamedIndividual ;
+  :hasLLATypeRole :SITTING ;
+  :hasPersonRole :Mihai ;
+  rdfs:label "lla-ex1"^^xsd:string ;
+.
+:name
+  rdf:type owl:DatatypeProperty ;
+  rdfs:comment "The name of the person."^^xsd:string ;
+  rdfs:domain :Person ;
+  rdfs:label "name"^^xsd:string ;
+  rdfs:range xsd:string ;
+  rdfs:subPropertyOf core:entityDataDescription ;
+.
+:position
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment "The sensed position of a person in a room."^^xsd:string ;
+  rdfs:domain :Person ;
+  rdfs:label "position"^^xsd:string ;
+  rdfs:range :AreaType ;
+  rdfs:subPropertyOf core:sensedRelationAssertion ;
+.
+<http://viceversatech.com/rdfbeans/2.0/bindingClass>
+  rdf:type owl:AnnotationProperty ;
+.

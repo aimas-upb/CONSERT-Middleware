@@ -1,5 +1,15 @@
 package org.aimas.consert.middleware.agents;
 
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -24,8 +34,7 @@ import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.content.ContextAssertion;
-import org.aimas.consert.tests.hla.TestSetup;
-import org.aimas.consert.utils.PlotlyExporter;
+import org.aimas.consert.utils.TestSetup;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.RDF4JException;
@@ -44,16 +53,6 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.kie.api.runtime.KieSession;
-
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Router;
 
 /**
  * CONSERT Engine implemented as a Vert.x server
@@ -180,7 +179,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		this.convRepo.shutDown();
 
 		// Export the data to a HTML page displaying a graph, and close all the services
-    	PlotlyExporter.exportToHTML(null, this.kSession);
+    	// PlotlyExporter.exportToHTML(null, this.kSession);
     	this.insertionService.shutdownNow();
     	this.kSession.halt();
     	this.kSession.dispose();
