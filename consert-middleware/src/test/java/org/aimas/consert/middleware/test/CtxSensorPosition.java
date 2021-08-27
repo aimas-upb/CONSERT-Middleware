@@ -23,6 +23,7 @@ import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.aimas.consert.model.content.ContextAssertion;
 import org.aimas.consert.tests.casas.CASASEventReader;
+import org.aimas.consert.tests.hla.HLAEventReader;
 import org.aimas.consert.tests.hla.assertions.Position;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -98,7 +99,7 @@ public class CtxSensorPosition extends CtxSensor {
 	    File eventsFile = new File(classLoader.getResource(CtxSensorPosition.EVENTS_FILE_NAME).getFile());
 
 	    // Keep the position events only
-	    CASASEventReader eventReader = new CASASEventReader();
+	    HLAEventReader eventReader = new HLAEventReader();
 	    
 		this.events = eventReader.parseEvents(eventsFile);	
 		this.events.removeIf(ca -> !(ca instanceof Position));

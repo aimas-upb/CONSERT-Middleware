@@ -88,7 +88,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 		futureConfig.setHandler(handler -> {
 			
 			// Set CONSERT Engine configuration
-			this.consertEngine = new AgentAddress("127.0.0.1", 80);
+			this.consertEngine = new AgentAddress("127.0.0.1", 8800);
 
 			// Create router
 			RouteConfig routeConfig = new RouteConfigV1();

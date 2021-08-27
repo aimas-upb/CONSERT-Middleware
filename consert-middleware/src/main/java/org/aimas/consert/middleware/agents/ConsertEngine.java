@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.aimas.consert.engine.EngineRunner;
-import org.aimas.consert.engine.EventTracker;
 import org.aimas.consert.engine.api.ContextAssertionListener;
+import org.aimas.consert.engine.core.EngineRunner;
+import org.aimas.consert.engine.core.EventTracker;
 import org.aimas.consert.middleware.config.AgentSpecification;
 import org.aimas.consert.middleware.config.CMMAgentContainer;
 import org.aimas.consert.middleware.config.CoordinatorSpecification;
@@ -34,6 +34,13 @@ import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.content.ContextAssertion;
+import org.aimas.consert.model.operators.AnnAfterOperator;
+import org.aimas.consert.model.operators.AnnBeforeOperator;
+import org.aimas.consert.model.operators.AnnIncludesOperator;
+import org.aimas.consert.model.operators.AnnIntersectsOperator;
+import org.aimas.consert.model.operators.AnnOverlappedByOperator;
+import org.aimas.consert.model.operators.AnnOverlapsOperator;
+import org.aimas.consert.model.operators.AnnStartsAfterOperator;
 import org.aimas.consert.utils.TestSetup;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
@@ -53,6 +60,9 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.kie.api.runtime.KieSession;
+import org.kie.internal.builder.KnowledgeBuilderConfiguration;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
+import org.kie.internal.builder.conf.EvaluatorOption;
 
 /**
  * CONSERT Engine implemented as a Vert.x server
@@ -151,12 +161,23 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 						System.out.println("Failed to start CONSERT Engine on port " + this.agentConfig.getPort()
 							+ " host " + this.host);
 					}					
-
+					
+					KnowledgeBuilderConfiguration builderConf = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration();
+					builderConf.setOption(EvaluatorOption.get("annOverlaps", new AnnOverlapsOperator.AnnOverlapsEvaluatorDefinition()));
+					builderConf.setOption(EvaluatorOption.get("annOverlappedBy", new AnnOverlappedByOperator.AnnOverlappedByEvaluatorDefinition()));
+					builderConf.setOption(EvaluatorOption.get("annHappensBefore", new AnnBeforeOperator.AnnBeforeEvaluatorDefinition()));
+					builderConf.setOption(EvaluatorOption.get("annHappensAfter", new AnnAfterOperator.AnnAfterEvaluatorDefinition()));
+					builderConf.setOption(EvaluatorOption.get("annIncludes", new AnnIncludesOperator.AnnIncludesEvaluatorDefinition()));
+					builderConf.setOption(EvaluatorOption.get("annIntersects", new AnnIntersectsOperator.AnnIntersectsEvaluatorDefinition()));
+					builderConf.setOption(EvaluatorOption.get("annStartsAfter", new AnnStartsAfterOperator.AnnStartsAfterEvaluatorDefinition()));
+					
 					// Start CONSERT Engine
-					this.kSession = TestSetup.getKieSessionFromResources("rules/HLA.drl");
+					this.kSession = TestSetup.getKieSessionFromResources(builderConf, null, 
+							"rules/HLA.drl", 
+							"casas_interwoven_constraints/PersonLocation_constraints.drl");
 			    	this.engineRunner = new Thread(new EngineRunner(kSession));
 			    	this.eventTracker = new EventTracker(kSession);
-			    	this.eventTracker.addEventListener(this);
+			    	this.eventTracker.addContextAssertionListener(this);
 			    	this.insertionService = Executors.newSingleThreadExecutor();
 			    	
 			    	this.engineRunner.start();
@@ -357,7 +378,7 @@ public class ConsertEngine extends AbstractVerticle implements Agent, ContextAss
 		}
 		
 		public void run() {
-			eventTracker.insertAtomicEvent(ca);
+			eventTracker.insertEvent(ca);
         }
 	}
 	

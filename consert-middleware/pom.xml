@@ -13,14 +13,47 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<vertx.version>3.4.1</vertx.version>
 		<rdf4j.version>2.2</rdf4j.version>
+		<consert.engine.repo>/home/alex/work/AI-MAS/projects/CONSERT/dev/consert-project/consert-engine/repo</consert.engine.repo>
+		<consert.rosmsg.repo>/home/alex/work/AI-MAS/projects/CONSERT/dev/consert-project/consert-engine/consert-rosmsg-repo</consert.rosmsg.repo>
 	</properties>
 
 	<repositories>
 		<repository>
+			<id>jboss-public-repository-group</id>
+			<name>JBoss Public Repository Group</name>
+			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</repository>
+		
+		<repository>
 			<id>cep-engine-repository</id>
 			<name>CONSERT Engine Local Repository</name>
-			<url>file://C:\Users\Hugo\git\CONSERT-Engine\consert-engine\repo</url>
+			<url>${consert.engine.repo}</url>
 		</repository>
+		
+		<repository>
+            <id>consert-ros-msg</id>
+            <name>CONSERT ROS Messages</name>
+            <url>${consert.rosmsg.repo}</url>
+        </repository>
+        
+        <repository>
+            <id>rosjava</id>
+            <url>https://github.com/rosjava/rosjava_mvn_repo/raw/master/</url>
+        </repository>
+        
+        <repository>
+            <id>jfrog</id>
+            <url>http://repo.jfrog.org/artifactory/libs-releases/</url>
+        </repository>
+		
 	</repositories>
 
 	<dependencies>
@@ -80,6 +113,12 @@
 		<dependency>
 			<groupId>org.aimas.consert</groupId>
 			<artifactId>cep-engine</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.aimas.consert</groupId>
+			<artifactId>cep-engine-tests</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

@@ -23,6 +23,7 @@ import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionUpdateMode;
 import org.aimas.consert.model.content.ContextAssertion;
 import org.aimas.consert.tests.casas.CASASEventReader;
+import org.aimas.consert.tests.hla.HLAEventReader;
 import org.aimas.consert.tests.hla.assertions.LLA;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -98,7 +99,7 @@ public class CtxSensorLLA extends CtxSensor {
 		ClassLoader classLoader = CtxSensor.class.getClassLoader();
 	    File eventsFile = new File(classLoader.getResource(CtxSensorLLA.EVENTS_FILE_NAME).getFile());
 	    
-	    CASASEventReader eventReader = new CASASEventReader();
+	    HLAEventReader eventReader = new HLAEventReader();
 	    
 	    // Keep the LLA events only
 		this.events = eventReader.parseEvents(eventsFile);

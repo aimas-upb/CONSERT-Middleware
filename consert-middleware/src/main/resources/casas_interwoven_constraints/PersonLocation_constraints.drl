@@ -1,0 +1,110 @@
+package org.aimas.consert.casas_interwoven_constraints;
+//dialect  "mvel"
+
+import org.aimas.consert.model.constraint.UniquenessConstraintViolation
+import org.aimas.consert.tests.casas.assertions.PersonLocation
+import org.aimas.consert.model.content.ContextAssertion;
+
+import org.aimas.consert.engine.core.EventTracker
+import org.apache.log4j.Logger
+import org.aimas.consert.engine.core.EventWindowManager
+import org.aimas.consert.engine.core.ChangePointManager
+
+global EventTracker eventTracker
+global Logger generalRuleLogger
+global Logger eventWindowLogger
+global EventWindowManager eventWindowManager
+global ChangePointManager changePointManager
+
+query "PersonLocation_overlaps_constraint" (PersonLocation locationAssertion)
+    @constraintType("uniqueness")
+    @conditionType("overlap")
+    @assertionType(PersonLocation)
+
+    newAssertion : PersonLocation(this == locationAssertion, newLocName : location) from entry-point "ExtendedPersonLocationStream"
+    existingAssertion : PersonLocation(this != locationAssertion, location != newLocName,
+        this annOverlaps newAssertion) from entry-point "ExtendedPersonLocationStream"
+end
+
+query "PersonLocation_isIncluded_constraint" (PersonLocation locationAssertion)
+    @constraintType("uniqueness")
+    @conditionType("isIncluded")
+    @assertionType(PersonLocation)
+
+    newAssertion : PersonLocation(this == locationAssertion, newLocName : location) from entry-point "ExtendedPersonLocationStream"
+    existingAssertion : PersonLocation(this != locationAssertion, location != newLocName,
+        this annIncludes newAssertion) from entry-point "ExtendedPersonLocationStream"
+end
+
+
+query "PersonLocation_includes_constraint" (PersonLocation locationAssertion)
+    @constraintType("uniqueness")
+    @conditionType("includes")
+    @assertionType(PersonLocation)
+
+    newAssertion : PersonLocation(this == locationAssertion, newLocName : location) from entry-point "ExtendedPersonLocationStream"
+    existingAssertion : PersonLocation(this != locationAssertion, location != newLocName,
+        newAssertion annIncludes this) from entry-point "ExtendedPersonLocationStream"
+end
+
+
+
+/*
+rule "PersonLocation_overlaps_constraint"
+    @constraintType("uniqueness")
+    @conditionType("overlap")
+    @assertionType(PersonLocation.class)
+
+    agenda-group "constraint"
+    activation-group "PersonLocation_constraint"
+    auto-focus
+
+    when
+        $loc1 : PersonLocation(loc : location) from entry-point "ConstraintCheckStream"
+        $loc2 : PersonLocation(location != loc, this annOverlaps $loc1) from entry-point "ExtendedPersonLocationStream"
+    then
+        System.out.println("________[CONSTRAINT CHECKER]________ detected OVERLAPS conflict for PersonLocation " + $loc1 + " AND " + $loc2);
+        UniquenessConstraintViolation ucv = new UniquenessConstraintViolation("overlap",
+            "PersonLocation_overlaps_constraint", $loc2, $loc1);
+
+        eventTracker.conflictDetected(ucv);
+end
+
+
+rule "PersonLocation_includes_constraint"
+    @constraintType("uniqueness")
+    @conditionType("include")
+    @assertionType(PersonLocation.class)
+
+    agenda-group "constraint"
+    activation-group "PersonLocation_constraint"
+    auto-focus
+
+    when
+        $loc1 : PersonLocation(loc : location) from entry-point "ConstraintCheckStream"
+        $loc2 : PersonLocation(location != loc, this annIncludes $loc1) from entry-point "ExtendedPersonLocationStream"
+    then
+        System.out.println("________[CONSTRAINT CHECKER]________ detected INCLUDES conflict for PersonLocation " + $loc1 + " AND " + $loc2);
+        UniquenessConstraintViolation ucv = new UniquenessConstraintViolation("include",
+                    "PersonLocation_includes_constraint", $loc2, $loc1);
+
+        eventTracker.conflictDetected(ucv);
+end
+
+
+rule "Pass_constraint_test"
+    @conditionType("unconstrained")
+    @assertionType(PersonLocation.class)
+
+    agenda-group "constraint"
+    activation-group "PersonLocation_constraint"
+    auto-focus
+
+    salience -10
+    when
+        $loc : PersonLocation() from entry-point "ConstraintCheckStream"
+    then
+        System.out.println("________[CONSTRAINT CHECKER]________ CLEAR OF CONSTRAINTS for PersonLocation " + $loc);
+        eventTracker.clearForInsertion($loc);
+end
+*/
