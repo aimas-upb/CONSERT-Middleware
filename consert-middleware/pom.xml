@@ -38,16 +38,18 @@
 			<url>${consert.engine.repo}</url>
 		</repository>
 		
+		<!-- 
 		<repository>
             <id>consert-ros-msg</id>
             <name>CONSERT ROS Messages</name>
             <url>${consert.rosmsg.repo}</url>
         </repository>
-        
+         
         <repository>
             <id>rosjava</id>
             <url>https://github.com/rosjava/rosjava_mvn_repo/raw/master/</url>
         </repository>
+        -->
         
         <repository>
             <id>jfrog</id>
