@@ -18,6 +18,7 @@ import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
 import org.aimas.consert.model.Constants;
 import org.aimas.consert.model.content.ContextAssertion;
+import org.apache.tools.ant.taskdefs.Sleep;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
 import org.eclipse.rdf4j.RDF4JException;
@@ -127,18 +128,17 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 					}
 		
 					// Send the assertion capabilities before doing anything
-					this.assertionCapabilitiesIds = new LinkedList<UUID>();
-					this.sendAssertionCapabilities(future);
+//					this.assertionCapabilitiesIds = new LinkedList<UUID>();
+//					this.sendAssertionCapabilities(future);
 					
 					// Read events from the adaptor and send them to the CtxCoord agent
-					this.readEvents();
+//					this.readEvents();
 				});
 			});
 			
 			this.findAgents(futureAgents);
 		});
-
-		this.host = "0.0.0.0";
+		this.host = "127.0.0.1";
 		this.getConfigFromOrgMgr(futureConfig);
 	}
 
@@ -230,7 +230,7 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 					public void handle(Buffer buffer) {
 						
 						try {
-							
+//							System.out.println(buffer);
 							// Convert the statements to a Java object
 							Model model = Rio.parse(new ByteArrayInputStream(buffer.getBytes()), "", RDFFormat.TURTLE);
 							convRepoConn.add(model);

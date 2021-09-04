@@ -67,7 +67,7 @@ public class CtxSensorLLA extends CtxSensor {
 			// use a default value
 			this.orgMgr = new AgentAddress("127.0.0.1", 8080);
 		}
-		
+//		System.out.println("asd");
 		super.start(future);
 	}
 

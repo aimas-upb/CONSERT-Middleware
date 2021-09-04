@@ -13,8 +13,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<vertx.version>3.4.1</vertx.version>
 		<rdf4j.version>2.2</rdf4j.version>
-		<consert.engine.repo>/home/alex/work/AI-MAS/projects/CONSERT/dev/consert-project/consert-engine/repo</consert.engine.repo>
-		<consert.rosmsg.repo>/home/alex/work/AI-MAS/projects/CONSERT/dev/consert-project/consert-engine/consert-rosmsg-repo</consert.rosmsg.repo>
+		<consert.engine.repo>C:\Users\sergi\Documents\CaaS\CONSERT\consert-engine\repo</consert.engine.repo>
+		<consert.rosmsg.repo>C:\Users\sergi\Documents\CaaS\CONSERT\consert-engine\consert-rosmsg-repo</consert.rosmsg.repo>
 	</properties>
 
 	<repositories>
@@ -115,12 +115,6 @@
 		<dependency>
 			<groupId>org.aimas.consert</groupId>
 			<artifactId>cep-engine</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.aimas.consert</groupId>
-			<artifactId>cep-engine-tests</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

@@ -58,7 +58,7 @@ public class OrgMgr extends AbstractVerticle implements Agent {
 				"http://pervasive.semanticweb.org/ont/2014/06/consert/cmm/orgconf#OrgMgrSpec");
 		CMMAgentContainer container = orgMgrSpec.getAgentAddress().getAgentContainer();
 		this.agentConfig = new AgentConfig(container.getContainerHost(), container.getContainerPort());
-		this.host = "0.0.0.0";
+		this.host = "127.0.0.1";
 
 		// Start server
 		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,

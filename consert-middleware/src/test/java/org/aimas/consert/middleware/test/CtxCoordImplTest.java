@@ -41,10 +41,10 @@ public class CtxCoordImplTest extends CtxCoord {
 		
 		super.start(future);
 		
-		this.taskingCommandsService = Executors.newScheduledThreadPool(1);
+//		this.taskingCommandsService = Executors.newScheduledThreadPool(1);
 		
 		// wait before sending the tasking commands so that the CtxSensors can start 
-		this.taskingCommandsService.schedule(new SendStartTaskingCommands(), 2000, TimeUnit.MILLISECONDS);
+//		this.taskingCommandsService.schedule(new SendStartTaskingCommands(), 2000, TimeUnit.MILLISECONDS);
 	}
 	
 	@Override

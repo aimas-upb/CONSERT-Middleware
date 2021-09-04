@@ -63,8 +63,9 @@ public class CtxSensorPosition extends CtxSensor {
 			CMMAgentContainer container = spec.getAgentAddress().getAgentContainer();
 			this.orgMgr = new AgentAddress(container.getContainerHost(), container.getContainerPort());
 		} else {
+			System.out.println("test");
 			// use a default value
-			this.orgMgr = new AgentAddress("127.0.0.1", 8080);
+			this.orgMgr = new AgentAddress("127.0.0.1", 8081);
 		}
 		
 		super.start(future);

@@ -103,22 +103,22 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 						} else {
 							System.out.println("Failed to start CtxCoord on port " + this.agentConfig.getPort()
 								+ " host " + this.host);
-						}					
+						}
 
 						// Start CONSERT Engine by deploying its verticle
-						DeploymentOptions engineDeplOpt = new DeploymentOptions();
-						engineDeplOpt.setWorker(true);
-						JsonObject engineConfig = new JsonObject()
-								.put("address", this.consertEngine.getIpAddress())
-								.put("port", this.consertEngine.getPort())
-								.put("host", "0.0.0.0");
-						engineDeplOpt.setConfig(engineConfig);
-						
-						this.vertx.deployVerticle(ConsertEngine.class.getName(), engineDeplOpt,
-								result -> {
-									
-							future.complete();
-						});
+//						DeploymentOptions engineDeplOpt = new DeploymentOptions();
+//						engineDeplOpt.setWorker(true);
+//						JsonObject engineConfig = new JsonObject()
+//								.put("address", this.consertEngine.getIpAddress())
+//								.put("port", this.consertEngine.getPort())
+//								.put("host", "0.0.0.0");
+//						engineDeplOpt.setConfig(engineConfig);
+//
+//						this.vertx.deployVerticle(ConsertEngine.class.getName(), engineDeplOpt,
+//								result -> {
+//
+//							future.complete();
+//						});
 					});
 		});
 		
@@ -134,7 +134,7 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 			this.orgMgr = new AgentAddress("127.0.0.1", 8080);
 		}
 
-		this.host = "0.0.0.0";
+		this.host = "127.0.0.1";
 		this.getConfigFromOrgMgr(futureConfig);
 	}
 	
