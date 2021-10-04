@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.aimas.consert.middleware.config.AgentSpecification;
-import org.aimas.consert.middleware.config.CMMAgentContainer;
-import org.aimas.consert.middleware.config.CoordinatorSpecification;
-import org.aimas.consert.middleware.config.MiddlewareConfig;
+import org.aimas.consert.middleware.config.*;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.model.AssertionCapability;
 import org.aimas.consert.middleware.model.AssertionCapabilitySubscription;
@@ -32,14 +29,12 @@ import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
 /**
@@ -67,8 +62,12 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 	private AgentAddress ctxUser;  // configuration to communicate with the CtxUser agent
 	private AgentAddress orgMgr;  // configuration to communicate with the OrgMgr agent
 	private AgentAddress consertEngine;  // configuration to communicate with the CONSERT Engine
-	
-	
+
+	public String ip = "127.0.0.1";
+	public Integer port = 8081;
+	public Integer sleepFactor = 1;
+	public Integer sleep = 2; // seconds
+
 	@Override
 	public void start(Future<Void> future) {
 
@@ -95,14 +94,14 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 			this.router = routeConfig.createRouterCoordination(this.vertx, this);
 
 			// Start server
-			this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
+			this.vertx.createHttpServer().requestHandler(router::accept).listen(this.port, this.host,
 					res -> {
 						if (res.succeeded()) {
-							System.out.println("Started CtxCoord on port " + this.agentConfig.getPort() + " host "
-								+ this.host);
+							Request.log("Started CtxCoord on port " + this.port + " host "
+									+ this.host);
 						} else {
-							System.out.println("Failed to start CtxCoord on port " + this.agentConfig.getPort()
-								+ " host " + this.host);
+							Request.log("Failed to start CtxCoord on port " + this.agentConfig.getPort()
+									+ " host " + this.host);
 						}
 
 						// Start CONSERT Engine by deploying its verticle
@@ -215,8 +214,18 @@ public class CtxCoord extends AbstractVerticle implements Agent {
 					}
 				});
 			}
-			
-		}).putHeader("content-type", "text/plain").end("CtxCoord");
+
+		}).putHeader("content-type", "text/plain").exceptionHandler(event -> {
+			Request.log("Missing OgrMgr Agent.");
+			Request.wait((int) Math.pow(this.sleep, this.sleepFactor));
+//			this.sleep = this.sleep + 1;
+//			this.agentConfig = new AgentConfig();
+//			agentConfig.setAddress(this.ip);
+//			agentConfig.setAddress(this.ip);
+//			agentConfig.setPort(this.port);
+//			future.complete();
+			this.getConfigFromOrgMgr(future);
+		}).end("CtxCoord");
 	}
 	
 

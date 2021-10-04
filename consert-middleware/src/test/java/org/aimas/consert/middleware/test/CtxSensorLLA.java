@@ -3,6 +3,7 @@ package org.aimas.consert.middleware.test;
 import io.vertx.core.Future;
 
 import java.io.File;
+import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -97,7 +98,7 @@ public class CtxSensorLLA extends CtxSensor {
 		
 		// Start reading the context assertions and their annotations
 		ClassLoader classLoader = CtxSensor.class.getClassLoader();
-	    File eventsFile = new File(classLoader.getResource(CtxSensorLLA.EVENTS_FILE_NAME).getFile());
+	    File eventsFile = new File(String.valueOf(classLoader.getResourceAsStream(CtxSensorLLA.EVENTS_FILE_NAME)));
 	    
 	    HLAEventReader eventReader = new HLAEventReader();
 	    

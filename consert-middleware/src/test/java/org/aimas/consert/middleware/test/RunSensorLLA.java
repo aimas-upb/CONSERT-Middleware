@@ -6,7 +6,7 @@ import io.vertx.core.Vertx;
 /**
  * Starts the HLATest scenario
  */
-public class SensorLLA {
+public class RunSensorLLA {
 
 	public static void main(String[] args) {
 		

@@ -3,6 +3,7 @@ package org.aimas.consert.middleware.protocol;
 import java.io.ByteArrayOutputStream;
 
 import org.aimas.consert.middleware.agents.OrgMgr;
+import org.aimas.consert.middleware.config.Request;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.cyberborean.rdfbeans.RDFBeanManager;
 import org.cyberborean.rdfbeans.exceptions.RDFBeanException;
@@ -51,7 +52,11 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 	public void handlePostCtxAgents(RoutingContext rtCtx) {
 		
 		String agent = rtCtx.getBodyAsString();
-		
+		String type = rtCtx.request().method().name();
+		String remoteHost = rtCtx.request().remoteAddress().host();
+		int remotePort = rtCtx.request().remoteAddress().port();
+		Request.logInfo(remoteHost, remotePort, type, agent);
+
 		// Set the values for the configuration of the new agent
 		AgentAddress addr = new AgentAddress();
 		addr.setIpAddress(rtCtx.request().remoteAddress().host());
@@ -117,7 +122,10 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleGetFindCoord(RoutingContext rtCtx) {
-		
+		String type = rtCtx.request().method().name();
+		String remoteHost = rtCtx.request().remoteAddress().host();
+		int remotePort = rtCtx.request().remoteAddress().port();
+		Request.logInfo(remoteHost, remotePort, type, "asd");
 		findAgent(rtCtx, this.orgMgr.getCtxCoord());
 	}
 
@@ -127,7 +135,10 @@ public class RouteConfigV1Management extends RouteConfigV1 {
 	 * @param rtCtx the routing context
 	 */
 	public void handleGetFindQueryHandler(RoutingContext rtCtx) {
-		
+		String type = rtCtx.request().method().name();
+		String remoteHost = rtCtx.request().remoteAddress().host();
+		int remotePort = rtCtx.request().remoteAddress().port();
+		Request.logInfo(remoteHost, remotePort, type, null);
 		findAgent(rtCtx, this.orgMgr.getCtxQueryHandler());
 	}
 	

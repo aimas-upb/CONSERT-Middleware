@@ -128,8 +128,8 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 					}
 		
 					// Send the assertion capabilities before doing anything
-//					this.assertionCapabilitiesIds = new LinkedList<UUID>();
-//					this.sendAssertionCapabilities(future);
+					this.assertionCapabilitiesIds = new LinkedList<UUID>();
+					this.sendAssertionCapabilities(future);
 					
 					// Read events from the adaptor and send them to the CtxCoord agent
 //					this.readEvents();
@@ -307,9 +307,11 @@ public abstract class CtxSensor extends AbstractVerticle implements Agent {
 				}
 				
 				writer.endRDF();
-				
+//				System.out.println(ctxCoord.getPort());
+//				System.out.println(ctxCoord.getIpAddress());
+//				System.out.println(baos.toString());
 				// send to the CtxCoord
-				this.client.post(ctxCoord.getPort(), ctxCoord.getIpAddress(), route, new Handler<HttpClientResponse>() {
+				this.client.post(8081, ctxCoord.getIpAddress(), route, new Handler<HttpClientResponse>() {
 	
 					@Override
 					public void handle(HttpClientResponse resp) {

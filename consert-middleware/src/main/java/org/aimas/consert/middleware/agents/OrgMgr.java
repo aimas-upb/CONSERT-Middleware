@@ -1,12 +1,12 @@
 package org.aimas.consert.middleware.agents;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.aimas.consert.middleware.config.AgentSpecification;
-import org.aimas.consert.middleware.config.CMMAgentContainer;
-import org.aimas.consert.middleware.config.ManagerSpecification;
-import org.aimas.consert.middleware.config.MiddlewareConfig;
+import io.vertx.ext.web.handler.CorsHandler;
+import org.aimas.consert.middleware.config.*;
 import org.aimas.consert.middleware.model.AgentAddress;
 import org.aimas.consert.middleware.protocol.RouteConfig;
 import org.aimas.consert.middleware.protocol.RouteConfigV1;
@@ -64,10 +64,10 @@ public class OrgMgr extends AbstractVerticle implements Agent {
 		this.vertx.createHttpServer().requestHandler(router::accept).listen(this.agentConfig.getPort(), this.host,
 				res -> {
 					if (res.succeeded()) {
-						System.out.println("Started OrgMgr on port " + this.agentConfig.getPort() + " host "
+						Request.log("Started OrgMgr on port " + this.agentConfig.getPort() + " host "
 								+ this.host);
 					} else {
-						System.out.println("Failed to start OrgMgr on port " + this.agentConfig.getPort() + " host "
+						Request.log("Failed to start OrgMgr on port " + this.agentConfig.getPort() + " host "
 								+ this.host);
 					}
 					
